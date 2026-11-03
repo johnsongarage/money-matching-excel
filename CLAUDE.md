@@ -2,7 +2,7 @@
 
 배달 정산 맞추기 최소 데모 (hq 이름: `delivery-profit`).
 
-- `index.html` 한 파일. 빌드 없음, Vanilla JS, 데이터는 파일 안 배열.
+- 빌드 없음, Vanilla JS. 예시 데이터·계산은 `data.js`(window.DEMO) 하나, 화면은 `index.html`(기본 카드형)·`dashboard.html`(대시보드형) 두 개. 위쪽 디자인 콤보 박스로 오감.
 - 작업 지시서: hq `projects/delivery-profit-demo.md` — 범위("하지 않을 것" 포함)를 먼저 확인할 것.
 - **공개 저장소**: 가짜 데이터만. 실데이터·실명·가게 이름·브랜드명 절대 커밋 금지.
 - 수수료율·배달비는 예시로만 쓰고 실제 앱 요율로 단정하지 않는다.
