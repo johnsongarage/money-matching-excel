@@ -156,7 +156,7 @@ const NODES = [
      {t:'결제 수수료', v:'?', d:'누가 얼마를 내는지 브랜드마다 다름'},
      {t:'앱 이용료·행사 분담', v:'?', d:'브랜드에 따라 있을 수 있음'},
      {t:'상계', v:'?', d:'재료비 40만 − 앱 매출 5만 = 35만 청구처럼 순액만 오가면 통장에서 앱 매출이 안 보임'}],
-   where:'본사 정산서, 바이저 자료', visor:'있을 수 있음'},
+   where:'본사 정산서·자료', visor:'있을 수 있음'},
   {id:'cash', side:'in', name:'현금·간편결제', sub:'현금, 계좌이체, 페이류', sold:'3만', got:'+3만',
    flow:'현금은 은행에 넣지 않으면 통장에 아예 안 찍힘',
    kids:[
@@ -170,7 +170,7 @@ const NODES = [
      {t:'로열티', v:'?', d:'매출의 % 또는 고정액. 재료값 마진(차액가맹금)으로 대신하는 곳도 많음'},
      {t:'광고·행사 분담금', v:'?', d:'브랜드 광고, 배달앱 브랜드 할인 행사의 가게 몫'},
      {t:'가맹비·교육비·인테리어', v:'개점 때 1회', d:'다달 정산과는 무관'}],
-   where:'본사 청구서, 바이저 자료', visor:'있음 (본사가 알아야 할 숫자)'},
+   where:'본사 청구서·자료', visor:'있음 (본사가 알아야 할 숫자)'},
   {id:'buy', side:'out', name:'사입처', sub:'마트·도매·온라인몰', sold:'', got:'−5만',
    flow:'본사 물류 말고 직접 사는 재료',
    kids:[
@@ -209,7 +209,7 @@ function render(){
     <ul class="tree ${n.side}">${n.kids.map(k => `<li><span class="t">${k.t}</span><span class="v">${k.v}</span><span class="d">${k.d}</span></li>`).join('')}</ul>
     <div class="facts">
       <div class="fact"><h3>어디서 확인하나</h3><p>${n.where}</p></div>
-      <div class="fact"><h3>바이저 엑셀에 있나</h3><p>${n.visor}</p></div>
+      <div class="fact"><h3>본사 엑셀에 있나</h3><p>${n.visor}</p></div>
     </div>`;
   drawWires();
 }

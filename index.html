@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>본사 엑셀 맞추기</title>
-<meta name="description" content="바이저(본사) 엑셀 매출과 통장 입금이 왜 다른지 한 단계씩 맞춰 보는 데모 (예시 데이터)">
+<meta name="description" content="본사 엑셀 매출과 통장 입금이 왜 다른지 한 단계씩 맞춰 보는 데모 (예시 데이터)">
 <style>
   :root {
     --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
@@ -149,7 +149,7 @@
 
   <section class="card pad" aria-labelledby="fall-title">
     <h2 id="fall-title">엑셀에서 통장까지, 한 단계씩</h2>
-    <p class="muted">바이저 엑셀의 매출에서 시작해, 통장에 오기 전에 빠지거나 다른 달로 넘어간 돈을 하나씩 뺍니다. 막대에 마우스를 올리면 설명이 나와요.</p>
+    <p class="muted">본사 엑셀의 매출에서 시작해, 통장에 오기 전에 빠지거나 다른 달로 넘어간 돈을 하나씩 뺍니다. 막대에 마우스를 올리면 설명이 나와요.</p>
     <div class="fall-legend">
       <span><i style="background:var(--total)"></i>합계</span>
       <span><i style="background:var(--cut)"></i>빠진 돈 (이유 있음)</span>
@@ -162,7 +162,7 @@
   <section class="card" aria-labelledby="ch-title">
     <div class="tbl-top">
       <h2 id="ch-title">들어오는 길별로 보기</h2>
-      <p class="muted">매출은 바이저 엑셀, 실제 입금은 통장 기준</p>
+      <p class="muted">매출은 본사 엑셀, 실제 입금은 통장 기준</p>
     </div>
     <div class="tbl-scroll">
       <table id="ch-table">
@@ -246,19 +246,19 @@
 
   // ---------------------------------------------------------------- 맨 위 한 줄 + 숫자 카드
   document.getElementById('lead').innerHTML =
-    MONTH + ' 바이저 엑셀엔 매출 <b>' + man(excelSale) + ' 원</b>, 통장엔 <b>' + man(bankIn) + ' 원</b>이 들어왔어요. ' +
+    MONTH + ' 본사 엑셀엔 매출 <b>' + man(excelSale) + ' 원</b>, 통장엔 <b>' + man(bankIn) + ' 원</b>이 들어왔어요. ' +
     '차이 <b>' + man(gap) + ' 원</b> 중 <b>' + man(explained) + ' 원은 이유를 찾았고</b>, ' +
     '<b class="bad">' + won(unexplained) + '원은 아직 설명이 안 돼요.</b>';
   document.getElementById('kpis').innerHTML =
-    '<div class="card kpi"><p class="label">바이저 엑셀 매출</p><div class="num">' + won(excelSale) + '원</div><p class="desc">매장 카드·현금·배달앱·본사 앱 합계 (판 금액 그대로)</p></div>' +
+    '<div class="card kpi"><p class="label">본사 엑셀 매출</p><div class="num">' + won(excelSale) + '원</div><p class="desc">매장 카드·현금·배달앱·본사 앱 합계 (판 금액 그대로)</p></div>' +
     '<div class="card kpi"><p class="label">통장에 들어온 매출 대금</p><div class="num">' + won(bankIn) + '원</div><p class="desc">카드사·배달앱 입금 + 현금 입금</p></div>' +
     '<div class="card kpi"><p class="label">차이</p><div class="num">' + won(gap) + '원</div>' +
     '<div class="split"><span class="chip ok">이유 찾음 ' + won(explained) + '</span><span class="chip bad">⚠ 설명 안 됨 ' + won(unexplained) + '</span></div></div>';
 
   // ---------------------------------------------------------------- 폭포
   var steps = [
-    { kind: 'total', name: '바이저 엑셀 매출', note: '본사가 POS 매출로 집계한 판 금액', v: excelSale },
-    { kind: 'cut', name: '배달비 (가게 부담)', note: '배달 주문마다 고정 · ' + won(sumApps('orders')) + '건', v: sumApps('cDeliv'), why: '배달앱이 정산금에서 먼저 뺌. 바이저 엑셀엔 없음' },
+    { kind: 'total', name: '본사 엑셀 매출', note: '본사가 POS 매출로 집계한 판 금액', v: excelSale },
+    { kind: 'cut', name: '배달비 (가게 부담)', note: '배달 주문마다 고정 · ' + won(sumApps('orders')) + '건', v: sumApps('cDeliv'), why: '배달앱이 정산금에서 먼저 뺌. 본사 엑셀엔 없음' },
     { kind: 'cut', name: '배달앱 중개 수수료', note: '판매 금액의 몇 % (예시)', v: sumApps('cBroker'), why: '배달앱 정산 내역서에만 있음' },
     { kind: 'cut', name: '할인·쿠폰 (가게 부담)', note: '본사 행사 몫 + 가게가 건 쿠폰', v: sumApps('cCoupon'), why: '엑셀엔 할인 전 금액으로 잡힘' },
     { kind: 'cut', name: '수수료 부가세', note: '수수료·배달비의 10%', v: sumApps('cVat') },
@@ -319,8 +319,8 @@
   var material = HQ.material.reduce(function (s, v) { return s + v; }, 0);
   var hqOut = material + HQ.share - HQAPP.net;
   document.getElementById('hq').innerHTML =
-    '<tr><td class="l">재료비 청구 (주 1회 발주 · ' + HQ.material.length + '번)</td><td class="l">바이저 엑셀</td><td>' + won(material) + '</td></tr>' +
-    '<tr><td class="l">광고·행사 분담금<span class="s">배달앱 브랜드 할인 행사의 가게 몫 등</span></td><td class="l">바이저 엑셀</td><td>' + won(HQ.share) + '</td></tr>' +
+    '<tr><td class="l">재료비 청구 (주 1회 발주 · ' + HQ.material.length + '번)</td><td class="l">본사 엑셀</td><td>' + won(material) + '</td></tr>' +
+    '<tr><td class="l">광고·행사 분담금<span class="s">배달앱 브랜드 할인 행사의 가게 몫 등</span></td><td class="l">본사 엑셀</td><td>' + won(HQ.share) + '</td></tr>' +
     '<tr><td class="l">본사 앱 매출 상계 <span class="assume">가정</span><span class="s">본사 앱 매출 ' + won(HQAPP.sale) + ' − 결제 수수료 ' + won(HQAPP.fee) + '</span></td><td class="l">엑셀엔 매출로만 있음</td><td>−' + won(HQAPP.net) + '</td></tr>' +
     '<tr class="sum"><td class="l">본사로 나가야 할 돈</td><td class="l"></td><td>' + won(hqOut) + '</td></tr>' +
     '<tr><td class="l">통장에서 본사로 나간 돈 (' + HQ.material.length + '번 출금 합계)</td><td class="l">통장</td><td><b>' + won(hqOut) + '</b></td></tr>' +
