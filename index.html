@@ -73,6 +73,7 @@
   .app .s { font-size: 11px; color: var(--sub); }
 
   /* 2·3. 주문 표 */
+  .table-wrap { overflow-x: auto; border-radius: 14px; }
   .filters { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; }
   .filters button {
     font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
@@ -107,6 +108,32 @@
   .why.late { color: var(--late); background: var(--late-bg); }
   .hint { font-size: 12px; color: var(--sub); margin: 6px 2px 0; }
 
+  /* 넓은 화면(웹): 모든 항목을 칸으로 펼쳐 보기. 좁은 화면(앱)은 추린 칸만 */
+  .w { display: none; }
+  .wide-hint { display: none; }
+  @media (min-width: 960px) {
+    main { max-width: 1400px; padding: 24px 24px 48px; }
+    .top { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+    .top > section { margin-top: 0; }
+    .hero h1 { font-size: 26px; }
+    .w { display: table-cell; }
+    .m { display: none; }
+    tr.order { cursor: default; }
+    tr.detail { display: none; }
+    td.w-menu { text-align: left; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    th, td.w { white-space: nowrap; }
+    td.w-note { white-space: normal; min-width: 11em; }
+    .w-left, th.w-left { text-align: left; }
+    td.w-note { text-align: left; font-size: 12px; }
+    td.w-note.bad { color: var(--bad); }
+    td.w-note.late { color: var(--late); }
+    th.grp { border-left: 1px solid var(--line); }
+    td.grp { border-left: 1px solid var(--line); }
+    tfoot td { font-weight: 700; background: var(--bg); border-bottom: 0; }
+    .wide-hint { display: inline; }
+    .narrow-hint { display: none; }
+  }
+
   footer { margin-top: 28px; padding: 14px 16px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13px; color: var(--sub); }
   footer strong { color: var(--ink); }
 </style>
@@ -115,6 +142,7 @@
 <main>
   <p class="eyebrow">배달 정산 맞추기 <span class="demo-tag">예시 데이터</span></p>
 
+  <div class="top">
   <!-- 1. 요약 한 줄 -->
   <div class="hero">
     <h1 id="headline"></h1>
@@ -130,15 +158,24 @@
     <div class="leaks" id="leaks"></div>
     <div class="apps" id="apps"></div>
   </section>
+  </div>
 
   <!-- 2·3. 주문 건별 표 -->
   <section>
-    <h2>주문 건별 <small>줄을 누르면 빠진 돈이 자세히 나와요</small></h2>
+    <h2>주문 건별 <small class="narrow-hint">줄을 누르면 빠진 돈이 자세히 나와요</small><small class="wide-hint">빠진 돈을 항목별로 펼쳐 봤어요</small></h2>
     <div class="filters" id="filters" role="group" aria-label="주문 거르기"></div>
-    <table>
-      <thead><tr><th>주문</th><th>판매</th><th>빠진 돈</th><th>통장</th></tr></thead>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th class="m">주문</th>
+        <th class="w w-left">주문일</th><th class="w w-left">배달앱</th><th class="w w-left">메뉴</th>
+        <th>판매</th>
+        <th class="w grp">중개 수수료</th><th class="w">결제 수수료</th><th class="w">부가세</th><th class="w">배달비</th><th class="w">할인·쿠폰</th><th class="w">광고비</th>
+        <th class="grp">빠진 돈</th>
+        <th class="w grp">입금 예정액</th><th class="m">통장</th><th class="w">실제 입금</th><th class="w">예정일</th><th class="w">입금일</th><th class="w w-left">비고</th>
+      </tr></thead>
       <tbody id="orders"></tbody>
-    </table>
+      <tfoot id="totals"></tfoot>
+    </table></div>
     <p class="hint">빨간 줄은 예정액과 실제 입금이 다른 주문, 노란 줄은 입금일이 밀린 주문이에요.</p>
   </section>
 
@@ -189,7 +226,7 @@
     ['2026-10-24', 'A앱', [['아메리카노', 2], ['카페라떼', 2], ['크로플', 2]], 1000, 300],
     ['2026-10-24', 'B앱', [['딸기스무디', 2], ['아이스티', 1]], 1000, 0],
     ['2026-10-24', 'C앱', [['카페라떼', 3]], 0, 0],
-    ['2026-10-24', 'A앱', [['호지차라떼', 1], ['아메리카노', 2]], 0, 300, { short: 800, why: '예정보다 800원 적게 입금 — 정산서에 따로 설명 없음' }],
+    ['2026-10-24', 'A앱', [['호지차라떼', 1], ['아메리카노', 2]], 0, 300, { short: 800, why: '정산서에 따로 설명 없음' }],
     ['2026-10-25', 'A앱', [['아메리카노', 5], ['크로플', 1]], 2000, 300],
     ['2026-10-25', 'B앱', [['바닐라라떼', 1], ['카페라떼', 1], ['아메리카노', 1]], 0, 0],
     ['2026-10-25', 'A앱', [['딸기스무디', 1], ['아메리카노', 1], ['크로플', 1]], 0, 300, { late: 1 }],
@@ -353,15 +390,36 @@
       var cls = r.short ? 'bad' : r.lateDays ? 'late' : '';
       var badge = r.short ? '<span class="badge bad">' + won(r.short) + '원 덜</span>'
         : r.lateDays ? '<span class="badge late">' + r.lateDays + '일 늦음</span>' : '';
+      var neg = function (v) { return v ? '−' + won(v) : '0'; };
+      var note = r.short ? won(r.short) + '원 덜 들어옴' : r.lateDays ? r.lateDays + '영업일 늦게 입금' : '';
       var tr = '<tr class="order ' + cls + '" data-no="' + r.no + '" tabindex="0" aria-expanded="' + !!open[r.no] + '">' +
-        '<td><span class="o-meta">' + md(r.date) + ' · ' + r.app + '</span><span class="o-menu">' + menuText(r.items) + '</span></td>' +
+        '<td class="m"><span class="o-meta">' + md(r.date) + ' · ' + r.app + '</span><span class="o-menu">' + menuText(r.items) + '</span></td>' +
+        '<td class="w w-left">' + md(r.date) + '</td><td class="w w-left">' + r.app + '</td><td class="w w-menu" title="' + menuText(r.items) + '">' + menuText(r.items) + '</td>' +
         '<td>' + won(r.sale) + '</td>' +
-        '<td class="minus">−' + won(r.cut + r.short) + '</td>' +
-        '<td><span class="paid">' + won(r.paid) + '</span><br><span class="o-meta">' + md(r.paidOn) + '</span>' + (badge ? '<br>' + badge : '') + '</td>' +
+        '<td class="w grp minus">' + neg(r.broker) + '</td><td class="w minus">' + neg(r.pay) + '</td><td class="w minus">' + neg(r.vat) + '</td>' +
+        '<td class="w minus">' + neg(r.delivery) + '</td><td class="w' + (r.coupon ? ' minus' : '') + '">' + neg(r.coupon) + '</td><td class="w' + (r.ad ? ' minus' : '') + '">' + neg(r.ad) + '</td>' +
+        '<td class="grp minus">−' + won(r.cut + r.short) + '</td>' +
+        '<td class="w grp">' + won(r.expected) + '</td>' +
+        '<td class="m"><span class="paid">' + won(r.paid) + '</span><br><span class="o-meta">' + md(r.paidOn) + '</span>' + (badge ? '<br>' + badge : '') + '</td>' +
+        '<td class="w paid' + (r.short ? ' minus' : '') + '">' + won(r.paid) + '</td>' +
+        '<td class="w">' + md(r.due) + '</td><td class="w' + (r.lateDays ? ' minus' : '') + '">' + md(r.paidOn) + '</td>' +
+        '<td class="w w-note ' + cls + '"' + (r.why ? ' title="' + r.why.replace(/"/g, '&quot;') + '"' : '') + '>' + note + (r.why ? '<br><span class="o-meta">' + r.why + '</span>' : '') + '</td>' +
         '</tr>';
-      if (open[r.no]) tr += '<tr class="detail"><td colspan="4">' + detailHTML(r) + '</td></tr>';
+      if (open[r.no]) tr += '<tr class="detail"><td colspan="18">' + detailHTML(r) + '</td></tr>';
       return tr;
     }).join('');
+    var neg = function (v) { return v ? '−' + won(v) : '0'; };
+    var shortSum = sum('short', list);
+    document.getElementById('totals').innerHTML = '<tr>' +
+      '<td class="m">합계 ' + list.length + '건</td><td class="w w-left" colspan="3">합계 ' + list.length + '건</td>' +
+      '<td>' + won(sum('sale', list)) + '</td>' +
+      '<td class="w grp minus">' + neg(sum('broker', list)) + '</td><td class="w minus">' + neg(sum('pay', list)) + '</td><td class="w minus">' + neg(sum('vat', list)) + '</td>' +
+      '<td class="w minus">' + neg(sum('delivery', list)) + '</td><td class="w minus">' + neg(sum('coupon', list)) + '</td><td class="w minus">' + neg(sum('ad', list)) + '</td>' +
+      '<td class="grp minus">−' + won(sum('cut', list) + shortSum) + '</td>' +
+      '<td class="w grp">' + won(sum('expected', list)) + '</td>' +
+      '<td class="m paid">' + won(sum('paid', list)) + '</td><td class="w paid">' + won(sum('paid', list)) + '</td>' +
+      '<td class="w"></td><td class="w"></td><td class="w w-note">' + (shortSum ? won(shortSum) + '원 덜 들어옴' : '') + '</td>' +
+      '</tr>';
   }
   function toggle(tr) { var no = tr.getAttribute('data-no'); open[no] = !open[no]; render(); }
   tbody.addEventListener('click', function (e) { var tr = e.target.closest('tr.order'); if (tr) toggle(tr); });
