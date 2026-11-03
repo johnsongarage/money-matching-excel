@@ -113,6 +113,10 @@
   .detail tr:last-child td { border-bottom: 0; }
   .detail td.v { text-align: right; white-space: nowrap; padding-left: 12px; font-weight: 600; }
   .detail td .s { display: block; font-size: 11px; color: var(--sub); }
+  .vt-wrap { overflow-x: auto; }
+  .detail table.vt th { font-size: 11px; font-weight: 600; color: var(--sub); text-align: right; padding: 0 0 4px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .detail table.vt th:first-child { text-align: left; padding-left: 0; }
+  .detail table.vt tr.vt-sum td { font-weight: 800; border-bottom: 0; }
   .detail .note { font-size: 12px; color: var(--sub); margin: 0; }
   .detail .note b { color: var(--ink); }
   .srcs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; }
@@ -150,6 +154,12 @@
   .todo-item.check .v { color: var(--amber); }
   .todo-item .d { grid-column: 2 / -1; font-size: 13px; }
 
+  .vat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0; }
+  .vat-tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+  .vat-tile .k { font-size: 12px; font-weight: 600; color: var(--sub); }
+  .vat-tile .n { font-size: 20px; font-weight: 800; }
+  .vat-tile .d { font-size: 12px; color: var(--sub); }
+  .vat-tile ul { margin: 4px 0 0; padding-left: 1.1em; font-size: 12px; color: var(--sub); }
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
   .foot b { color: var(--ink); }
 
@@ -158,6 +168,10 @@
     .top h1 { font-size: 16px; }
     .content { padding: 12px 16px 28px; }
     .kpis { grid-template-columns: 1fr; gap: 8px; }
+    .vat-tiles { grid-template-columns: 1fr; }
+    .detail table.vt td .s { display: none; }
+    .detail table.vt td:first-child { min-width: 6.5em; }
+    .detail table.vt td.v, .detail table.vt th { padding-left: 8px; font-size: 12px; }
     .kpi .num { font-size: 22px; }
     .lead { font-size: 15px; }
     .step { grid-template-columns: minmax(0, 1fr) auto 1.2em; gap: 3px 8px; }
@@ -242,6 +256,13 @@
     <div class="todo" id="todo"></div>
   </section>
 
+  <section class="card pad" aria-labelledby="vat-title">
+    <h2 id="vat-title">참고: 이번 달 부가세 한눈에</h2>
+    <p class="muted">맞추기와는 별개로, 이번 달 숫자에 들어 있는 부가세를 모아 봤어요. 정확한 신고 금액은 세무사님 확인이 필요해요.</p>
+    <div class="vat-tiles" id="vat"></div>
+    <p class="muted" id="vat-note"></p>
+  </section>
+
   <p class="foot"><b>예시 데이터입니다.</b> 본사 엑셀·배달앱 정산서·카드사 내역·통장 거래내역 모두 지어낸 숫자이고, 수수료율·배달비·본사 앱 수수료(3%)도 실제 요율이 아닙니다. 부가세는 배달앱 수수료·본사 앱 수수료에 10%로 넣었고, 카드 수수료는 면세로 봤으며, 본사 엑셀 매출과 재료비 청구는 부가세 포함으로 봤습니다(확인 필요). "실제 통장 입금"은 예시 통장 거래내역의 합계로만 계산했습니다. 실제 서비스에서는 은행 원본 거래와 연결된 금액만 실제 입금으로 표시합니다.</p>
 </main>
 
@@ -285,6 +306,15 @@
       return '<tr><td>' + r[0] + (r[2] ? '<span class="s">' + r[2] + '</span>' : '') + '</td><td class="v">' + r[1] + '</td></tr>';
     }).join('') + '</table>';
   }
+  function vatTable(rows) {
+    var ts = 0, tv = 0;
+    var body = rows.map(function (r) {
+      ts += r[1]; tv += r[2] || 0;
+      return '<tr><td>' + r[0] + (r[3] ? '<span class="s">' + r[3] + '</span>' : '') + '</td><td class="v">−' + won(r[1]) + '</td><td class="v">' + (r[2] == null ? '—' : r[2] ? '−' + won(r[2]) : '0') + '</td><td class="v">−' + won(r[1] + (r[2] || 0)) + '</td></tr>';
+    }).join('');
+    return '<div class="vt-wrap"><table class="vt"><thead><tr><th>항목</th><th>공급가액</th><th>부가세</th><th>합계</th></tr></thead><tbody>' + body +
+      '<tr class="vt-sum"><td>합계</td><td class="v">−' + won(ts) + '</td><td class="v">−' + won(tv) + '</td><td class="v">−' + won(ts + tv) + '</td></tr></tbody></table></div>';
+  }
   function srcHTML(list) {
     return '<div class="srcs"><span>근거</span>' + list.map(function (s) {
       return '<span class="src' + (s.assume ? ' assume' : '') + '">' + s.t + '</span>';
@@ -316,8 +346,13 @@
   hq.net = hq.sale - hq.fee - hq.feeVat;
 
   var grossTotal = S.card + S.cash + S.A + S.B + S.C + S.hqapp;
-  var feesTax = A('broker') + A('pay') + A('vat') + card.fee + hq.fee + hq.feeVat;
-  var delivMkt = A('deliv') + A('ad') + A('couponStore');
+  // 항목별 부가세 (보여 주기용 · 배달비 부가세는 앱별 부가세 합에서 나머지로 맞춤)
+  var brokerVat = sum(apps, function (a) { return Math.round(a.broker * 0.1); });
+  var payVat = sum(apps, function (a) { return Math.round(a.pay * 0.1); });
+  var delivVat = A('vat') - brokerVat - payVat;
+  var adSupply = sum(apps, function (a) { return Math.round(a.ad / 1.1); }), adVat = A('ad') - adSupply; // 광고비는 부가세 포함 금액으로 봄
+  var feesTax = A('broker') + brokerVat + A('pay') + payVat + card.fee + hq.fee + hq.feeVat;
+  var delivMkt = A('deliv') + delivVat + A('ad') + A('couponStore');
   var costTotal = feesTax + delivMkt;
   var prevIn = A('prevIn') + CARD.prevIn, nextOut = A('nextOut') + CARD.nextOut;
   var offRoute = cash.kept + hq.net;
@@ -333,6 +368,7 @@
     return { week: b.week, material: b.material, share: b.share, owe: owe, appNet: appNet, shouldPay: owe - appNet, out: BANK.hqWithdrawals[i] };
   });
   var oweTotal = sum(weeks, function (w) { return w.owe; });
+  var hqBillVat = sum(weeks, function (w) { return vatOf(w.owe); });
   var shouldTotal = sum(weeks, function (w) { return w.shouldPay; });
   var outTotal = sum(weeks, function (w) { return w.out; });
   var offsetMatches = weeks.every(function (w) { return Math.abs(w.shouldPay - w.out) <= 10; });
@@ -367,20 +403,18 @@
         detail: rowsHTML([['공급가액 (엑셀)', won(shown)], ['부가세 10%', '+' + won(basisAdj)], ['판매가', won(grossTotal)]]) + '<p class="note">돈이 생긴 게 아니라 <b>기준을 맞춘 것</b>이에요. 엑셀이 공급가액이면 이 금액만큼은 처음부터 차이로 보여요.</p>' });
     }
     steps.push({ stage: '② 정산 과정에서 차감 (비용)' },
-      { id: 'fees', kind: 'cost', name: '수수료·세금', note: '배달앱·카드·본사 앱 수수료, 수수료 부가세', v: -feesTax,
-        detail: rowsHTML([
-          ['배달앱 중개 수수료', '−' + won(A('broker')), perApp(function (a) { return a.broker; })],
-          ['배달앱 결제 수수료', '−' + won(A('pay')), perApp(function (a) { return a.pay; })],
-          ['배달앱 수수료 부가세', '−' + won(A('vat')), '수수료·배달비의 10%'],
-          ['카드 수수료', '−' + won(card.fee), '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시) · 보통 부가세 면세'],
-          ['본사 앱 수수료', '−' + won(hq.fee), '본사 앱 매출의 ' + (HQ_EXCEL.hqappFeeRate * 100) + '% (예시) · 본사가 떼는지 확인 필요'],
-          ['본사 앱 수수료 부가세', '−' + won(hq.feeVat), '수수료의 10% · 확인 필요']
-        ]) + srcHTML([{ t: '배달앱 정산서 A·B·C' }, { t: '카드사 매출 내역' }, { t: '본사 엑셀 · 본사 앱' }, { t: '본사 앱 수수료·부가세는 확인 필요', assume: true }]) },
+      { id: 'fees', kind: 'cost', name: '수수료·세금', note: '배달앱·카드·본사 앱 수수료와 그 부가세', v: -feesTax,
+        detail: vatTable([
+          ['배달앱 중개 수수료', A('broker'), brokerVat, perApp(function (a) { return a.broker; })],
+          ['배달앱 결제 수수료', A('pay'), payVat, perApp(function (a) { return a.pay; })],
+          ['카드 수수료', card.fee, null, '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시) · 보통 부가세 면세'],
+          ['본사 앱 수수료', hq.fee, hq.feeVat, '본사 앱 매출의 ' + (HQ_EXCEL.hqappFeeRate * 100) + '% (예시) · 본사가 떼는지·부가세 붙는지 확인 필요']
+        ]) + '<p class="note">부가세 칸은 아래 <b>"이번 달 부가세 한눈에"</b>의 매입 부가세에 들어가요.</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }, { t: '카드사 매출 내역' }, { t: '본사 엑셀 · 본사 앱' }, { t: '본사 앱 수수료·부가세는 확인 필요', assume: true }]) },
       { id: 'deliv', kind: 'cost', name: '배달비·광고·점주 부담 할인', note: '주문마다 고정 배달비 포함', v: -delivMkt,
-        detail: rowsHTML([
-          ['배달비 (가게 부담)', '−' + won(A('deliv')), apps.map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' (정산서 주문 건수)'],
-          ['광고비', '−' + won(A('ad')), perApp(function (a) { return a.ad; })],
-          ['점주 부담 할인·쿠폰', '−' + won(A('couponStore')), perApp(function (a) { return a.couponStore; })]
+        detail: vatTable([
+          ['배달비 (가게 부담)', A('deliv'), delivVat, apps.map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' (정산서 주문 건수)'],
+          ['광고비', adSupply, adVat, perApp(function (a) { return a.ad; }) + ' · 부가세 포함 금액으로 봄'],
+          ['점주 부담 할인·쿠폰', A('couponStore'), null, perApp(function (a) { return a.couponStore; }) + ' · 매출에서 깎인 돈이라 따로 나누지 않음']
         ]) + '<p class="note">할인 총 ' + won(A('couponHQ') + A('couponStore')) + '원 중 <b>본사 부담 ' + won(A('couponHQ')) + '원은 빼지 않았어요</b> (가게 손해가 아님).</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }]) },
       { stage: '③ 정산 시점 조정 (비용 아님)' },
       { id: 'prev', kind: 'timing', name: '지난달 매출이 ' + MONTH + '에 입금', note: '9월 말에 판 돈', v: prevIn, notcost: true,
@@ -395,7 +429,7 @@
           ['1. 본사 앱 매출', won(hq.sale)],
           ['2. − 본사 앱 수수료·부가세', '−' + won(hq.fee + hq.feeVat), '② 수수료·세금에 이미 넣음'],
           ['= 가게 몫', won(hq.net)],
-          ['3. 본사에 낼 돈 (재료비·분담금, 부가세 포함)', won(oweTotal)],
+          ['3. 본사에 낼 돈 (재료비·분담금)', won(oweTotal), '공급가액 ' + won(oweTotal - hqBillVat) + ' + 부가세 ' + won(hqBillVat)],
           ['4. 상계: 본사에 낼 돈 − 가게 몫', won(shouldTotal), '이 금액만 통장에서 본사로 나가야 함 · 실제 출금 ' + won(outTotal)]
         ]) + '<p class="note">가게 몫 ' + won(hq.net) + '원은 사라진 돈이 아니라 <b>본사 대금을 내는 데 쓴 돈</b>이에요. 통장에 입금되지 않은 이유이고, 본사 출금이 그만큼 적어요. ' + (offsetMatches ? '주별 출금이 계산과 같아서 <b>상계일 가능성이 높지만</b>' : '주별 출금이 계산과 달라서') + ' 본사 정산서로 확인이 필요해요.</p>' +
           srcHTML([{ t: '본사 엑셀 · 본사 앱 매출·청구' }, { t: '통장 본사 출금' }, { t: '상계는 추정', assume: true }]) },
@@ -475,6 +509,20 @@
   document.getElementById('hq-verdict').innerHTML = offsetMatches
     ? '<b>상계 계산과 통장 출금이 주마다 같아요 → 상계일 가능성 높음 · 확인 필요.</b> 본사 앱 매출에서 본사 수수료·부가세를 뺀 가게 몫 ' + won(hq.net) + '원을 본사 대금에서 빼고 남은 돈만 나간 것으로 보여요. 본사 정산서에 "상계"로 적혀 있는지, 청구 금액이 부가세 포함인지 확인하기 전까지는 추정입니다.'
     : '<b>확인 필요.</b> 상계 계산(' + won(shouldTotal) + '원)과 실제 출금(' + won(outTotal) + '원)이 달라요. 본사 정산서를 확인해 주세요.';
+
+  // ================================================================ 참고: 이번 달 부가세 한눈에
+  var salesVat = grossTotal - Math.round(grossTotal / 1.1);
+  var buyVat = A('vat') + adVat + hq.feeVat + hqBillVat;
+  document.getElementById('vat').innerHTML =
+    '<div class="vat-tile"><span class="k">매출 부가세 · 나중에 낼 돈</span><span class="n">' + won(salesVat) + '원</span>' +
+    '<span class="d">판매가 ' + won(grossTotal) + '원의 1/11. 손님이 낸 돈이라 통장에 있어도 사장님 돈이 아니에요.</span></div>' +
+    '<div class="vat-tile"><span class="k">매입 부가세 · 공제받는 돈</span><span class="n">' + won(buyVat) + '원</span>' +
+    '<span class="d">부가세 신고 때 낼 세금에서 빼는 금액이에요.</span><ul>' +
+    '<li>본사 재료비·분담금 ' + won(hqBillVat) + '</li><li>배달앱 수수료·배달비 ' + won(A('vat')) + '</li><li>배달앱 광고비 ' + won(adVat) + '</li><li>본사 앱 수수료 ' + won(hq.feeVat) + '</li></ul></div>' +
+    '<div class="vat-tile"><span class="k">이 달 몫 낼 세금 (어림)</span><span class="n">' + won(salesVat - buyVat) + '원</span>' +
+    '<span class="d">매출 부가세 − 매입 부가세. 신고 때까지 따로 떼어 두면 좋은 돈이에요.</span></div>';
+  document.getElementById('vat-note').textContent =
+    '이 화면의 숫자로만 어림한 값이에요. 임대료·공과금 같은 다른 매입, 카드 매출 세액공제, 간이과세 여부, 실제 세금계산서 금액에 따라 달라지고, 카드 수수료는 보통 면세라 넣지 않았어요. 본사 재료비 세금계산서가 매입 부가세에서 가장 큰 몫이에요.';
 
   // ================================================================ 확인할 것
   document.getElementById('todo-lead').textContent = '설명 안 된 ' + won(gap) + '원 2건, 그리고 추정으로 둔 것 2건(본사 상계, 부가세 기준)입니다.';
