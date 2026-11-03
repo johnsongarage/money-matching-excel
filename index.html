@@ -6,28 +6,32 @@
 <title>본사 엑셀 맞추기</title>
 <meta name="description" content="본사 엑셀 매출과 통장 입금이 왜 다른지 한 단계씩 맞춰 보는 데모 (예시 데이터)">
 <style>
+  /* 폭포 원칙: 막대마다 종류(비용·시점·통장 밖·미확인)를 다른 모양으로, 누르면 근거 자료와 세부 내역 */
   :root {
     --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
     --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6; --hover: #f3f4f6;
-    --cut: #5b6ee1; --add: #0f8a6c; --total: #9ca3af; --total-ink: #374151;
+    --total: #2563eb; --total-soft: #dbeafe;
+    --cost: #9aa3ad; --timing: #64748b; --off: #c4c9d0;
     --red: #dc2626; --red-bg: #fee2e2; --amber: #b45309; --amber-bg: #fef3c7; --green: #15803d; --green-bg: #dcfce7;
-    --track: #f1f2f4;
+    --track: #f1f2f4; --src: #eef2ff; --src-ink: #3730a3;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
       --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
-      --cut: #7586ec; --add: #28a582; --total: #6b7280; --total-ink: #d1d5db;
+      --total: #60a5fa; --total-soft: #172554;
+      --cost: #6b7280; --timing: #94a3b8; --off: #4b5563;
       --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
-      --track: #222327;
+      --track: #222327; --src: #1e1b4b; --src-ink: #c7d2fe; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
     --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
-    --cut: #7586ec; --add: #28a582; --total: #6b7280; --total-ink: #d1d5db;
+    --total: #60a5fa; --total-soft: #172554;
+    --cost: #6b7280; --timing: #94a3b8; --off: #4b5563;
     --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
-    --track: #222327;
+    --track: #222327; --src: #1e1b4b; --src-ink: #c7d2fe; color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -36,6 +40,8 @@
     font-family: Inter, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
     font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums;
   }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
   .top { display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
   .top h1 .tag { font-size: 11px; font-weight: 700; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
@@ -53,7 +59,6 @@
   .lead b { font-weight: 800; }
   .lead .bad { color: var(--red); }
 
-  /* 숫자 카드 */
   .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .kpi { padding: 12px 14px; }
   .kpi .label { font-size: 13px; font-weight: 600; margin: 0; color: var(--sub); }
@@ -64,53 +69,84 @@
   .chip.ok { color: var(--green); background: var(--green-bg); }
   .chip.bad { color: var(--red); background: var(--red-bg); }
 
-  /* 폭포 (엑셀 → 통장) */
-  .fall-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin: 8px 0 12px; }
-  .fall-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-  .fall { display: grid; gap: 3px; }
-  .step { display: grid; grid-template-columns: minmax(11em, 15em) minmax(0, 1fr) 7.5em; gap: 10px; align-items: center; padding: 3px 4px; border-radius: 6px; }
+  /* 폭포 */
+  .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin: 10px 0 12px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .sw-total { background: var(--total); }
+  .sw-cost { background: var(--cost); }
+  .sw-timing { background: repeating-linear-gradient(135deg, var(--timing) 0 2px, transparent 2px 5px); border: 1px solid var(--timing); }
+  .sw-off { background: var(--off); border: 1px dashed var(--sub); }
+  .sw-gap { background: var(--red); }
+  .fall { display: grid; gap: 4px; }
+  .stage { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--sub); margin: 10px 4px 2px; }
+  .step { display: grid; grid-template-columns: minmax(12em, 16em) minmax(0, 1fr) 7.5em 1.4em; gap: 10px; align-items: center;
+    width: 100%; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 5px 6px; cursor: pointer; }
   .step:hover { background: var(--hover); }
+  .step:focus-visible { outline: 2px solid var(--total); outline-offset: 1px; }
   .step .name { font-size: 13px; line-height: 1.35; }
   .step .name small { display: block; color: var(--sub); font-size: 11px; }
   .step .track { position: relative; height: 18px; background: var(--track); border-radius: 4px; }
   .step .bar { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; min-width: 3px; }
-  .step.cut .bar { background: var(--cut); }
-  .step.add .bar { background: var(--add); }
   .step.total .bar { background: var(--total); top: 0; bottom: 0; }
-  .step.total .name, .step.total .amt { font-weight: 800; }
+  .step.cost .bar { background: var(--cost); }
+  .step.timing .bar { background: repeating-linear-gradient(135deg, var(--timing) 0 2px, transparent 2px 5px); border: 1px solid var(--timing); }
+  .step.off .bar { background: var(--off); border: 1px dashed var(--sub); }
   .step.gap .bar { background: var(--red); }
-  .step.gap .name, .step.gap .amt { color: var(--red); font-weight: 700; }
+  .step.total .name, .step.total .amt { font-weight: 800; }
+  .step.gap .name, .step.gap .amt { color: var(--red); font-weight: 800; }
   .step .amt { text-align: right; font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .step.cut .amt, .step.add .amt { color: var(--ink); }
-  .step.sep { margin-top: 6px; border-top: 1px dashed var(--line-strong); padding-top: 8px; border-radius: 0; }
-  .assume { font-size: 11px; font-weight: 700; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+  .step .chev { color: var(--sub); font-size: 12px; text-align: center; transition: transform .15s; }
+  .step[aria-expanded="true"] .chev { transform: rotate(90deg); }
+  @media (prefers-reduced-motion: reduce) { .step .chev { transition: none; } }
+  .tag-s { font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 5px; margin-left: 4px; white-space: nowrap; }
+  .tag-s.check { color: var(--amber); background: var(--amber-bg); }
+  .tag-s.notcost { color: var(--sub); background: var(--head); }
+
+  .detail { margin: 2px 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--page); padding: 10px 12px; display: grid; gap: 8px; }
+  .detail table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .detail td { padding: 4px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
+  .detail tr:last-child td { border-bottom: 0; }
+  .detail td.v { text-align: right; white-space: nowrap; padding-left: 12px; font-weight: 600; }
+  .detail td .s { display: block; font-size: 11px; color: var(--sub); }
+  .detail .note { font-size: 12px; color: var(--sub); margin: 0; }
+  .detail .note b { color: var(--ink); }
+  .srcs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; }
+  .srcs > span:first-child { color: var(--sub); }
+  .src { color: var(--src-ink); background: var(--src); border-radius: 4px; padding: 1px 7px; font-weight: 600; }
+  .src.assume { color: var(--amber); background: var(--amber-bg); }
 
   /* 표 */
   .tbl-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 14px 8px; }
   .tbl-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 8px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
-  th { font-weight: 600; background: var(--head); font-size: 12px; }
-  th.l, td.l { text-align: left; }
-  td .s { display: block; font-size: 11px; color: var(--sub); white-space: normal; }
-  td.neg { color: var(--sub); }
-  td.st { white-space: normal; min-width: 11em; text-align: left; }
+  table.main { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.main th, table.main td { padding: 8px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  table.main th { font-weight: 600; background: var(--head); font-size: 12px; }
+  table.main .l { text-align: left; }
+  table.main th .s { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
+  table.main td .s { display: block; font-size: 11px; color: var(--sub); white-space: normal; }
+  table.main td.neg { color: var(--sub); }
+  table.main td.st { white-space: normal; min-width: 11em; text-align: left; }
+  table.main tr.sum td { font-weight: 800; background: var(--head); border-bottom: 0; }
   .ok { color: var(--green); font-weight: 600; }
   .bad { color: var(--red); font-weight: 700; }
   .warn { color: var(--amber); font-weight: 600; }
-  tr.sum td { font-weight: 800; background: var(--head); border-bottom: 0; }
 
-  /* 확인할 것 */
+  .verdict { margin: 0 14px 14px; border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+  .verdict.warn { background: var(--amber-bg); color: var(--ink); border: 1px solid var(--amber); }
+  .verdict b { color: var(--amber); }
+
   .todo { display: grid; gap: 8px; margin-top: 10px; }
   .todo-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; border: 1px solid var(--red); background: var(--red-bg); border-radius: 8px; padding: 10px 12px; }
+  .todo-item.check { border-color: var(--amber); background: var(--amber-bg); }
   .todo-item .ic { font-weight: 800; color: var(--red); }
+  .todo-item.check .ic { color: var(--amber); }
   .todo-item .t { font-weight: 700; }
   .todo-item .v { font-weight: 800; color: var(--red); white-space: nowrap; }
-  .todo-item .d { grid-column: 2 / -1; font-size: 13px; color: var(--ink); }
+  .todo-item.check .v { color: var(--amber); }
+  .todo-item .d { grid-column: 2 / -1; font-size: 13px; }
 
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
   .foot b { color: var(--ink); }
-  [hidden] { display: none !important; }
 
   @media (max-width: 760px) {
     .top { padding: 10px 16px; }
@@ -119,14 +155,15 @@
     .kpis { grid-template-columns: 1fr; gap: 8px; }
     .kpi .num { font-size: 22px; }
     .lead { font-size: 15px; }
-    .step { grid-template-columns: minmax(0, 1fr) 6.8em; gap: 2px 8px; }
-    .step .track { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+    .step { grid-template-columns: minmax(0, 1fr) auto 1.2em; gap: 3px 8px; }
     .step .name { grid-column: 1; grid-row: 1; }
     .step .amt { grid-column: 2; grid-row: 1; }
-    th, td { padding: 7px 8px; }
-    #ch-table th:nth-child(2), #ch-table td:nth-child(2), #ch-table th:nth-child(3), #ch-table td:nth-child(3), #ch-table th:nth-child(4), #ch-table td:nth-child(4), #ch-table th:nth-child(5), #ch-table td:nth-child(5) { display: none; }
-    #ch-table td.st { min-width: 9em; }
+    .step .chev { grid-column: 3; grid-row: 1; }
+    .step .track { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+    table.main th, table.main td { padding: 7px 8px; }
+    #ch-table th:nth-child(n+2):nth-child(-n+6), #ch-table td:nth-child(n+2):nth-child(-n+6) { display: none; }
     #ch-table td:first-child { white-space: normal; }
+    #ch-table td.st { min-width: 9em; }
     #hq-table td { white-space: normal; }
   }
 </style>
@@ -141,33 +178,32 @@
 </header>
 
 <main class="content">
-  <section class="card pad">
-    <p class="lead" id="lead"></p>
-  </section>
+  <section class="card pad"><p class="lead" id="lead"></p></section>
 
   <div class="kpis" id="kpis"></div>
 
   <section class="card pad" aria-labelledby="fall-title">
-    <h2 id="fall-title">엑셀에서 통장까지, 한 단계씩</h2>
-    <p class="muted">본사 엑셀의 매출에서 시작해, 통장에 오기 전에 빠지거나 다른 달로 넘어간 돈을 하나씩 뺍니다. 막대에 마우스를 올리면 설명이 나와요.</p>
-    <div class="fall-legend">
-      <span><i style="background:var(--total)"></i>합계</span>
-      <span><i style="background:var(--cut)"></i>빠진 돈 (이유 있음)</span>
-      <span><i style="background:var(--add)"></i>더해진 돈</span>
-      <span><i style="background:var(--red)"></i>⚠ 설명 안 되는 차이</span>
+    <h2 id="fall-title">본사 엑셀에서 실제 입금까지</h2>
+    <p class="muted">본사 엑셀의 매출이 어떤 이유로 줄거나 다른 달로 넘어가서 통장 입금이 되는지 보여 줍니다. <b>막대를 누르면</b> 세부 내역과 어느 자료에서 나온 숫자인지 펼쳐져요.</p>
+    <div class="legend" aria-label="막대 모양 설명">
+      <span><i class="sw-total"></i>합계</span>
+      <span><i class="sw-cost"></i>정산 과정에서 빠진 돈 (비용)</span>
+      <span><i class="sw-timing"></i>시점 차이 (비용 아님)</span>
+      <span><i class="sw-off"></i>통장 밖으로 간 돈</span>
+      <span><i class="sw-gap"></i>⚠ 설명 안 된 차이</span>
     </div>
-    <div class="fall" id="fall" role="list"></div>
+    <div class="fall" id="fall"></div>
   </section>
 
   <section class="card" aria-labelledby="ch-title">
     <div class="tbl-top">
       <h2 id="ch-title">들어오는 길별로 보기</h2>
-      <p class="muted">매출은 본사 엑셀, 실제 입금은 통장 기준</p>
+      <p class="muted">매출은 본사 엑셀, 실제 입금은 통장 거래내역 기준</p>
     </div>
     <div class="tbl-scroll">
-      <table id="ch-table">
+      <table class="main" id="ch-table">
         <thead><tr>
-          <th class="l">길</th><th>엑셀 매출</th><th>미리 빠진 돈</th><th>다른 달로 넘어간 돈</th><th>들어왔어야 할 돈</th><th>실제 통장</th><th>차이</th><th class="l">상태</th>
+          <th class="l">길</th><th>엑셀 매출</th><th>정산 과정 차감</th><th>시점 조정</th><th>통장 밖</th><th>예상 입금</th><th>실제 통장</th><th>차이</th><th class="l">상태</th>
         </tr></thead>
         <tbody id="channels"></tbody>
       </table>
@@ -176,164 +212,239 @@
 
   <section class="card" aria-labelledby="hq-title">
     <div class="tbl-top">
-      <h2 id="hq-title">본사로 나간 돈</h2>
-      <p class="muted">본사 앱 매출이 통장에 안 들어온 이유가 여기서 보입니다</p>
+      <h2 id="hq-title">본사 상계 확인</h2>
+      <p class="muted">본사 앱 매출이 통장에 없는 이유가 상계인지, 본사 청구서와 통장 출금을 따로 놓고 비교합니다</p>
     </div>
     <div class="tbl-scroll">
-      <table id="hq-table">
-        <thead><tr><th class="l">항목</th><th class="l">어디에 있나</th><th>금액</th></tr></thead>
+      <table class="main" id="hq-table">
+        <thead><tr><th class="l">주</th><th>본사 청구 <span class="s">본사 엑셀</span></th><th>통장 본사 출금 <span class="s">통장 거래내역</span></th><th>덜 나간 돈</th><th>본사 앱 매출(수수료 뺀) <span class="s">본사 엑셀</span></th></tr></thead>
         <tbody id="hq"></tbody>
       </table>
     </div>
+    <p class="verdict warn" id="hq-verdict"></p>
   </section>
 
   <section class="card pad" aria-labelledby="todo-title">
-    <h2 id="todo-title">⚠ 아직 설명 안 되는 돈 — 확인할 것</h2>
+    <h2 id="todo-title">확인할 것</h2>
     <p class="muted" id="todo-lead"></p>
     <div class="todo" id="todo"></div>
   </section>
 
-  <p class="foot"><b>예시 데이터입니다.</b> 가게·금액·수수료율·배달비는 모두 지어낸 숫자이고, 실제 앱 요율이 아닙니다. <span class="assume">가정</span> 표시는 아직 점장님께 확인하지 못한 구조입니다 (예: 본사 앱 매출이 재료비와 상계되는지).</p>
+  <p class="foot"><b>예시 데이터입니다.</b> 본사 엑셀·배달앱 정산서·카드사 내역·통장 거래내역 모두 지어낸 숫자이고, 수수료율과 배달비도 실제 앱 요율이 아닙니다. "실제 통장 입금"은 예시 통장 거래내역의 합계로만 계산했습니다. 실제 서비스에서는 은행 원본 거래와 연결된 금액만 실제 입금으로 표시합니다.</p>
 </main>
 
 <script>
 (function () {
   'use strict';
-
-  // ---------------------------------------------------------------- 예시 데이터: 어느 가게의 10월 (지어낸 숫자)
+  // ================================================================ 원본 자료 (예시 · 어느 가게의 10월)
   var MONTH = '10월';
-  var CARD = { sale: 9860000, feeRate: 0.011, prevIn: 312000, nextOut: 455000, hold: 52000 };
-  var CASH = { sale: 420000, deposited: 300000 };
-  var APPS = [
-    { name: 'A앱', sale: 4950000, broker: 0.078, pay: 0.030, perOrder: 3100, coupon: 0.040, ad: 150000, prevIn: 410000, nextOut: 690000, short: 0 },
-    { name: 'B앱', sale: 1680000, broker: 0.078, pay: 0.030, perOrder: 3400, coupon: 0.050, ad: 60000, prevIn: 120000, nextOut: 210000, short: 38500 },
-    { name: 'C앱', sale: 830000, broker: 0.068, pay: 0.025, perOrder: 2900, coupon: 0.030, ad: 0, prevIn: 60000, nextOut: 120000, short: 0 }
-  ];
-  var AVG_ORDER = 12400; // 배달 객단가 (예시)
-  var HQAPP = { sale: 680000, payRate: 0.03 };
-  var HQ = { material: [1820000, 1640000, 1910000, 1530000], share: 240000 };
+  // 본사 엑셀: 매출(판 금액)과 본사 청구
+  var HQ_EXCEL = {
+    sales: { card: 9860000, cash: 420000, A: 4950000, B: 1680000, C: 830000, hqapp: 680000 },
+    hqappWeekly: [170000, 162000, 176000, 172000],          // 본사 앱 매출 (주별)
+    hqappFeeRate: 0.03,                                      // 본사 앱 결제 수수료 (예시)
+    bills: [ { week: '1주', material: 1820000, share: 0 }, { week: '2주', material: 1640000, share: 0 },
+             { week: '3주', material: 1910000, share: 0 }, { week: '4주', material: 1530000, share: 240000 } ]
+  };
+  // 배달앱 정산서 (앱마다): 실제 주문 건수, 할인은 본사 부담/점주 부담 구분
+  var SETTLE = {
+    A: { orders: 402, brokerRate: 0.078, payRate: 0.030, perOrder: 3100, ad: 150000, couponHQ: 90000, couponStore: 160000, prevIn: 410000, nextOut: 690000 },
+    B: { orders: 131, brokerRate: 0.078, payRate: 0.030, perOrder: 3400, ad: 60000, couponHQ: 30000, couponStore: 80000, prevIn: 120000, nextOut: 210000 },
+    C: { orders: 68, brokerRate: 0.068, payRate: 0.025, perOrder: 2900, ad: 0, couponHQ: 0, couponStore: 30000, prevIn: 60000, nextOut: 120000 }
+  };
+  // 카드사 매출 내역
+  var CARD = { feeRate: 0.011, prevIn: 312000, nextOut: 455000, holds: [{ date: '10/27', amount: 52000 }] };
+  // 통장 거래내역 (예시 숫자를 따로 적은 것 · 위 자료에서 계산하지 않음)
+  var BANK = {
+    deposits: { card: { n: 31, sum: 9556540 }, A: { n: 5, sum: 2401120 }, B: { n: 5, sum: 721976 }, C: { n: 5, sum: 438171 }, cash: { n: 3, sum: 300000 } },
+    hqWithdrawals: [1655100, 1482860, 1739280, 1603160]
+  };
+  var APP_NOTES = { B: { date: '10/21', label: '기타 차감', what: '10/21 정산 "기타 차감"', amount: 38500, how: 'B앱 사장님 고객센터에 차감 사유 문의' } };
 
-  // ---------------------------------------------------------------- 계산
+  // ================================================================ 계산
   function won(n) { return Math.round(n).toLocaleString('ko-KR'); }
   function man(n) { return Math.round(n / 10000).toLocaleString('ko-KR') + '만'; }
-  function r(n) { return Math.round(n); }
+  function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + won(Math.abs(n)); }
+  function sum(arr, f) { return arr.reduce(function (s, x) { return s + (f ? f(x) : x); }, 0); }
+  var S = HQ_EXCEL.sales;
+  var appKeys = ['A', 'B', 'C'];
 
-  APPS.forEach(function (a) {
-    a.orders = Math.round(a.sale / AVG_ORDER);
-    a.cBroker = r(a.sale * a.broker);
-    a.cPay = r(a.sale * a.pay);
-    a.cDeliv = a.orders * a.perOrder;
-    a.cVat = r((a.cBroker + a.cPay + a.cDeliv) * 0.1);
-    a.cCoupon = r(a.sale * a.coupon);
-    a.cAd = a.ad;
-    a.cut = a.cBroker + a.cPay + a.cDeliv + a.cVat + a.cCoupon + a.cAd;
-    a.expected = a.sale - a.cut + a.prevIn - a.nextOut;
-    a.actual = a.expected - a.short;
+  var apps = appKeys.map(function (k) {
+    var a = SETTLE[k], sale = S[k];
+    var broker = Math.round(sale * a.brokerRate), pay = Math.round(sale * a.payRate), deliv = a.orders * a.perOrder;
+    var vat = Math.round((broker + pay + deliv) * 0.1);
+    var cost = broker + pay + vat + deliv + a.ad + a.couponStore;
+    var timing = a.prevIn - a.nextOut;
+    var expected = sale - cost + timing;
+    var actual = BANK.deposits[k].sum;
+    return { key: k, name: k + '앱', sale: sale, broker: broker, pay: pay, vat: vat, deliv: deliv, ad: a.ad,
+      couponHQ: a.couponHQ, couponStore: a.couponStore, orders: a.orders, perOrder: a.perOrder,
+      prevIn: a.prevIn, nextOut: a.nextOut, cost: cost, timing: timing, expected: expected, actual: actual, n: BANK.deposits[k].n };
   });
-  CARD.fee = r(CARD.sale * CARD.feeRate);
-  CARD.expected = CARD.sale - CARD.fee + CARD.prevIn - CARD.nextOut;
-  CARD.actual = CARD.expected - CARD.hold;
-  HQAPP.fee = r(HQAPP.sale * HQAPP.payRate);
-  HQAPP.net = HQAPP.sale - HQAPP.fee;
+  var card = { sale: S.card, fee: Math.round(S.card * CARD.feeRate) };
+  card.timing = CARD.prevIn - CARD.nextOut;
+  card.expected = card.sale - card.fee + card.timing;
+  card.actual = BANK.deposits.card.sum;
+  var cash = { sale: S.cash, deposited: BANK.deposits.cash.sum, kept: S.cash - BANK.deposits.cash.sum };
+  var hqappFee = Math.round(S.hqapp * HQ_EXCEL.hqappFeeRate);
+  var hqappNet = S.hqapp - hqappFee;
 
-  function sumApps(k) { return APPS.reduce(function (s, a) { return s + a[k]; }, 0); }
-  var excelSale = CARD.sale + CASH.sale + sumApps('sale') + HQAPP.sale;
-  var bankIn = CARD.actual + CASH.deposited + sumApps('actual');
-  var expectedIn = CARD.expected + CASH.deposited + sumApps('expected');
-  var gap = excelSale - bankIn;
-  var unexplained = expectedIn - bankIn;
-  var explained = gap - unexplained;
+  function A(k) { return sum(apps, function (a) { return a[k]; }); }
+  var excelTotal = S.card + S.cash + S.A + S.B + S.C + S.hqapp;
+  var feesTax = A('broker') + A('pay') + A('vat') + card.fee;
+  var delivMkt = A('deliv') + A('ad') + A('couponStore');
+  var costTotal = feesTax + delivMkt;
+  var prevIn = A('prevIn') + CARD.prevIn, nextOut = A('nextOut') + CARD.nextOut;
+  var offRoute = cash.kept + S.hqapp;
+  var expectedTotal = excelTotal - costTotal + prevIn - nextOut - offRoute;
+  var actualTotal = sum(Object.keys(BANK.deposits).map(function (k) { return BANK.deposits[k].sum; }));
+  var gap = expectedTotal - actualTotal;
+  var explained = excelTotal - actualTotal - gap;
 
-  // ---------------------------------------------------------------- 맨 위 한 줄 + 숫자 카드
+  // 본사 상계 확인: 본사 청구 vs 통장 출금 (서로 다른 자료)
+  var billTotal = sum(HQ_EXCEL.bills, function (b) { return b.material + b.share; });
+  var hqOutTotal = sum(BANK.hqWithdrawals);
+  var lessPaid = billTotal - hqOutTotal;
+  var weeklyNet = HQ_EXCEL.hqappWeekly.map(function (v) { return v - Math.round(v * HQ_EXCEL.hqappFeeRate); });
+  var offsetMatches = Math.abs(lessPaid - hqappNet) <= 1000;
+
+  // ================================================================ 맨 위 + 숫자 카드
   document.getElementById('lead').innerHTML =
-    MONTH + ' 본사 엑셀엔 매출 <b>' + man(excelSale) + ' 원</b>, 통장엔 <b>' + man(bankIn) + ' 원</b>이 들어왔어요. ' +
-    '차이 <b>' + man(gap) + ' 원</b> 중 <b>' + man(explained) + ' 원은 이유를 찾았고</b>, ' +
-    '<b class="bad">' + won(unexplained) + '원은 아직 설명이 안 돼요.</b>';
+    MONTH + ' 본사 엑셀엔 매출 <b>' + man(excelTotal) + ' 원</b>, 통장엔 <b>' + man(actualTotal) + ' 원</b>이 들어왔어요. ' +
+    '차이 <b>' + man(excelTotal - actualTotal) + ' 원</b> 중 <b>' + man(explained) + ' 원은 이유를 찾았고</b>, ' +
+    '<b class="bad">' + won(gap) + '원은 아직 설명이 안 돼요.</b>';
   document.getElementById('kpis').innerHTML =
-    '<div class="card kpi"><p class="label">본사 엑셀 매출</p><div class="num">' + won(excelSale) + '원</div><p class="desc">매장 카드·현금·배달앱·본사 앱 합계 (판 금액 그대로)</p></div>' +
-    '<div class="card kpi"><p class="label">통장에 들어온 매출 대금</p><div class="num">' + won(bankIn) + '원</div><p class="desc">카드사·배달앱 입금 + 현금 입금</p></div>' +
-    '<div class="card kpi"><p class="label">차이</p><div class="num">' + won(gap) + '원</div>' +
-    '<div class="split"><span class="chip ok">이유 찾음 ' + won(explained) + '</span><span class="chip bad">⚠ 설명 안 됨 ' + won(unexplained) + '</span></div></div>';
+    '<div class="card kpi"><p class="label">본사 엑셀 매출</p><div class="num">' + won(excelTotal) + '원</div><p class="desc">매장 카드·현금·배달앱·본사 앱 판 금액</p></div>' +
+    '<div class="card kpi"><p class="label">실제 통장 입금</p><div class="num">' + won(actualTotal) + '원</div><p class="desc">통장 거래내역의 매출 대금 입금 ' + sum(Object.keys(BANK.deposits).map(function (k) { return BANK.deposits[k].n; })) + '건 합계</p></div>' +
+    '<div class="card kpi"><p class="label">차이</p><div class="num">' + won(excelTotal - actualTotal) + '원</div>' +
+    '<div class="split"><span class="chip ok">이유 찾음 ' + won(explained) + '</span><span class="chip bad">⚠ 설명 안 됨 ' + won(gap) + '</span></div></div>';
 
-  // ---------------------------------------------------------------- 폭포
-  var steps = [
-    { kind: 'total', name: '본사 엑셀 매출', note: '본사가 POS 매출로 집계한 판 금액', v: excelSale },
-    { kind: 'cut', name: '배달비 (가게 부담)', note: '배달 주문마다 고정 · ' + won(sumApps('orders')) + '건', v: sumApps('cDeliv'), why: '배달앱이 정산금에서 먼저 뺌. 본사 엑셀엔 없음' },
-    { kind: 'cut', name: '배달앱 중개 수수료', note: '판매 금액의 몇 % (예시)', v: sumApps('cBroker'), why: '배달앱 정산 내역서에만 있음' },
-    { kind: 'cut', name: '할인·쿠폰 (가게 부담)', note: '본사 행사 몫 + 가게가 건 쿠폰', v: sumApps('cCoupon'), why: '엑셀엔 할인 전 금액으로 잡힘' },
-    { kind: 'cut', name: '수수료 부가세', note: '수수료·배달비의 10%', v: sumApps('cVat') },
-    { kind: 'cut', name: '배달앱 결제 수수료', note: '앱 결제 금액에 붙음', v: sumApps('cPay') },
-    { kind: 'cut', name: '배달앱 광고비', note: '가게가 건 노출 광고', v: sumApps('cAd') },
-    { kind: 'cut', name: '카드 수수료', note: '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시)', v: CARD.fee, why: '카드사가 입금 전에 뺌' },
-    { kind: 'cut', name: '본사 앱 매출', note: '통장 대신 재료비 청구에서 상계', v: HQAPP.sale, assume: true, why: '아래 "본사로 나간 돈"에서 확인' },
-    { kind: 'cut', name: '현금 — 통장에 안 넣은 돈', note: '시재·잔돈으로 남김', v: CASH.sale - CASH.deposited },
-    { kind: 'add', name: '지난달 매출이 ' + MONTH + '에 입금', note: '9월 말에 판 돈', v: CARD.prevIn + sumApps('prevIn'), why: '정산이 며칠 뒤라 달이 바뀜' },
-    { kind: 'cut', name: MONTH + ' 매출이 다음 달에 입금', note: '10월 말에 판 돈', v: CARD.nextOut + sumApps('nextOut'), why: '11월 초에 들어올 예정' },
-    { kind: 'total', name: '통장에 들어왔어야 할 돈', note: '이유를 다 빼고 남은 금액', v: expectedIn, sep: true },
-    { kind: 'gap', name: '⚠ 설명 안 되는 차이', note: '카드 입금보류 · B앱 기타 차감', v: unexplained, why: '아래 "확인할 것" 참고' },
-    { kind: 'total', name: '실제 통장 입금', note: '통장 거래내역 합계', v: bankIn }
+  // ================================================================ 폭포 (단계 묶음 + 누르면 펼침)
+  function rowsHTML(rows) {
+    return '<table>' + rows.map(function (r) {
+      return '<tr><td>' + r[0] + (r[2] ? '<span class="s">' + r[2] + '</span>' : '') + '</td><td class="v">' + r[1] + '</td></tr>';
+    }).join('') + '</table>';
+  }
+  function srcHTML(list) {
+    return '<div class="srcs"><span>근거</span>' + list.map(function (s) {
+      return '<span class="src' + (s.assume ? ' assume' : '') + '">' + s.t + '</span>';
+    }).join('') + '</div>';
+  }
+  var perApp = function (f) { return apps.map(function (a) { return a.name + ' ' + won(f(a)); }).join(' · '); };
+
+  var STEPS = [
+    { stage: '① 기준 매출' },
+    { id: 'base', kind: 'total', name: '본사 엑셀 매출', note: '판 금액 그대로', v: excelTotal,
+      detail: rowsHTML([['매장 카드', won(S.card)], ['현금', won(S.cash)]].concat(apps.map(function (a) { return [a.name + ' (배달)', won(a.sale)]; })).concat([['본사 앱 주문', won(S.hqapp)]])) + srcHTML([{ t: '본사 엑셀 · 10월 매출' }]) },
+    { stage: '② 정산 과정에서 차감 (비용)' },
+    { id: 'fees', kind: 'cost', name: '수수료·세금', note: '중개·결제 수수료, 부가세, 카드 수수료', v: -feesTax,
+      detail: rowsHTML([
+        ['배달앱 중개 수수료', '−' + won(A('broker')), perApp(function (a) { return a.broker; })],
+        ['배달앱 결제 수수료', '−' + won(A('pay')), perApp(function (a) { return a.pay; })],
+        ['수수료 부가세', '−' + won(A('vat')), '수수료·배달비의 10%'],
+        ['카드 수수료', '−' + won(card.fee), '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시)']
+      ]) + srcHTML([{ t: '배달앱 정산서 A·B·C' }, { t: '카드사 매출 내역' }]) },
+    { id: 'deliv', kind: 'cost', name: '배달비·광고·점주 부담 할인', note: '주문마다 고정 배달비 포함', v: -delivMkt,
+      detail: rowsHTML([
+        ['배달비 (가게 부담)', '−' + won(A('deliv')), apps.map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' (정산서 주문 건수)'],
+        ['광고비', '−' + won(A('ad')), perApp(function (a) { return a.ad; })],
+        ['점주 부담 할인·쿠폰', '−' + won(A('couponStore')), perApp(function (a) { return a.couponStore; })]
+      ]) + '<p class="note">할인 총 ' + won(A('couponHQ') + A('couponStore')) + '원 중 <b>본사 부담 ' + won(A('couponHQ')) + '원은 빼지 않았어요</b> (가게 손해가 아님).</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }]) },
+    { stage: '③ 정산 시점 조정 (비용 아님)' },
+    { id: 'prev', kind: 'timing', name: '지난달 매출이 ' + MONTH + '에 입금', note: '9월 말에 판 돈', v: prevIn, notcost: true,
+      detail: rowsHTML([['카드', '+' + won(CARD.prevIn)]].concat(apps.map(function (a) { return [a.name, '+' + won(a.prevIn)]; }))) + srcHTML([{ t: '정산서·카드 내역 입금 예정일' }]) },
+    { id: 'next', kind: 'timing', name: MONTH + ' 매출이 다음 달에 입금', note: '10월 말에 판 돈 · 11월 초 입금 예정', v: -nextOut, notcost: true,
+      detail: rowsHTML([['카드', '−' + won(CARD.nextOut)]].concat(apps.map(function (a) { return [a.name, '−' + won(a.nextOut)]; }))) + '<p class="note">사라진 돈이 아니라 <b>다음 달 통장에 들어올 돈</b>이에요.</p>' + srcHTML([{ t: '정산서·카드 내역 입금 예정일' }]) },
+    { stage: '④ 통장 밖으로 간 돈' },
+    { id: 'cash', kind: 'off', name: '현금 보유', note: '통장에 넣지 않은 현금', v: -cash.kept,
+      detail: rowsHTML([['POS 현금 매출', won(cash.sale)], ['통장 현금 입금 (' + BANK.deposits.cash.n + '건)', won(cash.deposited)], ['통장에 안 넣은 현금', '−' + won(cash.kept)]]) + srcHTML([{ t: '본사 엑셀 · 현금 매출' }, { t: '통장 거래내역' }]) },
+    { id: 'hqapp', kind: 'off', name: '본사 앱 매출', note: '재료비와 상계로 보임', v: -S.hqapp, check: true,
+      detail: rowsHTML([['본사 앱 매출', won(S.hqapp)], ['결제 수수료 (예시 ' + (HQ_EXCEL.hqappFeeRate * 100) + '%)', '−' + won(hqappFee)], ['상계로 추정되는 금액', won(hqappNet)]]) +
+        '<p class="note">통장에 입금이 없어요. 본사 청구 − 통장 본사 출금 = <b>' + won(lessPaid) + '원</b>이 ' + (offsetMatches ? '이 금액과 같아서 <b>상계일 가능성이 높지만</b>' : '이 금액과 달라서') + ' 본사 정산서로 확인이 필요해요. 아래 "본사 상계 확인" 표 참고.</p>' +
+        srcHTML([{ t: '본사 엑셀 · 본사 앱 매출' }, { t: '통장 본사 출금' }, { t: '상계는 추정', assume: true }]) },
+    { stage: '⑤ 예상 통장 입금' },
+    { id: 'exp', kind: 'total', name: '예상 통장 입금', note: '① − ② ± ③ − ④', v: expectedTotal,
+      detail: rowsHTML([['본사 엑셀 매출', won(excelTotal)], ['정산 과정 차감', '−' + won(costTotal)], ['정산 시점 조정', signed(prevIn - nextOut)], ['통장 밖으로 간 돈', '−' + won(offRoute)], ['예상 통장 입금', won(expectedTotal)]]) },
+    { stage: '⑥ 설명 안 된 차이' },
+    { id: 'gap', kind: 'gap', name: '⚠ 설명 안 된 차이', note: '예상 − 실제', v: -gap,
+      detail: rowsHTML([['매장 카드 입금보류', '−' + won(sum(CARD.holds, function (h) { return h.amount; })), CARD.holds.map(function (h) { return h.date + ' 승인분 입금 안 됨'; }).join(', ')],
+        ['B앱 기타 차감', '−' + won(APP_NOTES.B.amount), APP_NOTES.B.what + ' · 사유 안 적힘']]) + '<p class="note">어디에 물어볼지는 아래 "확인할 것"에.</p>' },
+    { stage: '⑦ 실제 통장 입금' },
+    { id: 'act', kind: 'total', name: '실제 통장 입금', note: '통장 거래내역 기준', v: actualTotal,
+      detail: rowsHTML([['카드사 입금 (' + BANK.deposits.card.n + '건)', won(BANK.deposits.card.sum)]].concat(apps.map(function (a) { return [a.name + ' 입금 (' + a.n + '건)', won(a.actual)]; })).concat([['현금 입금 (' + BANK.deposits.cash.n + '건)', won(BANK.deposits.cash.sum)]])) + srcHTML([{ t: '통장 거래내역 (예시)' }]) }
   ];
-  var max = excelSale + CARD.prevIn + sumApps('prevIn');
-  var run = 0;
-  var el = document.getElementById('fall');
-  el.innerHTML = steps.map(function (s) {
-    var from, to, sign;
-    if (s.kind === 'total') { from = 0; to = s.v; run = s.v; sign = ''; }
-    else if (s.kind === 'add') { from = run; to = run + s.v; run = to; sign = '+'; }
-    else { from = run - s.v; to = run; run = from; sign = '−'; }
-    var left = from / max * 100, width = (to - from) / max * 100;
-    var tip = s.name + ': ' + sign + won(s.v) + '원' + (s.why ? ' — ' + s.why : '');
-    return '<div class="step ' + s.kind + (s.sep ? ' sep' : '') + '" role="listitem" title="' + tip.replace(/"/g, '&quot;') + '">' +
-      '<div class="name">' + s.name + (s.assume ? '<span class="assume">가정</span>' : '') + '<small>' + s.note + '</small></div>' +
-      '<div class="track"><span class="bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span></div>' +
-      '<div class="amt">' + sign + won(s.v) + '</div></div>';
-  }).join('');
 
-  // ---------------------------------------------------------------- 길별 표
-  function row(name, sale, cut, timing, exp, act, status, cls) {
-    var diff = act - exp;
-    return '<tr><td class="l">' + name + '</td><td>' + won(sale) + '</td><td class="neg">' + (cut ? '−' + won(cut) : '0') + '</td>' +
-      '<td class="neg">' + (timing ? (timing > 0 ? '+' : '−') + won(Math.abs(timing)) : '0') + '</td>' +
-      '<td>' + won(exp) + '</td><td><b>' + won(act) + '</b></td>' +
-      '<td class="' + (diff ? 'bad' : '') + '">' + (diff ? '−' + won(-diff) : '0') + '</td>' +
+  var max = excelTotal + prevIn;
+  var open = {};
+  function renderFall() {
+    var run = 0, h = '';
+    STEPS.forEach(function (s) {
+      if (s.stage) { h += '<div class="stage">' + s.stage + '</div>'; return; }
+      var from, to;
+      if (s.kind === 'total') { from = 0; to = s.v; run = s.v; }
+      else if (s.kind === 'gap') { from = run + s.v; to = run; run = from; }
+      else if (s.v >= 0) { from = run; to = run + s.v; run = to; }
+      else { from = run + s.v; to = run; run = from; }
+      var left = Math.max(0, from) / max * 100, width = Math.abs(to - from) / max * 100;
+      var amt = s.kind === 'total' ? won(s.v) : signed(s.v);
+      h += '<button type="button" class="step ' + s.kind + '" data-id="' + s.id + '" aria-expanded="' + !!open[s.id] + '" aria-controls="d-' + s.id + '">' +
+        '<span class="name">' + s.name + (s.check ? '<span class="tag-s check">확인 필요</span>' : '') + (s.notcost ? '<span class="tag-s notcost">비용 아님</span>' : '') + '<small>' + s.note + '</small></span>' +
+        '<span class="track" aria-hidden="true"><span class="bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span></span>' +
+        '<span class="amt">' + amt + '</span><span class="chev" aria-hidden="true">›</span></button>' +
+        '<div class="detail" id="d-' + s.id + '"' + (open[s.id] ? '' : ' hidden') + '>' + s.detail + '</div>';
+    });
+    document.getElementById('fall').innerHTML = h;
+  }
+  document.getElementById('fall').addEventListener('click', function (e) {
+    var b = e.target.closest('.step'); if (!b) return;
+    var id = b.dataset.id; open[id] = !open[id];
+    b.setAttribute('aria-expanded', String(open[id]));
+    document.getElementById('d-' + id).hidden = !open[id];
+  });
+  open.gap = true; // 처음엔 설명 안 된 차이를 펼쳐 둠
+  renderFall();
+
+  // ================================================================ 길별 표
+  function chRow(name, sale, cost, timing, off, exp, act, status, cls) {
+    var d = act - exp;
+    return '<tr><td class="l">' + name + '</td><td>' + won(sale) + '</td><td class="neg">' + (cost ? '−' + won(cost) : '0') + '</td>' +
+      '<td class="neg">' + (timing ? signed(timing) : '0') + '</td><td class="neg">' + (off ? '−' + won(off) : '0') + '</td>' +
+      '<td>' + won(exp) + '</td><td><b>' + won(act) + '</b></td><td class="' + (d ? 'bad' : '') + '">' + (d ? signed(d) : '0') + '</td>' +
       '<td class="st ' + (cls || '') + '">' + status + '</td></tr>';
   }
   var rows = [];
-  rows.push(row('매장 카드', CARD.sale, CARD.fee, CARD.prevIn - CARD.nextOut, CARD.expected, CARD.actual,
-    '⚠ 입금보류 1건 ' + won(CARD.hold) + '원<span class="s">10/27 승인분 — 카드사에 매입 여부 확인</span>', 'bad'));
-  APPS.forEach(function (a) {
-    rows.push(row(a.name + ' (배달)', a.sale, a.cut, a.prevIn - a.nextOut, a.expected, a.actual,
-      a.short ? '⚠ 기타 차감 ' + won(a.short) + '원<span class="s">10/21 정산 — 사유 안 적힘</span>' : '✓ 맞음<span class="s">빠진 돈은 정산 내역서에 다 있음 (판매의 ' + Math.round(a.cut / a.sale * 100) + '%)</span>',
-      a.short ? 'bad' : 'ok'));
+  rows.push(chRow('매장 카드', card.sale, card.fee, card.timing, 0, card.expected, card.actual,
+    card.actual === card.expected ? '✓ 맞음' : '⚠ 입금보류 ' + won(card.expected - card.actual) + '원<span class="s">' + CARD.holds[0].date + ' 승인분 — 카드사에 매입 여부 확인</span>', card.actual === card.expected ? 'ok' : 'bad'));
+  apps.forEach(function (a) {
+    var d = a.actual - a.expected;
+    rows.push(chRow(a.name + ' (배달)', a.sale, a.cost, a.timing, 0, a.expected, a.actual,
+      d ? '⚠ ' + (APP_NOTES[a.key] ? APP_NOTES[a.key].label + ' ' : '덜 들어옴 ') + won(-d) + '원<span class="s">' + (APP_NOTES[a.key] ? APP_NOTES[a.key].date + ' 정산 — 사유 안 적힘' : '정산서 확인 필요') + '</span>'
+        : '✓ 맞음<span class="s">빠진 돈은 정산서에 다 있음 (판매의 ' + Math.round(a.cost / a.sale * 100) + '%)</span>', d ? 'bad' : 'ok'));
   });
-  rows.push(row('본사 앱 주문', HQAPP.sale, HQAPP.sale, 0, 0, 0,
-    '통장 입금 없음 <span class="assume">가정</span><span class="s">재료비 청구에서 상계 — 아래 표</span>', 'warn'));
-  rows.push(row('현금', CASH.sale, CASH.sale - CASH.deposited, 0, CASH.deposited, CASH.deposited,
-    '✓ 맞음<span class="s">넣은 만큼 통장에 찍힘</span>', 'ok'));
-  var timingAll = CARD.prevIn - CARD.nextOut + APPS.reduce(function (s, a) { return s + a.prevIn - a.nextOut; }, 0);
-  var cutAll = CARD.fee + sumApps('cut') + HQAPP.sale + (CASH.sale - CASH.deposited);
-  rows.push('<tr class="sum"><td class="l">합계</td><td>' + won(excelSale) + '</td><td>−' + won(cutAll) + '</td><td>' + (timingAll < 0 ? '−' : '+') + won(Math.abs(timingAll)) + '</td><td>' + won(expectedIn) + '</td><td>' + won(bankIn) + '</td><td class="bad">−' + won(unexplained) + '</td><td class="l"></td></tr>');
+  rows.push(chRow('본사 앱 주문', S.hqapp, 0, 0, S.hqapp, 0, 0, '통장 입금 없음 · <span class="warn">상계 확인 필요</span><span class="s">아래 "본사 상계 확인"</span>', ''));
+  rows.push(chRow('현금', cash.sale, 0, 0, cash.kept, cash.deposited, cash.deposited, '✓ 맞음<span class="s">넣은 만큼 통장에 찍힘</span>', 'ok'));
+  var tTiming = card.timing + A('timing');
+  rows.push('<tr class="sum"><td class="l">합계</td><td>' + won(excelTotal) + '</td><td>−' + won(costTotal) + '</td><td>' + signed(tTiming) + '</td><td>−' + won(offRoute) + '</td><td>' + won(expectedTotal) + '</td><td>' + won(actualTotal) + '</td><td class="bad">' + signed(-gap) + '</td><td class="l"></td></tr>');
   document.getElementById('channels').innerHTML = rows.join('');
 
-  // ---------------------------------------------------------------- 본사로 나간 돈
-  var material = HQ.material.reduce(function (s, v) { return s + v; }, 0);
-  var hqOut = material + HQ.share - HQAPP.net;
-  document.getElementById('hq').innerHTML =
-    '<tr><td class="l">재료비 청구 (주 1회 발주 · ' + HQ.material.length + '번)</td><td class="l">본사 엑셀</td><td>' + won(material) + '</td></tr>' +
-    '<tr><td class="l">광고·행사 분담금<span class="s">배달앱 브랜드 할인 행사의 가게 몫 등</span></td><td class="l">본사 엑셀</td><td>' + won(HQ.share) + '</td></tr>' +
-    '<tr><td class="l">본사 앱 매출 상계 <span class="assume">가정</span><span class="s">본사 앱 매출 ' + won(HQAPP.sale) + ' − 결제 수수료 ' + won(HQAPP.fee) + '</span></td><td class="l">엑셀엔 매출로만 있음</td><td>−' + won(HQAPP.net) + '</td></tr>' +
-    '<tr class="sum"><td class="l">본사로 나가야 할 돈</td><td class="l"></td><td>' + won(hqOut) + '</td></tr>' +
-    '<tr><td class="l">통장에서 본사로 나간 돈 (' + HQ.material.length + '번 출금 합계)</td><td class="l">통장</td><td><b>' + won(hqOut) + '</b></td></tr>' +
-    '<tr><td class="l" colspan="2"><span class="ok">✓ 맞음</span> — 본사 앱 매출은 통장으로 들어오지 않고, 재료비에서 빠진 만큼 덜 나갔어요 <span class="assume">가정</span></td><td class="ok">0</td></tr>';
+  // ================================================================ 본사 상계 확인
+  document.getElementById('hq').innerHTML = HQ_EXCEL.bills.map(function (b, i) {
+    var bill = b.material + b.share, out = BANK.hqWithdrawals[i];
+    return '<tr><td class="l">' + b.week + '</td><td>' + won(bill) + (b.share ? '<span class="s">재료비 ' + won(b.material) + ' + 분담금 ' + won(b.share) + '</span>' : '') + '</td><td>' + won(out) + '</td><td>' + won(bill - out) + '</td><td>' + won(weeklyNet[i]) + '</td></tr>';
+  }).join('') + '<tr class="sum"><td class="l">합계</td><td>' + won(billTotal) + '</td><td>' + won(hqOutTotal) + '</td><td>' + won(lessPaid) + '</td><td>' + won(sum(weeklyNet)) + '</td></tr>';
+  document.getElementById('hq-verdict').innerHTML = offsetMatches
+    ? '<b>상계일 가능성 높음 · 확인 필요.</b> 통장에서 본사로 청구보다 ' + won(lessPaid) + '원 덜 나갔고, 이 금액이 본사 앱 매출(결제 수수료 뺀) ' + won(hqappNet) + '원과 주마다 같아요. 다만 본사 정산서에 "상계"라고 적혀 있는지 확인하기 전까지는 추정입니다.'
+    : '<b>확인 필요.</b> 덜 나간 돈 ' + won(lessPaid) + '원이 본사 앱 매출(수수료 뺀) ' + won(hqappNet) + '원과 달라요. 본사 정산서를 확인해 주세요.';
 
-  // ---------------------------------------------------------------- 확인할 것
-  document.getElementById('todo-lead').textContent =
-    '이유를 찾은 ' + won(explained) + '원을 빼고 남은 ' + won(unexplained) + '원입니다. 두 건 모두 어디에 물어볼지 정해져 있어요.';
+  // ================================================================ 확인할 것
+  document.getElementById('todo-lead').textContent = '설명 안 된 ' + won(gap) + '원 2건과, 추정으로 둔 본사 상계 1건입니다.';
   document.getElementById('todo').innerHTML =
-    '<div class="todo-item"><span class="ic">⚠</span><span class="t">매장 카드 입금보류</span><span class="v">' + won(CARD.hold) + '원</span>' +
-    '<span class="d">10/27 승인분이 입금 예정일(10/29)에 안 들어옴. 카드사가 매입을 보류했을 수 있어요 → 카드사 가맹점 고객센터에 매입 여부 문의. 나중에 들어오면 지워집니다.</span></div>' +
-    '<div class="todo-item"><span class="ic">⚠</span><span class="t">B앱 "기타 차감"</span><span class="v">' + won(APPS[1].short) + '원</span>' +
-    '<span class="d">10/21 정산 내역서에 "기타 차감"으로만 적혀 있고 사유가 없음 → B앱 사장님 고객센터에 차감 사유 문의.</span></div>';
+    '<div class="todo-item"><span class="ic">⚠</span><span class="t">매장 카드 입금보류</span><span class="v">' + won(card.expected - card.actual) + '원</span>' +
+    '<span class="d">' + CARD.holds[0].date + ' 승인분이 입금 예정일에 안 들어옴 → 카드사 가맹점 고객센터에 매입 여부 문의. 나중에 들어오면 지워집니다.</span></div>' +
+    '<div class="todo-item"><span class="ic">⚠</span><span class="t">B앱 "기타 차감"</span><span class="v">' + won(APP_NOTES.B.amount) + '원</span>' +
+    '<span class="d">' + APP_NOTES.B.what + '으로만 적혀 있고 사유가 없음 → ' + APP_NOTES.B.how + '.</span></div>' +
+    '<div class="todo-item check"><span class="ic">?</span><span class="t">본사 앱 매출 상계</span><span class="v">' + won(hqappNet) + '원</span>' +
+    '<span class="d">통장에 입금이 없고 본사 출금이 그만큼 적어서 상계로 보이지만, 본사 정산서에서 상계 항목을 확인해야 확정됩니다.</span></div>';
 })();
 </script>
 <script src="refs.js"></script>
