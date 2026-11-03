@@ -1,8 +1,10 @@
 # money-matching-excel
 
-배달 정산 맞추기 최소 데모 (hq 이름: `delivery-profit`).
+본사 엑셀 ↔ 통장 맞추기 데모 (처음엔 배달 정산 맞추기 최소 데모) (hq 이름: `delivery-profit`).
 
-- 빌드 없음, Vanilla JS. 예시 데이터·계산은 `data.js`(window.DEMO) 하나, 화면은 `index.html`(기본 카드형)·`dashboard.html`(대시보드형) 두 개. 위쪽 디자인 콤보 박스로 오감.
+- 빌드 없음, Vanilla JS. 첫 화면 `index.html` = **본사(바이저) 엑셀 ↔ 통장 맞추기** (11/3 방향 전환, 예시 데이터는 파일 안). 
+- 배달 정산 화면: `delivery.html`(카드형)·`dashboard.html`(대시보드형), 예시 데이터·계산은 `data.js`(window.DEMO).
+- 모든 화면 위쪽 "화면" 콤보 박스 = `screens.js`.
 - `upload.html`: 정산서·통장 엑셀을 올려 맞추는 화면. 파일은 브라우저 안에서만 처리(서버·저장 없음). 가짜 양식은 `upload.html` 안 `fakeSettlement`/`fakeBank`.
 - `refs.js`: 세 화면 위쪽 "참고 문서" 콤보 박스 목록(제목·한 줄 설명·링크). 문서 추가는 여기 배열에.
 - `docs/`: 참고 문서의 공개용 HTML 사본(원본은 Claude 문서). 옮길 때 가게·브랜드·실명은 일반 표현으로 바꾸고, 내부용(영업 멘트·수익 모델) 문서는 넣지 않는다.

@@ -3,542 +3,340 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>배달 정산 맞추기</title>
-<meta name="description" content="배달 주문 한 건마다 얼마가 빠지고 통장에 얼마가 들어왔는지 맞춰 보는 데모 (예시 데이터)">
+<title>본사 엑셀 맞추기</title>
+<meta name="description" content="바이저(본사) 엑셀 매출과 통장 입금이 왜 다른지 한 단계씩 맞춰 보는 데모 (예시 데이터)">
 <style>
   :root {
-    --bg: #f6f5f2; --card: #ffffff; --ink: #1d1d1b; --sub: #6b6a66; --line: #e6e4df;
-    --accent: #2f6b4f; --bad: #c2412d; --bad-bg: #fbeae6; --late: #a86a00; --late-bg: #fbf1dc;
-    --bar: #d9d5cc;
-    --c-fee: #2f6b4f; --c-pay: #5b8f73; --c-vat: #8db39d; --c-deliv: #c2412d; --c-coupon: #d98b3a; --c-ad: #7a6fb0;
+    --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
+    --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6; --hover: #f3f4f6;
+    --cut: #5b6ee1; --add: #0f8a6c; --total: #9ca3af; --total-ink: #374151;
+    --red: #dc2626; --red-bg: #fee2e2; --amber: #b45309; --amber-bg: #fef3c7; --green: #15803d; --green-bg: #dcfce7;
+    --track: #f1f2f4;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #151514; --card: #1f1f1d; --ink: #f1f0ec; --sub: #a3a29d; --line: #33322f;
-      --accent: #7cc39c; --bad: #ff8a73; --bad-bg: #3a221d; --late: #f0b44c; --late-bg: #352a14;
-      --bar: #3a3935;
-      --c-fee: #7cc39c; --c-pay: #5fa47f; --c-vat: #3f7a5b; --c-deliv: #ff8a73; --c-coupon: #f0b44c; --c-ad: #a99ee0;
+      --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+      --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
+      --cut: #7586ec; --add: #28a582; --total: #6b7280; --total-ink: #d1d5db;
+      --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
+      --track: #222327;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #151514; --card: #1f1f1d; --ink: #f1f0ec; --sub: #a3a29d; --line: #33322f;
-    --accent: #7cc39c; --bad: #ff8a73; --bad-bg: #3a221d; --late: #f0b44c; --late-bg: #352a14;
-    --bar: #3a3935;
-    --c-fee: #7cc39c; --c-pay: #5fa47f; --c-vat: #3f7a5b; --c-deliv: #ff8a73; --c-coupon: #f0b44c; --c-ad: #a99ee0;
+    --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+    --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
+    --cut: #7586ec; --add: #28a582; --total: #6b7280; --total-ink: #d1d5db;
+    --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
+    --track: #222327;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
-    font-size: 15px; line-height: 1.5; font-variant-numeric: tabular-nums;
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums;
   }
-  main { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; }
-  .topline { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; margin-bottom: 4px; flex-wrap: wrap; }
-  .topline .eyebrow { white-space: nowrap; margin: 0; }
-  .upload-link { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; margin-left: auto; }
-  .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .refs-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; max-width: 13em; }
-  .design-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .design-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
-  .eyebrow { font-size: 13px; color: var(--sub); margin: 4px 0 6px; }
-  .demo-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--late); background: var(--late-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
+  .top h1 .tag { font-size: 11px; font-weight: 700; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .top-right { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; }
+  .design-pick, .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .design-pick select, .refs-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; max-width: 13em; }
 
-  /* 1. 요약 */
-  .hero { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; }
-  .hero h1 { font-size: 21px; line-height: 1.45; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
-  .hero h1 b { color: var(--accent); }
-  .hero h1 .per { color: var(--bad); }
-  .hero-sub { margin: 10px 0 0; color: var(--sub); font-size: 14px; }
-  .stack { display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin-top: 14px; background: var(--bar); }
-  .stack span { display: block; height: 100%; }
-  .legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); margin-top: 6px; }
-  .flags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .flag { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
-  .flag.bad { color: var(--bad); background: var(--bad-bg); }
-  .flag.late { color: var(--late); background: var(--late-bg); }
+  .content { max-width: 1180px; margin: 0 auto; padding: 16px 20px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .content > * { min-width: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .pad { padding: 14px 16px; }
+  h2 { font-size: 15px; margin: 0 0 4px; }
+  .muted { color: var(--sub); font-size: 13px; margin: 0; }
+  .lead { font-size: 16px; margin: 0; line-height: 1.6; }
+  .lead b { font-weight: 800; }
+  .lead .bad { color: var(--red); }
 
-  section { margin-top: 22px; }
-  h2 { font-size: 16px; margin: 0 0 8px; }
-  h2 small { font-weight: 400; color: var(--sub); font-size: 13px; margin-left: 4px; }
+  /* 숫자 카드 */
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi { padding: 12px 14px; }
+  .kpi .label { font-size: 13px; font-weight: 600; margin: 0; color: var(--sub); }
+  .kpi .num { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+  .kpi .desc { font-size: 12px; color: var(--sub); margin: 2px 0 0; }
+  .kpi .split { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 12px; font-weight: 600; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
+  .chip.ok { color: var(--green); background: var(--green-bg); }
+  .chip.bad { color: var(--red); background: var(--red-bg); }
 
-  /* 4. 항목별 합계 */
-  .leaks { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 16px; }
-  .leak { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .leak:last-child { border-bottom: 0; }
-  .leak .name { font-size: 14px; }
-  .leak .name i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
-  .leak .amt { font-weight: 700; font-size: 15px; }
-  .leak .meter { grid-column: 1 / -1; height: 6px; background: var(--bar); border-radius: 3px; overflow: hidden; }
-  .leak .meter span { display: block; height: 100%; border-radius: 3px; }
-  .leak .note { grid-column: 1 / -1; font-size: 12px; color: var(--sub); }
-  .leak.total .name, .leak.total .amt { font-weight: 700; }
-  .apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-  .app { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
-  .app .n { font-size: 12px; color: var(--sub); }
-  .app .v { font-size: 17px; font-weight: 700; }
-  .app .s { font-size: 11px; color: var(--sub); }
+  /* 폭포 (엑셀 → 통장) */
+  .fall-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin: 8px 0 12px; }
+  .fall-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .fall { display: grid; gap: 3px; }
+  .step { display: grid; grid-template-columns: minmax(11em, 15em) minmax(0, 1fr) 7.5em; gap: 10px; align-items: center; padding: 3px 4px; border-radius: 6px; }
+  .step:hover { background: var(--hover); }
+  .step .name { font-size: 13px; line-height: 1.35; }
+  .step .name small { display: block; color: var(--sub); font-size: 11px; }
+  .step .track { position: relative; height: 18px; background: var(--track); border-radius: 4px; }
+  .step .bar { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; min-width: 3px; }
+  .step.cut .bar { background: var(--cut); }
+  .step.add .bar { background: var(--add); }
+  .step.total .bar { background: var(--total); top: 0; bottom: 0; }
+  .step.total .name, .step.total .amt { font-weight: 800; }
+  .step.gap .bar { background: var(--red); }
+  .step.gap .name, .step.gap .amt { color: var(--red); font-weight: 700; }
+  .step .amt { text-align: right; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .step.cut .amt, .step.add .amt { color: var(--ink); }
+  .step.sep { margin-top: 6px; border-top: 1px dashed var(--line-strong); padding-top: 8px; border-radius: 0; }
+  .assume { font-size: 11px; font-weight: 700; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 0 5px; margin-left: 4px; }
 
-  /* 2·3. 주문 표 */
-  .table-wrap { overflow-x: auto; border-radius: 14px; }
-  .filters { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; }
-  .filters button {
-    font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
-    border-radius: 999px; padding: 5px 12px; white-space: nowrap; cursor: pointer;
-  }
-  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 13px; }
-  th { text-align: right; font-weight: 600; color: var(--sub); font-size: 12px; padding: 8px 8px; border-bottom: 1px solid var(--line); }
-  th:first-child { text-align: left; }
-  td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
-  td:first-child { text-align: left; }
-  tr.order { cursor: pointer; }
-  tr.order:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  tr.order.bad td { background: var(--bad-bg); }
-  tr.order.late td { background: var(--late-bg); }
-  .o-meta { font-size: 12px; color: var(--sub); }
-  .o-menu { display: block; max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .minus { color: var(--bad); }
-  .paid { font-weight: 700; }
-  .badge { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 5px; margin-top: 2px; }
-  .badge.bad { color: #fff; background: var(--bad); }
-  .badge.late { color: #fff; background: var(--late); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.bad, :root:not([data-theme="light"]) .badge.late { color: #151514; } }
-  tr.detail td { background: var(--bg); text-align: left; padding: 10px 12px 14px; }
-  .dl { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 13px; }
-  .dl .k { color: var(--sub); }
-  .dl .v { text-align: right; }
-  .dl .sep { grid-column: 1 / -1; border-top: 1px dashed var(--line); margin: 4px 0; }
-  .dl .em { font-weight: 700; }
-  .why { margin-top: 8px; font-size: 13px; padding: 8px 10px; border-radius: 8px; }
-  .why.bad { color: var(--bad); background: var(--bad-bg); }
-  .why.late { color: var(--late); background: var(--late-bg); }
-  .hint { font-size: 12px; color: var(--sub); margin: 6px 2px 0; }
+  /* 표 */
+  .tbl-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 14px 8px; }
+  .tbl-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; background: var(--head); font-size: 12px; }
+  th.l, td.l { text-align: left; }
+  td .s { display: block; font-size: 11px; color: var(--sub); white-space: normal; }
+  td.neg { color: var(--sub); }
+  td.st { white-space: normal; min-width: 11em; text-align: left; }
+  .ok { color: var(--green); font-weight: 600; }
+  .bad { color: var(--red); font-weight: 700; }
+  .warn { color: var(--amber); font-weight: 600; }
+  tr.sum td { font-weight: 800; background: var(--head); border-bottom: 0; }
 
-  /* 넓은 화면(웹): 모든 항목을 칸으로 펼쳐 보기. 좁은 화면(앱)은 추린 칸만 */
-  .w { display: none; }
-  .wide-hint { display: none; }
-  @media (min-width: 960px) {
-    main { max-width: 1400px; padding: 24px 24px 48px; }
-    .top { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
-    .top > section { margin-top: 0; }
-    .hero h1 { font-size: 26px; }
-    .w { display: table-cell; }
-    .m { display: none; }
-    tr.order { cursor: default; }
-    tr.detail { display: none; }
-    td.w-menu { text-align: left; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    th, td.w { white-space: nowrap; }
-    td.w-note { white-space: normal; min-width: 11em; }
-    .w-left, th.w-left { text-align: left; }
-    td.w-note { text-align: left; font-size: 12px; }
-    td.w-note.bad { color: var(--bad); }
-    td.w-note.late { color: var(--late); }
-    th.grp { border-left: 1px solid var(--line); }
-    td.grp { border-left: 1px solid var(--line); }
-    tfoot td { font-weight: 700; background: var(--bg); border-bottom: 0; }
-    .wide-hint { display: inline; }
-    .narrow-hint { display: none; }
-  }
+  /* 확인할 것 */
+  .todo { display: grid; gap: 8px; margin-top: 10px; }
+  .todo-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; border: 1px solid var(--red); background: var(--red-bg); border-radius: 8px; padding: 10px 12px; }
+  .todo-item .ic { font-weight: 800; color: var(--red); }
+  .todo-item .t { font-weight: 700; }
+  .todo-item .v { font-weight: 800; color: var(--red); white-space: nowrap; }
+  .todo-item .d { grid-column: 2 / -1; font-size: 13px; color: var(--ink); }
 
-  /* 리스트 / 달력 전환 */
-  .views { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; background: var(--card); margin-bottom: 10px; }
-  .views button { font: inherit; font-size: 14px; font-weight: 600; border: 0; background: transparent; color: var(--sub); padding: 6px 16px; border-radius: 7px; cursor: pointer; }
-  .views button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  .foot { font-size: 12px; color: var(--sub); margin: 0; }
+  .foot b { color: var(--ink); }
   [hidden] { display: none !important; }
 
-  /* 달력 */
-  .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--sub); margin: 0 2px 8px; }
-  .cal-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
-  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-  .cal .dow { text-align: center; font-size: 12px; color: var(--sub); padding: 2px 0; }
-  .cal .dow.sun { color: var(--bad); }
-  .day {
-    font: inherit; text-align: left; color: var(--ink); background: var(--card); border: 1px solid var(--line);
-    border-radius: 8px; padding: 4px 4px 5px; min-height: 66px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  @media (max-width: 760px) {
+    .top { padding: 10px 16px; }
+    .top h1 { font-size: 16px; }
+    .content { padding: 12px 16px 28px; }
+    .kpis { grid-template-columns: 1fr; gap: 8px; }
+    .kpi .num { font-size: 22px; }
+    .lead { font-size: 15px; }
+    .step { grid-template-columns: minmax(0, 1fr) 6.8em; gap: 2px 8px; }
+    .step .track { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+    .step .name { grid-column: 1; grid-row: 1; }
+    .step .amt { grid-column: 2; grid-row: 1; }
+    th, td { padding: 7px 8px; }
+    #ch-table th:nth-child(2), #ch-table td:nth-child(2), #ch-table th:nth-child(3), #ch-table td:nth-child(3), #ch-table th:nth-child(4), #ch-table td:nth-child(4), #ch-table th:nth-child(5), #ch-table td:nth-child(5) { display: none; }
+    #ch-table td.st { min-width: 9em; }
+    #ch-table td:first-child { white-space: normal; }
+    #hq-table td { white-space: normal; }
   }
-  .day.empty { background: transparent; border-style: dashed; cursor: default; opacity: 0.5; }
-  .day .dn { font-size: 12px; font-weight: 700; }
-  .day .dn small { font-weight: 400; color: var(--sub); }
-  .day .sl, .day .dp, .day .ms { font-size: 11px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .day .sl { color: var(--sub); }
-  .day .pfx { display: none; font-weight: inherit; }
-  .day .dp { color: var(--accent); font-weight: 700; }
-  .day .ms { color: var(--late); font-weight: 700; }
-  .day.has-bad { background: var(--bad-bg); border-color: var(--bad); }
-  .day.has-bad .dp { color: var(--bad); }
-  .day.has-late { background: var(--late-bg); }
-  .day.has-miss { border: 1.5px dashed var(--late); }
-  .day.today { box-shadow: inset 0 0 0 2px var(--ink); }
-  .day[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .day-panel { margin-top: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
-  .day-panel h3 { font-size: 15px; margin: 0 0 4px; }
-  .day-panel h4 { font-size: 13px; margin: 12px 0 4px; color: var(--sub); font-weight: 600; }
-  .day-panel h4 b { color: var(--ink); }
-  .dp-row { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
-  .dp-row .r { text-align: right; font-weight: 700; }
-  .dp-row .sub { grid-column: 1 / -1; font-size: 12px; color: var(--sub); }
-  .dp-row.bad .r, .dp-row.bad .sub b { color: var(--bad); }
-  .dp-row.late .sub b { color: var(--late); }
-  .dp-none { font-size: 13px; color: var(--sub); padding: 4px 0; }
-  @media (min-width: 960px) {
-    .cal { gap: 6px; }
-    .day { min-height: 96px; padding: 8px; gap: 3px; }
-    .day .dn { font-size: 14px; }
-    .day .pfx { display: inline; }
-    .day .sl, .day .dp, .day .ms { font-size: 13px; }
-    .cal-wrap { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 20px; align-items: start; }
-    .day-panel { margin-top: 0; position: sticky; top: 16px; }
-  }
-
-  footer { margin-top: 28px; padding: 14px 16px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13px; color: var(--sub); }
-  footer strong { color: var(--ink); }
 </style>
 </head>
 <body>
-<main>
-  <div class="topline">
-    <p class="eyebrow">배달 정산 맞추기 <span class="demo-tag">예시 데이터</span></p>
-    <a class="upload-link" href="upload.html">내 파일로 맞추기 →</a>
+<header class="top">
+  <h1>본사 엑셀 ↔ 통장 맞추기<span class="tag">예시 데이터</span></h1>
+  <div class="top-right">
     <span data-refs></span>
-    <label class="design-pick">디자인
-      <select id="design" aria-label="디자인 고르기">
-        <option value="index.html" selected>기본 (카드형)</option>
-        <option value="dashboard.html">대시보드형</option>
-      </select>
-    </label>
+    <span data-screens></span>
   </div>
+</header>
 
-  <div class="top">
-  <!-- 1. 요약 한 줄 -->
-  <div class="hero">
-    <h1 id="headline"></h1>
-    <p class="hero-sub" id="headline-sub"></p>
-    <div class="stack" id="stack" aria-hidden="true"></div>
-    <div class="legend"><span>통장에 들어온 돈</span><span>빠진 돈</span></div>
-    <div class="flags" id="flags"></div>
-  </div>
-
-  <!-- 4. 항목별 합계 -->
-  <section>
-    <h2>어디로 빠졌나 <small id="leak-range"></small></h2>
-    <div class="leaks" id="leaks"></div>
-    <div class="apps" id="apps"></div>
+<main class="content">
+  <section class="card pad">
+    <p class="lead" id="lead"></p>
   </section>
-  </div>
 
-  <!-- 2·3. 주문 건별 표 -->
-  <section>
-    <h2>주문 건별</h2>
-    <div class="views" id="views" role="tablist" aria-label="보기 방식">
-      <button type="button" role="tab" data-v="list" aria-selected="true" aria-controls="list-view">리스트</button>
-      <button type="button" role="tab" data-v="cal" aria-selected="false" aria-controls="cal-view">달력</button>
+  <div class="kpis" id="kpis"></div>
+
+  <section class="card pad" aria-labelledby="fall-title">
+    <h2 id="fall-title">엑셀에서 통장까지, 한 단계씩</h2>
+    <p class="muted">바이저 엑셀의 매출에서 시작해, 통장에 오기 전에 빠지거나 다른 달로 넘어간 돈을 하나씩 뺍니다. 막대에 마우스를 올리면 설명이 나와요.</p>
+    <div class="fall-legend">
+      <span><i style="background:var(--total)"></i>합계</span>
+      <span><i style="background:var(--cut)"></i>빠진 돈 (이유 있음)</span>
+      <span><i style="background:var(--add)"></i>더해진 돈</span>
+      <span><i style="background:var(--red)"></i>⚠ 설명 안 되는 차이</span>
     </div>
-    <div class="filters" id="filters" role="group" aria-label="주문 거르기"></div>
-    <div id="list-view" role="tabpanel">
-    <p class="hint" style="margin:0 2px 8px"><span class="narrow-hint">줄을 누르면 빠진 돈이 자세히 나와요</span><span class="wide-hint">빠진 돈을 항목별로 펼쳐 봤어요</span></p>
-    <div class="table-wrap"><table>
-      <thead><tr>
-        <th class="m">주문</th>
-        <th class="w w-left">주문일</th><th class="w w-left">배달앱</th><th class="w w-left">메뉴</th>
-        <th>판매</th>
-        <th class="w grp">중개 수수료</th><th class="w">결제 수수료</th><th class="w">부가세</th><th class="w">배달비</th><th class="w">할인·쿠폰</th><th class="w">광고비</th>
-        <th class="grp">빠진 돈</th>
-        <th class="w grp">입금 예정액</th><th class="m">통장</th><th class="w">실제 입금</th><th class="w">예정일</th><th class="w">입금일</th><th class="w w-left">비고</th>
-      </tr></thead>
-      <tbody id="orders"></tbody>
-      <tfoot id="totals"></tfoot>
-    </table></div>
-    <p class="hint">빨간 줄은 예정액과 실제 입금이 다른 주문, 노란 줄은 입금일이 밀린 주문이에요.</p>
+    <div class="fall" id="fall" role="list"></div>
+  </section>
+
+  <section class="card" aria-labelledby="ch-title">
+    <div class="tbl-top">
+      <h2 id="ch-title">들어오는 길별로 보기</h2>
+      <p class="muted">매출은 바이저 엑셀, 실제 입금은 통장 기준</p>
     </div>
-    <div id="cal-view" role="tabpanel" hidden>
-      <div class="cal-legend">
-        <span><b style="color:var(--sub)">회색</b> 그날 판 금액</span>
-        <span><b style="color:var(--accent)">초록</b> 그날 통장에 들어온 돈</span>
-        <span><i style="background:var(--bad-bg);border:1px solid var(--bad)"></i>덜 들어온 날</span>
-        <span><i style="background:var(--late-bg)"></i>늦게 들어온 날</span>
-        <span><i style="border:1.5px dashed var(--late)"></i>들어와야 했는데 안 온 날</span>
-      </div>
-      <div class="cal-wrap">
-        <div class="cal" id="cal"></div>
-        <div class="day-panel" id="day-panel" aria-live="polite"></div>
-      </div>
+    <div class="tbl-scroll">
+      <table id="ch-table">
+        <thead><tr>
+          <th class="l">길</th><th>엑셀 매출</th><th>미리 빠진 돈</th><th>다른 달로 넘어간 돈</th><th>들어왔어야 할 돈</th><th>실제 통장</th><th>차이</th><th class="l">상태</th>
+        </tr></thead>
+        <tbody id="channels"></tbody>
+      </table>
     </div>
   </section>
 
-  <!-- 5. 예시 데이터 안내 -->
-  <footer>
-    <strong>예시 데이터입니다.</strong> 주문·금액·입금일은 모두 지어낸 숫자예요.
-    수수료율과 배달비도 설명을 위한 예시일 뿐, 실제 배달앱 요율이 아닙니다
-    (요율은 계약·구간마다 다르고 자주 바뀝니다).
-  </footer>
+  <section class="card" aria-labelledby="hq-title">
+    <div class="tbl-top">
+      <h2 id="hq-title">본사로 나간 돈</h2>
+      <p class="muted">본사 앱 매출이 통장에 안 들어온 이유가 여기서 보입니다</p>
+    </div>
+    <div class="tbl-scroll">
+      <table id="hq-table">
+        <thead><tr><th class="l">항목</th><th class="l">어디에 있나</th><th>금액</th></tr></thead>
+        <tbody id="hq"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card pad" aria-labelledby="todo-title">
+    <h2 id="todo-title">⚠ 아직 설명 안 되는 돈 — 확인할 것</h2>
+    <p class="muted" id="todo-lead"></p>
+    <div class="todo" id="todo"></div>
+  </section>
+
+  <p class="foot"><b>예시 데이터입니다.</b> 가게·금액·수수료율·배달비는 모두 지어낸 숫자이고, 실제 앱 요율이 아닙니다. <span class="assume">가정</span> 표시는 아직 점장님께 확인하지 못한 구조입니다 (예: 본사 앱 매출이 재료비와 상계되는지).</p>
 </main>
 
-<script src="data.js"></script>
 <script>
 (function () {
   'use strict';
 
-  // 예시 데이터와 계산은 data.js (두 디자인이 같이 씀)
-  var D = window.DEMO;
-  var APPS = D.APPS, rows = D.rows, T = D.T;
-  var parse = D.parse, iso = D.iso, md = D.md, won = D.won, man = D.man, sum = D.sum;
-  var per10k = Math.round(T.paid / T.sale * 10000 / 100) * 100;
-  var shortRows = rows.filter(function (r) { return r.short; });
-  var lateRows = rows.filter(function (r) { return r.lateDays; });
-
-  // ---------------------------------------------------------------- 1. 요약
-  var range = md(rows[0].date) + '~' + md(rows[rows.length - 1].date);
-  document.getElementById('headline').innerHTML =
-    '이번 주 배달 <b>' + man(T.sale) + ' 원</b> 팔고,<br>통장엔 <b>' + man(T.paid) + ' 원</b> 들어왔어요' +
-    '<br><span class="per">1만 원 팔면 ' + won(per10k) + '원</span>꼴';
-  document.getElementById('headline-sub').textContent =
-    range + ' · 주문 ' + rows.length + '건 · 빠진 돈 ' + won(T.cut) + '원 (판매의 ' + Math.round(T.cut / T.sale * 100) + '%)';
-
-  var stack = document.getElementById('stack');
-  var parts = [
-    ['paid', T.paid, 'var(--accent)'],
-    ['broker', T.broker, 'var(--c-fee)'], ['pay', T.pay, 'var(--c-pay)'], ['vat', T.vat, 'var(--c-vat)'],
-    ['delivery', T.delivery, 'var(--c-deliv)'], ['coupon', T.coupon, 'var(--c-coupon)'], ['ad', T.ad, 'var(--c-ad)'],
-    ['short', T.expected - T.paid, 'var(--bad)']
+  // ---------------------------------------------------------------- 예시 데이터: 어느 가게의 10월 (지어낸 숫자)
+  var MONTH = '10월';
+  var CARD = { sale: 9860000, feeRate: 0.011, prevIn: 312000, nextOut: 455000, hold: 52000 };
+  var CASH = { sale: 420000, deposited: 300000 };
+  var APPS = [
+    { name: 'A앱', sale: 4950000, broker: 0.078, pay: 0.030, perOrder: 3100, coupon: 0.040, ad: 150000, prevIn: 410000, nextOut: 690000, short: 0 },
+    { name: 'B앱', sale: 1680000, broker: 0.078, pay: 0.030, perOrder: 3400, coupon: 0.050, ad: 60000, prevIn: 120000, nextOut: 210000, short: 38500 },
+    { name: 'C앱', sale: 830000, broker: 0.068, pay: 0.025, perOrder: 2900, coupon: 0.030, ad: 0, prevIn: 60000, nextOut: 120000, short: 0 }
   ];
-  parts.forEach(function (p, i) {
-    var s = document.createElement('span');
-    s.style.width = (p[1] / T.sale * 100) + '%';
-    s.style.background = i === 0 ? 'var(--accent)' : p[2];
-    if (i === 0) s.style.opacity = '0.35';
-    stack.appendChild(s);
+  var AVG_ORDER = 12400; // 배달 객단가 (예시)
+  var HQAPP = { sale: 680000, payRate: 0.03 };
+  var HQ = { material: [1820000, 1640000, 1910000, 1530000], share: 240000 };
+
+  // ---------------------------------------------------------------- 계산
+  function won(n) { return Math.round(n).toLocaleString('ko-KR'); }
+  function man(n) { return Math.round(n / 10000).toLocaleString('ko-KR') + '만'; }
+  function r(n) { return Math.round(n); }
+
+  APPS.forEach(function (a) {
+    a.orders = Math.round(a.sale / AVG_ORDER);
+    a.cBroker = r(a.sale * a.broker);
+    a.cPay = r(a.sale * a.pay);
+    a.cDeliv = a.orders * a.perOrder;
+    a.cVat = r((a.cBroker + a.cPay + a.cDeliv) * 0.1);
+    a.cCoupon = r(a.sale * a.coupon);
+    a.cAd = a.ad;
+    a.cut = a.cBroker + a.cPay + a.cDeliv + a.cVat + a.cCoupon + a.cAd;
+    a.expected = a.sale - a.cut + a.prevIn - a.nextOut;
+    a.actual = a.expected - a.short;
   });
+  CARD.fee = r(CARD.sale * CARD.feeRate);
+  CARD.expected = CARD.sale - CARD.fee + CARD.prevIn - CARD.nextOut;
+  CARD.actual = CARD.expected - CARD.hold;
+  HQAPP.fee = r(HQAPP.sale * HQAPP.payRate);
+  HQAPP.net = HQAPP.sale - HQAPP.fee;
 
-  var flags = document.getElementById('flags');
-  if (shortRows.length) {
-    flags.insertAdjacentHTML('beforeend', '<span class="flag bad">예정보다 덜 들어옴 ' + shortRows.length + '건 · ' + won(T.expected - T.paid) + '원</span>');
-  }
-  if (lateRows.length) {
-    flags.insertAdjacentHTML('beforeend', '<span class="flag late">입금일 밀림 ' + lateRows.length + '건</span>');
-  }
+  function sumApps(k) { return APPS.reduce(function (s, a) { return s + a[k]; }, 0); }
+  var excelSale = CARD.sale + CASH.sale + sumApps('sale') + HQAPP.sale;
+  var bankIn = CARD.actual + CASH.deposited + sumApps('actual');
+  var expectedIn = CARD.expected + CASH.deposited + sumApps('expected');
+  var gap = excelSale - bankIn;
+  var unexplained = expectedIn - bankIn;
+  var explained = gap - unexplained;
 
-  // ---------------------------------------------------------------- 4. 항목별 합계
-  document.getElementById('leak-range').textContent = '판매 ' + won(T.sale) + '원 중';
-  var LEAKS = [
-    ['배달비 (가게 부담)', T.delivery, 'var(--c-deliv)', '주문 금액과 상관없이 건마다 고정 — 작은 주문일수록 아픔'],
-    ['중개 수수료', T.broker, 'var(--c-fee)', '판매 금액의 일정 % (예시: 6.8~7.8%)'],
-    ['할인·쿠폰 가게 부담', T.coupon, 'var(--c-coupon)', '쿠폰 붙은 주문 ' + rows.filter(function (r) { return r.coupon; }).length + '건'],
-    ['결제 수수료', T.pay, 'var(--c-pay)', '예시: 2.5~3%'],
-    ['수수료 부가세', T.vat, 'var(--c-vat)', '수수료·배달비의 10%'],
-    ['광고비', T.ad, 'var(--c-ad)', '주문당으로 나눠 본 금액 (예시)'],
-    ['설명 없이 덜 들어온 돈', T.expected - T.paid, 'var(--bad)', '아래 표의 빨간 줄']
-  ].filter(function (l) { return l[1] > 0; }).sort(function (a, b) { return b[1] - a[1]; });
-  var max = LEAKS[0][1];
-  var leaksEl = document.getElementById('leaks');
-  leaksEl.innerHTML = LEAKS.map(function (l) {
-    return '<div class="leak"><span class="name"><i style="background:' + l[2] + '"></i>' + l[0] + '</span>' +
-      '<span class="amt">' + won(l[1]) + '원</span>' +
-      '<span class="meter"><span style="width:' + (l[1] / max * 100) + '%;background:' + l[2] + '"></span></span>' +
-      '<span class="note">' + l[3] + ' · 판매의 ' + (l[1] / T.sale * 100).toFixed(1) + '%</span></div>';
-  }).join('') +
-    '<div class="leak total"><span class="name">합계</span><span class="amt minus">−' + won(T.cut) + '원</span></div>';
+  // ---------------------------------------------------------------- 맨 위 한 줄 + 숫자 카드
+  document.getElementById('lead').innerHTML =
+    MONTH + ' 바이저 엑셀엔 매출 <b>' + man(excelSale) + ' 원</b>, 통장엔 <b>' + man(bankIn) + ' 원</b>이 들어왔어요. ' +
+    '차이 <b>' + man(gap) + ' 원</b> 중 <b>' + man(explained) + ' 원은 이유를 찾았고</b>, ' +
+    '<b class="bad">' + won(unexplained) + '원은 아직 설명이 안 돼요.</b>';
+  document.getElementById('kpis').innerHTML =
+    '<div class="card kpi"><p class="label">바이저 엑셀 매출</p><div class="num">' + won(excelSale) + '원</div><p class="desc">매장 카드·현금·배달앱·본사 앱 합계 (판 금액 그대로)</p></div>' +
+    '<div class="card kpi"><p class="label">통장에 들어온 매출 대금</p><div class="num">' + won(bankIn) + '원</div><p class="desc">카드사·배달앱 입금 + 현금 입금</p></div>' +
+    '<div class="card kpi"><p class="label">차이</p><div class="num">' + won(gap) + '원</div>' +
+    '<div class="split"><span class="chip ok">이유 찾음 ' + won(explained) + '</span><span class="chip bad">⚠ 설명 안 됨 ' + won(unexplained) + '</span></div></div>';
 
-  var appsEl = document.getElementById('apps');
-  appsEl.innerHTML = Object.keys(APPS).map(function (name) {
-    var list = rows.filter(function (r) { return r.app === name; });
-    var s = sum('sale', list), p = sum('paid', list);
-    return '<div class="app"><div class="n">' + name + ' · ' + list.length + '건</div>' +
-      '<div class="v">' + won(Math.round(p / s * 10000 / 100) * 100) + '원</div>' +
-      '<div class="s">1만 원당 입금</div></div>';
+  // ---------------------------------------------------------------- 폭포
+  var steps = [
+    { kind: 'total', name: '바이저 엑셀 매출', note: '본사가 POS 매출로 집계한 판 금액', v: excelSale },
+    { kind: 'cut', name: '배달비 (가게 부담)', note: '배달 주문마다 고정 · ' + won(sumApps('orders')) + '건', v: sumApps('cDeliv'), why: '배달앱이 정산금에서 먼저 뺌. 바이저 엑셀엔 없음' },
+    { kind: 'cut', name: '배달앱 중개 수수료', note: '판매 금액의 몇 % (예시)', v: sumApps('cBroker'), why: '배달앱 정산 내역서에만 있음' },
+    { kind: 'cut', name: '할인·쿠폰 (가게 부담)', note: '본사 행사 몫 + 가게가 건 쿠폰', v: sumApps('cCoupon'), why: '엑셀엔 할인 전 금액으로 잡힘' },
+    { kind: 'cut', name: '수수료 부가세', note: '수수료·배달비의 10%', v: sumApps('cVat') },
+    { kind: 'cut', name: '배달앱 결제 수수료', note: '앱 결제 금액에 붙음', v: sumApps('cPay') },
+    { kind: 'cut', name: '배달앱 광고비', note: '가게가 건 노출 광고', v: sumApps('cAd') },
+    { kind: 'cut', name: '카드 수수료', note: '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시)', v: CARD.fee, why: '카드사가 입금 전에 뺌' },
+    { kind: 'cut', name: '본사 앱 매출', note: '통장 대신 재료비 청구에서 상계', v: HQAPP.sale, assume: true, why: '아래 "본사로 나간 돈"에서 확인' },
+    { kind: 'cut', name: '현금 — 통장에 안 넣은 돈', note: '시재·잔돈으로 남김', v: CASH.sale - CASH.deposited },
+    { kind: 'add', name: '지난달 매출이 ' + MONTH + '에 입금', note: '9월 말에 판 돈', v: CARD.prevIn + sumApps('prevIn'), why: '정산이 며칠 뒤라 달이 바뀜' },
+    { kind: 'cut', name: MONTH + ' 매출이 다음 달에 입금', note: '10월 말에 판 돈', v: CARD.nextOut + sumApps('nextOut'), why: '11월 초에 들어올 예정' },
+    { kind: 'total', name: '통장에 들어왔어야 할 돈', note: '이유를 다 빼고 남은 금액', v: expectedIn, sep: true },
+    { kind: 'gap', name: '⚠ 설명 안 되는 차이', note: '카드 입금보류 · B앱 기타 차감', v: unexplained, why: '아래 "확인할 것" 참고' },
+    { kind: 'total', name: '실제 통장 입금', note: '통장 거래내역 합계', v: bankIn }
+  ];
+  var max = excelSale + CARD.prevIn + sumApps('prevIn');
+  var run = 0;
+  var el = document.getElementById('fall');
+  el.innerHTML = steps.map(function (s) {
+    var from, to, sign;
+    if (s.kind === 'total') { from = 0; to = s.v; run = s.v; sign = ''; }
+    else if (s.kind === 'add') { from = run; to = run + s.v; run = to; sign = '+'; }
+    else { from = run - s.v; to = run; run = from; sign = '−'; }
+    var left = from / max * 100, width = (to - from) / max * 100;
+    var tip = s.name + ': ' + sign + won(s.v) + '원' + (s.why ? ' — ' + s.why : '');
+    return '<div class="step ' + s.kind + (s.sep ? ' sep' : '') + '" role="listitem" title="' + tip.replace(/"/g, '&quot;') + '">' +
+      '<div class="name">' + s.name + (s.assume ? '<span class="assume">가정</span>' : '') + '<small>' + s.note + '</small></div>' +
+      '<div class="track"><span class="bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span></div>' +
+      '<div class="amt">' + sign + won(s.v) + '</div></div>';
   }).join('');
 
-  // ---------------------------------------------------------------- 2·3. 주문 건별 표
-  var filter = 'all';
-  var open = {};
-  var FILTERS = [['all', '전체 ' + rows.length], ['issue', '차이 있음 ' + (shortRows.length + lateRows.length)]]
-    .concat(Object.keys(APPS).map(function (a) { return [a, a]; }));
-  var filtersEl = document.getElementById('filters');
-  filtersEl.innerHTML = FILTERS.map(function (f) {
-    return '<button type="button" data-f="' + f[0] + '" aria-pressed="' + (f[0] === filter) + '">' + f[1] + '</button>';
-  }).join('');
-  filtersEl.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    filter = b.getAttribute('data-f');
-    Array.prototype.forEach.call(filtersEl.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); });
-    render();
+  // ---------------------------------------------------------------- 길별 표
+  function row(name, sale, cut, timing, exp, act, status, cls) {
+    var diff = act - exp;
+    return '<tr><td class="l">' + name + '</td><td>' + won(sale) + '</td><td class="neg">' + (cut ? '−' + won(cut) : '0') + '</td>' +
+      '<td class="neg">' + (timing ? (timing > 0 ? '+' : '−') + won(Math.abs(timing)) : '0') + '</td>' +
+      '<td>' + won(exp) + '</td><td><b>' + won(act) + '</b></td>' +
+      '<td class="' + (diff ? 'bad' : '') + '">' + (diff ? '−' + won(-diff) : '0') + '</td>' +
+      '<td class="st ' + (cls || '') + '">' + status + '</td></tr>';
+  }
+  var rows = [];
+  rows.push(row('매장 카드', CARD.sale, CARD.fee, CARD.prevIn - CARD.nextOut, CARD.expected, CARD.actual,
+    '⚠ 입금보류 1건 ' + won(CARD.hold) + '원<span class="s">10/27 승인분 — 카드사에 매입 여부 확인</span>', 'bad'));
+  APPS.forEach(function (a) {
+    rows.push(row(a.name + ' (배달)', a.sale, a.cut, a.prevIn - a.nextOut, a.expected, a.actual,
+      a.short ? '⚠ 기타 차감 ' + won(a.short) + '원<span class="s">10/21 정산 — 사유 안 적힘</span>' : '✓ 맞음<span class="s">빠진 돈은 정산 내역서에 다 있음 (판매의 ' + Math.round(a.cut / a.sale * 100) + '%)</span>',
+      a.short ? 'bad' : 'ok'));
   });
+  rows.push(row('본사 앱 주문', HQAPP.sale, HQAPP.sale, 0, 0, 0,
+    '통장 입금 없음 <span class="assume">가정</span><span class="s">재료비 청구에서 상계 — 아래 표</span>', 'warn'));
+  rows.push(row('현금', CASH.sale, CASH.sale - CASH.deposited, 0, CASH.deposited, CASH.deposited,
+    '✓ 맞음<span class="s">넣은 만큼 통장에 찍힘</span>', 'ok'));
+  var timingAll = CARD.prevIn - CARD.nextOut + APPS.reduce(function (s, a) { return s + a.prevIn - a.nextOut; }, 0);
+  var cutAll = CARD.fee + sumApps('cut') + HQAPP.sale + (CASH.sale - CASH.deposited);
+  rows.push('<tr class="sum"><td class="l">합계</td><td>' + won(excelSale) + '</td><td>−' + won(cutAll) + '</td><td>' + (timingAll < 0 ? '−' : '+') + won(Math.abs(timingAll)) + '</td><td>' + won(expectedIn) + '</td><td>' + won(bankIn) + '</td><td class="bad">−' + won(unexplained) + '</td><td class="l"></td></tr>');
+  document.getElementById('channels').innerHTML = rows.join('');
 
-  var menuText = D.menuText;
+  // ---------------------------------------------------------------- 본사로 나간 돈
+  var material = HQ.material.reduce(function (s, v) { return s + v; }, 0);
+  var hqOut = material + HQ.share - HQAPP.net;
+  document.getElementById('hq').innerHTML =
+    '<tr><td class="l">재료비 청구 (주 1회 발주 · ' + HQ.material.length + '번)</td><td class="l">바이저 엑셀</td><td>' + won(material) + '</td></tr>' +
+    '<tr><td class="l">광고·행사 분담금<span class="s">배달앱 브랜드 할인 행사의 가게 몫 등</span></td><td class="l">바이저 엑셀</td><td>' + won(HQ.share) + '</td></tr>' +
+    '<tr><td class="l">본사 앱 매출 상계 <span class="assume">가정</span><span class="s">본사 앱 매출 ' + won(HQAPP.sale) + ' − 결제 수수료 ' + won(HQAPP.fee) + '</span></td><td class="l">엑셀엔 매출로만 있음</td><td>−' + won(HQAPP.net) + '</td></tr>' +
+    '<tr class="sum"><td class="l">본사로 나가야 할 돈</td><td class="l"></td><td>' + won(hqOut) + '</td></tr>' +
+    '<tr><td class="l">통장에서 본사로 나간 돈 (' + HQ.material.length + '번 출금 합계)</td><td class="l">통장</td><td><b>' + won(hqOut) + '</b></td></tr>' +
+    '<tr><td class="l" colspan="2"><span class="ok">✓ 맞음</span> — 본사 앱 매출은 통장으로 들어오지 않고, 재료비에서 빠진 만큼 덜 나갔어요 <span class="assume">가정</span></td><td class="ok">0</td></tr>';
 
-  function detailHTML(r) {
-    var line = function (k, v, cls) { return '<span class="k">' + k + '</span><span class="v ' + (cls || '') + '">' + v + '</span>'; };
-    var h = '<div class="dl">' +
-      line('메뉴 금액', won(r.sale) + '원') +
-      line('중개 수수료', '−' + won(r.broker), 'minus') +
-      line('결제 수수료', '−' + won(r.pay), 'minus') +
-      line('수수료 부가세', '−' + won(r.vat), 'minus') +
-      line('배달비 (가게 부담)', '−' + won(r.delivery), 'minus') +
-      line('할인·쿠폰 가게 부담', r.coupon ? '−' + won(r.coupon) : '0', r.coupon ? 'minus' : '') +
-      line('광고비', r.ad ? '−' + won(r.ad) : '0', r.ad ? 'minus' : '') +
-      '<span class="sep"></span>' +
-      line('입금 예정액', won(r.expected) + '원', 'em') +
-      line('실제 입금액', won(r.paid) + '원', 'em' + (r.short ? ' minus' : '')) +
-      line('입금 예정일', md(r.due)) +
-      line('실제 입금일', md(r.paidOn), r.lateDays ? 'minus' : '') +
-      '</div>';
-    if (r.short) h += '<div class="why bad">' + won(r.short) + '원 덜 들어옴 — ' + r.why + '</div>';
-    if (r.lateDays) h += '<div class="why late">예정일보다 ' + r.lateDays + '영업일 늦게 들어옴</div>';
-    return h;
-  }
-
-  var tbody = document.getElementById('orders');
-  function filtered() {
-    return rows.filter(function (r) {
-      if (filter === 'all') return true;
-      if (filter === 'issue') return r.short || r.lateDays;
-      return r.app === filter;
-    });
-  }
-  function render() {
-    var list = filtered();
-    renderCal(list);
-    tbody.innerHTML = list.map(function (r) {
-      var cls = r.short ? 'bad' : r.lateDays ? 'late' : '';
-      var badge = r.short ? '<span class="badge bad">' + won(r.short) + '원 덜</span>'
-        : r.lateDays ? '<span class="badge late">' + r.lateDays + '일 늦음</span>' : '';
-      var neg = function (v) { return v ? '−' + won(v) : '0'; };
-      var note = r.short ? won(r.short) + '원 덜 들어옴' : r.lateDays ? r.lateDays + '영업일 늦게 입금' : '';
-      var tr = '<tr class="order ' + cls + '" data-no="' + r.no + '" tabindex="0" aria-expanded="' + !!open[r.no] + '">' +
-        '<td class="m"><span class="o-meta">' + md(r.date) + ' · ' + r.app + '</span><span class="o-menu">' + menuText(r.items) + '</span></td>' +
-        '<td class="w w-left">' + md(r.date) + '</td><td class="w w-left">' + r.app + '</td><td class="w w-menu" title="' + menuText(r.items) + '">' + menuText(r.items) + '</td>' +
-        '<td>' + won(r.sale) + '</td>' +
-        '<td class="w grp minus">' + neg(r.broker) + '</td><td class="w minus">' + neg(r.pay) + '</td><td class="w minus">' + neg(r.vat) + '</td>' +
-        '<td class="w minus">' + neg(r.delivery) + '</td><td class="w' + (r.coupon ? ' minus' : '') + '">' + neg(r.coupon) + '</td><td class="w' + (r.ad ? ' minus' : '') + '">' + neg(r.ad) + '</td>' +
-        '<td class="grp minus">−' + won(r.cut + r.short) + '</td>' +
-        '<td class="w grp">' + won(r.expected) + '</td>' +
-        '<td class="m"><span class="paid">' + won(r.paid) + '</span><br><span class="o-meta">' + md(r.paidOn) + '</span>' + (badge ? '<br>' + badge : '') + '</td>' +
-        '<td class="w paid' + (r.short ? ' minus' : '') + '">' + won(r.paid) + '</td>' +
-        '<td class="w">' + md(r.due) + '</td><td class="w' + (r.lateDays ? ' minus' : '') + '">' + md(r.paidOn) + '</td>' +
-        '<td class="w w-note ' + cls + '"' + (r.why ? ' title="' + r.why.replace(/"/g, '&quot;') + '"' : '') + '>' + note + (r.why ? '<br><span class="o-meta">' + r.why + '</span>' : '') + '</td>' +
-        '</tr>';
-      if (open[r.no]) tr += '<tr class="detail"><td colspan="18">' + detailHTML(r) + '</td></tr>';
-      return tr;
-    }).join('');
-    var neg = function (v) { return v ? '−' + won(v) : '0'; };
-    var shortSum = sum('short', list);
-    document.getElementById('totals').innerHTML = '<tr>' +
-      '<td class="m">합계 ' + list.length + '건</td><td class="w w-left" colspan="3">합계 ' + list.length + '건</td>' +
-      '<td>' + won(sum('sale', list)) + '</td>' +
-      '<td class="w grp minus">' + neg(sum('broker', list)) + '</td><td class="w minus">' + neg(sum('pay', list)) + '</td><td class="w minus">' + neg(sum('vat', list)) + '</td>' +
-      '<td class="w minus">' + neg(sum('delivery', list)) + '</td><td class="w minus">' + neg(sum('coupon', list)) + '</td><td class="w minus">' + neg(sum('ad', list)) + '</td>' +
-      '<td class="grp minus">−' + won(sum('cut', list) + shortSum) + '</td>' +
-      '<td class="w grp">' + won(sum('expected', list)) + '</td>' +
-      '<td class="m paid">' + won(sum('paid', list)) + '</td><td class="w paid">' + won(sum('paid', list)) + '</td>' +
-      '<td class="w"></td><td class="w"></td><td class="w w-note">' + (shortSum ? won(shortSum) + '원 덜 들어옴' : '') + '</td>' +
-      '</tr>';
-  }
-  function toggle(tr) { var no = tr.getAttribute('data-no'); open[no] = !open[no]; render(); }
-  tbody.addEventListener('click', function (e) { var tr = e.target.closest('tr.order'); if (tr) toggle(tr); });
-  tbody.addEventListener('keydown', function (e) {
-    var tr = e.target.closest('tr.order');
-    if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(tr); tbody.querySelector('tr[data-no="' + tr.getAttribute('data-no') + '"]').focus(); }
-  });
-
-  // ---------------------------------------------------------------- 달력: 판 날 ↔ 돈 들어온 날
-  var TODAY = D.TODAY;
-  function addDays(ds, n) { var d = parse(ds); d.setUTCDate(d.getUTCDate() + n); return iso(d); }
-  function mondayOf(ds) { var d = parse(ds); var w = (d.getUTCDay() + 6) % 7; return addDays(ds, -w); }
-  var calStart = mondayOf(rows[0].date);
-  var lastDay = rows.reduce(function (m, r) { return r.paidOn > m ? r.paidOn : m; }, TODAY);
-  var calEnd = addDays(mondayOf(lastDay), 6);
-  var selected = shortRows[0] ? shortRows[0].paidOn : rows[0].date;
-  var calEl = document.getElementById('cal');
-  var panelEl = document.getElementById('day-panel');
-
-  function dayData(ds, list) {
-    var sold = list.filter(function (r) { return r.date === ds; });
-    var paid = list.filter(function (r) { return r.paidOn === ds; });
-    var missed = list.filter(function (r) { return r.lateDays && r.due === ds; });
-    return { sold: sold, paid: paid, missed: missed };
-  }
-
-  function renderCal(list) {
-    var h = ['월', '화', '수', '목', '금', '토', '일'].map(function (d, i) {
-      return '<div class="dow' + (i === 6 ? ' sun' : '') + '">' + d + '</div>';
-    }).join('');
-    for (var ds = calStart; ds <= calEnd; ds = addDays(ds, 1)) {
-      var x = dayData(ds, list);
-      var d = parse(ds);
-      var label = d.getUTCDate() === 1 || ds === calStart ? (d.getUTCMonth() + 1) + '/' + d.getUTCDate() : String(d.getUTCDate());
-      if (!x.sold.length && !x.paid.length && !x.missed.length) {
-        h += '<div class="day empty' + (ds === TODAY ? ' today' : '') + '"><span class="dn">' + label + (ds === TODAY ? ' <small>오늘</small>' : '') + '</span></div>';
-        continue;
-      }
-      var cls = ['day'];
-      if (x.paid.some(function (r) { return r.short; })) cls.push('has-bad');
-      else if (x.paid.some(function (r) { return r.lateDays; })) cls.push('has-late');
-      if (x.missed.length) cls.push('has-miss');
-      if (ds === TODAY) cls.push('today');
-      h += '<button type="button" class="' + cls.join(' ') + '" data-d="' + ds + '" aria-pressed="' + (ds === selected) + '">' +
-        '<span class="dn">' + label + (ds === TODAY ? ' <small>오늘</small>' : '') + '</span>' +
-        (x.sold.length ? '<span class="sl"><b class="pfx">판 </b>' + man(sum('sale', x.sold)) + '</span>' : '') +
-        (x.paid.length ? '<span class="dp"><b class="pfx">입 </b>' + man(sum('paid', x.paid)) + '</span>' : '') +
-        (x.missed.length ? '<span class="ms">안옴 ' + x.missed.length + '</span>' : '') +
-        '</button>';
-    }
-    calEl.innerHTML = h;
-    renderPanel(list);
-  }
-
-  function renderPanel(list) {
-    var x = dayData(selected, list);
-    var h = '<h3>' + md(selected) + (selected === TODAY ? ' · 오늘' : '') + '</h3>';
-    h += '<h4>통장에 들어온 돈 <b>' + (x.paid.length ? won(sum('paid', x.paid)) + '원 · ' + x.paid.length + '건' : '없음') + '</b></h4>';
-    x.paid.forEach(function (r) {
-      var cls = r.short ? 'bad' : r.lateDays ? 'late' : '';
-      var note = r.short ? ' · <b>' + won(r.short) + '원 덜 들어옴</b> (' + r.why + ')'
-        : r.lateDays ? ' · <b>예정일 ' + md(r.due) + '보다 ' + r.lateDays + '영업일 늦음</b>' : '';
-      h += '<div class="dp-row ' + cls + '"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.paid) + '</span>' +
-        '<span class="sub">' + md(r.date) + '에 판 ' + won(r.sale) + '원' + note + '</span></div>';
-    });
-    if (x.missed.length) {
-      h += '<h4>들어와야 했는데 안 온 돈 <b>' + won(sum('expected', x.missed)) + '원 · ' + x.missed.length + '건</b></h4>';
-      x.missed.forEach(function (r) {
-        h += '<div class="dp-row late"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.expected) + '</span>' +
-          '<span class="sub">' + md(r.date) + '에 판 주문 · <b>실제로는 ' + md(r.paidOn) + '에 들어옴</b></span></div>';
-      });
-    }
-    h += '<h4>이날 판 것 <b>' + (x.sold.length ? won(sum('sale', x.sold)) + '원 · ' + x.sold.length + '건' : '없음') + '</b></h4>';
-    x.sold.forEach(function (r) {
-      h += '<div class="dp-row"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.sale) + '</span>' +
-        '<span class="sub">빠질 돈 ' + won(r.cut) + '원 → ' + md(r.paidOn) + '에 ' + won(r.paid) + '원 입금</span></div>';
-    });
-    panelEl.innerHTML = h;
-  }
-
-  calEl.addEventListener('click', function (e) {
-    var b = e.target.closest('button.day'); if (!b) return;
-    selected = b.getAttribute('data-d');
-    renderCal(filtered());
-  });
-
-  // 리스트 / 달력 전환 (주소 끝 #calendar 로 달력부터 열 수 있음)
-  var viewsEl = document.getElementById('views');
-  function setView(v) {
-    Array.prototype.forEach.call(viewsEl.children, function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-v') === v)); });
-    document.getElementById('list-view').hidden = v !== 'list';
-    document.getElementById('cal-view').hidden = v !== 'cal';
-    try { history.replaceState(null, '', v === 'cal' ? '#calendar' : location.pathname + location.search); } catch (e) { /* 미리보기 등 */ }
-  }
-  viewsEl.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (b) setView(b.getAttribute('data-v'));
-  });
-
-  // 처음엔 덜 들어온 주문 하나를 펼쳐서 보여 줌
-  if (shortRows[0]) open[shortRows[0].no] = true;
-  render();
-  setView(location.hash === '#calendar' ? 'cal' : 'list');
-
-  // 디자인 고르기
-  document.getElementById('design').addEventListener('change', function (e) { location.href = e.target.value; });
+  // ---------------------------------------------------------------- 확인할 것
+  document.getElementById('todo-lead').textContent =
+    '이유를 찾은 ' + won(explained) + '원을 빼고 남은 ' + won(unexplained) + '원입니다. 두 건 모두 어디에 물어볼지 정해져 있어요.';
+  document.getElementById('todo').innerHTML =
+    '<div class="todo-item"><span class="ic">⚠</span><span class="t">매장 카드 입금보류</span><span class="v">' + won(CARD.hold) + '원</span>' +
+    '<span class="d">10/27 승인분이 입금 예정일(10/29)에 안 들어옴. 카드사가 매입을 보류했을 수 있어요 → 카드사 가맹점 고객센터에 매입 여부 문의. 나중에 들어오면 지워집니다.</span></div>' +
+    '<div class="todo-item"><span class="ic">⚠</span><span class="t">B앱 "기타 차감"</span><span class="v">' + won(APPS[1].short) + '원</span>' +
+    '<span class="d">10/21 정산 내역서에 "기타 차감"으로만 적혀 있고 사유가 없음 → B앱 사장님 고객센터에 차감 사유 문의.</span></div>';
 })();
 </script>
 <script src="refs.js"></script>
+<script src="screens.js"></script>
 </body>
 </html>

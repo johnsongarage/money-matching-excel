@@ -42,6 +42,8 @@
   .top a:hover { color: var(--ink); }
   .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
   .refs-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; max-width: 13em; }
+  .design-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .design-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; }
   .topnav { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .content { max-width: 1180px; margin: 0 auto; padding: 16px 20px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .content > * { min-width: 0; }
@@ -149,7 +151,7 @@
 <body>
 <header class="top">
   <h1>내 파일로 맞추기</h1>
-  <nav class="topnav"><span data-refs></span><a href="index.html">← 예시 화면으로</a></nav>
+  <nav class="topnav"><span data-refs></span><span data-screens></span></nav>
 </header>
 
 <div class="content">
@@ -714,5 +716,6 @@
 })();
 </script>
 <script src="refs.js"></script>
+<script src="screens.js"></script>
 </body>
 </html>
