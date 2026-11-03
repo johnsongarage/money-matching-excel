@@ -134,6 +134,56 @@
     .narrow-hint { display: none; }
   }
 
+  /* 리스트 / 달력 전환 */
+  .views { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; background: var(--card); margin-bottom: 10px; }
+  .views button { font: inherit; font-size: 14px; font-weight: 600; border: 0; background: transparent; color: var(--sub); padding: 6px 16px; border-radius: 7px; cursor: pointer; }
+  .views button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  [hidden] { display: none !important; }
+
+  /* 달력 */
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--sub); margin: 0 2px 8px; }
+  .cal-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .cal .dow { text-align: center; font-size: 12px; color: var(--sub); padding: 2px 0; }
+  .cal .dow.sun { color: var(--bad); }
+  .day {
+    font: inherit; text-align: left; color: var(--ink); background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 4px 4px 5px; min-height: 66px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  }
+  .day.empty { background: transparent; border-style: dashed; cursor: default; opacity: 0.5; }
+  .day .dn { font-size: 12px; font-weight: 700; }
+  .day .dn small { font-weight: 400; color: var(--sub); }
+  .day .sl, .day .dp, .day .ms { font-size: 11px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .day .sl { color: var(--sub); }
+  .day .pfx { display: none; font-weight: inherit; }
+  .day .dp { color: var(--accent); font-weight: 700; }
+  .day .ms { color: var(--late); font-weight: 700; }
+  .day.has-bad { background: var(--bad-bg); border-color: var(--bad); }
+  .day.has-bad .dp { color: var(--bad); }
+  .day.has-late { background: var(--late-bg); }
+  .day.has-miss { border: 1.5px dashed var(--late); }
+  .day.today { box-shadow: inset 0 0 0 2px var(--ink); }
+  .day[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .day-panel { margin-top: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .day-panel h3 { font-size: 15px; margin: 0 0 4px; }
+  .day-panel h4 { font-size: 13px; margin: 12px 0 4px; color: var(--sub); font-weight: 600; }
+  .day-panel h4 b { color: var(--ink); }
+  .dp-row { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .dp-row .r { text-align: right; font-weight: 700; }
+  .dp-row .sub { grid-column: 1 / -1; font-size: 12px; color: var(--sub); }
+  .dp-row.bad .r, .dp-row.bad .sub b { color: var(--bad); }
+  .dp-row.late .sub b { color: var(--late); }
+  .dp-none { font-size: 13px; color: var(--sub); padding: 4px 0; }
+  @media (min-width: 960px) {
+    .cal { gap: 6px; }
+    .day { min-height: 96px; padding: 8px; gap: 3px; }
+    .day .dn { font-size: 14px; }
+    .day .pfx { display: inline; }
+    .day .sl, .day .dp, .day .ms { font-size: 13px; }
+    .cal-wrap { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 20px; align-items: start; }
+    .day-panel { margin-top: 0; position: sticky; top: 16px; }
+  }
+
   footer { margin-top: 28px; padding: 14px 16px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13px; color: var(--sub); }
   footer strong { color: var(--ink); }
 </style>
@@ -162,8 +212,14 @@
 
   <!-- 2·3. 주문 건별 표 -->
   <section>
-    <h2>주문 건별 <small class="narrow-hint">줄을 누르면 빠진 돈이 자세히 나와요</small><small class="wide-hint">빠진 돈을 항목별로 펼쳐 봤어요</small></h2>
+    <h2>주문 건별</h2>
+    <div class="views" id="views" role="tablist" aria-label="보기 방식">
+      <button type="button" role="tab" data-v="list" aria-selected="true" aria-controls="list-view">리스트</button>
+      <button type="button" role="tab" data-v="cal" aria-selected="false" aria-controls="cal-view">달력</button>
+    </div>
     <div class="filters" id="filters" role="group" aria-label="주문 거르기"></div>
+    <div id="list-view" role="tabpanel">
+    <p class="hint" style="margin:0 2px 8px"><span class="narrow-hint">줄을 누르면 빠진 돈이 자세히 나와요</span><span class="wide-hint">빠진 돈을 항목별로 펼쳐 봤어요</span></p>
     <div class="table-wrap"><table>
       <thead><tr>
         <th class="m">주문</th>
@@ -177,6 +233,20 @@
       <tfoot id="totals"></tfoot>
     </table></div>
     <p class="hint">빨간 줄은 예정액과 실제 입금이 다른 주문, 노란 줄은 입금일이 밀린 주문이에요.</p>
+    </div>
+    <div id="cal-view" role="tabpanel" hidden>
+      <div class="cal-legend">
+        <span><b style="color:var(--sub)">회색</b> 그날 판 금액</span>
+        <span><b style="color:var(--accent)">초록</b> 그날 통장에 들어온 돈</span>
+        <span><i style="background:var(--bad-bg);border:1px solid var(--bad)"></i>덜 들어온 날</span>
+        <span><i style="background:var(--late-bg)"></i>늦게 들어온 날</span>
+        <span><i style="border:1.5px dashed var(--late)"></i>들어와야 했는데 안 온 날</span>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal" id="cal"></div>
+        <div class="day-panel" id="day-panel" aria-live="polite"></div>
+      </div>
+    </div>
   </section>
 
   <!-- 5. 예시 데이터 안내 -->
@@ -380,12 +450,16 @@
   }
 
   var tbody = document.getElementById('orders');
-  function render() {
-    var list = rows.filter(function (r) {
+  function filtered() {
+    return rows.filter(function (r) {
       if (filter === 'all') return true;
       if (filter === 'issue') return r.short || r.lateDays;
       return r.app === filter;
     });
+  }
+  function render() {
+    var list = filtered();
+    renderCal(list);
     tbody.innerHTML = list.map(function (r) {
       var cls = r.short ? 'bad' : r.lateDays ? 'late' : '';
       var badge = r.short ? '<span class="badge bad">' + won(r.short) + '원 덜</span>'
@@ -428,9 +502,100 @@
     if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(tr); tbody.querySelector('tr[data-no="' + tr.getAttribute('data-no') + '"]').focus(); }
   });
 
+  // ---------------------------------------------------------------- 달력: 판 날 ↔ 돈 들어온 날
+  var TODAY = '2026-11-03';
+  function addDays(ds, n) { var d = parse(ds); d.setUTCDate(d.getUTCDate() + n); return iso(d); }
+  function mondayOf(ds) { var d = parse(ds); var w = (d.getUTCDay() + 6) % 7; return addDays(ds, -w); }
+  var calStart = mondayOf(rows[0].date);
+  var lastDay = rows.reduce(function (m, r) { return r.paidOn > m ? r.paidOn : m; }, TODAY);
+  var calEnd = addDays(mondayOf(lastDay), 6);
+  var selected = shortRows[0] ? shortRows[0].paidOn : rows[0].date;
+  var calEl = document.getElementById('cal');
+  var panelEl = document.getElementById('day-panel');
+
+  function dayData(ds, list) {
+    var sold = list.filter(function (r) { return r.date === ds; });
+    var paid = list.filter(function (r) { return r.paidOn === ds; });
+    var missed = list.filter(function (r) { return r.lateDays && r.due === ds; });
+    return { sold: sold, paid: paid, missed: missed };
+  }
+
+  function renderCal(list) {
+    var h = ['월', '화', '수', '목', '금', '토', '일'].map(function (d, i) {
+      return '<div class="dow' + (i === 6 ? ' sun' : '') + '">' + d + '</div>';
+    }).join('');
+    for (var ds = calStart; ds <= calEnd; ds = addDays(ds, 1)) {
+      var x = dayData(ds, list);
+      var d = parse(ds);
+      var label = d.getUTCDate() === 1 || ds === calStart ? (d.getUTCMonth() + 1) + '/' + d.getUTCDate() : String(d.getUTCDate());
+      if (!x.sold.length && !x.paid.length && !x.missed.length) {
+        h += '<div class="day empty' + (ds === TODAY ? ' today' : '') + '"><span class="dn">' + label + (ds === TODAY ? ' <small>오늘</small>' : '') + '</span></div>';
+        continue;
+      }
+      var cls = ['day'];
+      if (x.paid.some(function (r) { return r.short; })) cls.push('has-bad');
+      else if (x.paid.some(function (r) { return r.lateDays; })) cls.push('has-late');
+      if (x.missed.length) cls.push('has-miss');
+      if (ds === TODAY) cls.push('today');
+      h += '<button type="button" class="' + cls.join(' ') + '" data-d="' + ds + '" aria-pressed="' + (ds === selected) + '">' +
+        '<span class="dn">' + label + (ds === TODAY ? ' <small>오늘</small>' : '') + '</span>' +
+        (x.sold.length ? '<span class="sl"><b class="pfx">판 </b>' + man(sum('sale', x.sold)) + '</span>' : '') +
+        (x.paid.length ? '<span class="dp"><b class="pfx">입 </b>' + man(sum('paid', x.paid)) + '</span>' : '') +
+        (x.missed.length ? '<span class="ms">안옴 ' + x.missed.length + '</span>' : '') +
+        '</button>';
+    }
+    calEl.innerHTML = h;
+    renderPanel(list);
+  }
+
+  function renderPanel(list) {
+    var x = dayData(selected, list);
+    var h = '<h3>' + md(selected) + (selected === TODAY ? ' · 오늘' : '') + '</h3>';
+    h += '<h4>통장에 들어온 돈 <b>' + (x.paid.length ? won(sum('paid', x.paid)) + '원 · ' + x.paid.length + '건' : '없음') + '</b></h4>';
+    x.paid.forEach(function (r) {
+      var cls = r.short ? 'bad' : r.lateDays ? 'late' : '';
+      var note = r.short ? ' · <b>' + won(r.short) + '원 덜 들어옴</b> (' + r.why + ')'
+        : r.lateDays ? ' · <b>예정일 ' + md(r.due) + '보다 ' + r.lateDays + '영업일 늦음</b>' : '';
+      h += '<div class="dp-row ' + cls + '"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.paid) + '</span>' +
+        '<span class="sub">' + md(r.date) + '에 판 ' + won(r.sale) + '원' + note + '</span></div>';
+    });
+    if (x.missed.length) {
+      h += '<h4>들어와야 했는데 안 온 돈 <b>' + won(sum('expected', x.missed)) + '원 · ' + x.missed.length + '건</b></h4>';
+      x.missed.forEach(function (r) {
+        h += '<div class="dp-row late"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.expected) + '</span>' +
+          '<span class="sub">' + md(r.date) + '에 판 주문 · <b>실제로는 ' + md(r.paidOn) + '에 들어옴</b></span></div>';
+      });
+    }
+    h += '<h4>이날 판 것 <b>' + (x.sold.length ? won(sum('sale', x.sold)) + '원 · ' + x.sold.length + '건' : '없음') + '</b></h4>';
+    x.sold.forEach(function (r) {
+      h += '<div class="dp-row"><span>' + r.app + ' · ' + menuText(r.items) + '</span><span class="r">' + won(r.sale) + '</span>' +
+        '<span class="sub">빠질 돈 ' + won(r.cut) + '원 → ' + md(r.paidOn) + '에 ' + won(r.paid) + '원 입금</span></div>';
+    });
+    panelEl.innerHTML = h;
+  }
+
+  calEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button.day'); if (!b) return;
+    selected = b.getAttribute('data-d');
+    renderCal(filtered());
+  });
+
+  // 리스트 / 달력 전환 (주소 끝 #calendar 로 달력부터 열 수 있음)
+  var viewsEl = document.getElementById('views');
+  function setView(v) {
+    Array.prototype.forEach.call(viewsEl.children, function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-v') === v)); });
+    document.getElementById('list-view').hidden = v !== 'list';
+    document.getElementById('cal-view').hidden = v !== 'cal';
+    try { history.replaceState(null, '', v === 'cal' ? '#calendar' : location.pathname + location.search); } catch (e) { /* 미리보기 등 */ }
+  }
+  viewsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b) setView(b.getAttribute('data-v'));
+  });
+
   // 처음엔 덜 들어온 주문 하나를 펼쳐서 보여 줌
   if (shortRows[0]) open[shortRows[0].no] = true;
   render();
+  setView(location.hash === '#calendar' ? 'cal' : 'list');
 })();
 </script>
 </body>
