@@ -1,18 +1,14 @@
 /*
- * 참고 문서 — 세 화면 위쪽의 콤보 박스. 고르면 새 탭으로 열림.
- * 문서 자체는 Claude 문서(링크)이고, 열람 권한은 문서 쪽 공유 설정을 따름.
+ * 참고 문서 — 세 화면 위쪽의 콤보 박스. 고르면 그 문서로 이동.
+ * 문서는 docs/ 안의 공개용 HTML 사본 (로그인 없이 열림). 원본 Claude 문서에서 가게·브랜드 이름은 일반 표현으로 바꿈.
  */
 (function () {
   'use strict';
   var DOCS = [
-    { title: '가맹점 돈길 지도', note: '들어오는 돈·나가는 돈을 눌러 보는 지도', url: 'https://claude.ai/artifact/48XQ5BsLYLubkC6gH2RBCk' },
-    { title: '가맹점 돈의 흐름', note: '항목별 설명 · 안 맞는 이유 · 다음 질문', url: 'https://claude.ai/artifact/XLUboP5MBnNA65y6K5sthT' }
+    { title: '가맹점 돈길 지도', note: '들어오는 돈·나가는 돈을 눌러 보는 지도', url: 'docs/money-map.html' },
+    { title: '가맹점 돈의 흐름', note: '항목별 설명 · 안 맞는 이유 · 다음 질문', url: 'docs/money-flow.html' }
   ];
-  function open(url) {
-    var a = document.createElement('a');
-    a.href = url; a.target = '_blank'; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
-  }
+  function open(url) { location.href = url; }
   Array.prototype.forEach.call(document.querySelectorAll('[data-refs]'), function (host) {
     var label = document.createElement('label');
     label.className = 'refs-pick';

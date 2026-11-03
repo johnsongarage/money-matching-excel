@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가맹점 돈의 흐름</title>
+<meta name="description" content="프랜차이즈 가맹점 통장으로 들어오는 돈과 나가는 돈, 그리고 왜 안 맞아 보이는지 정리">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 공개용 사본: 원본 Claude 문서 "프랜차이즈 가맹점 돈의 흐름"을 로그인 없이 보도록 옮김. 가게·브랜드 이름은 일반 표현으로 바꿈. */
+:root{
+  --paper:#f3f6f3; --surface:#ffffff; --ink:#1c2923; --muted:#5a6a62; --line:#cbd5cf; --head:#e9efeb;
+  --accent:#1f6f5c; --accent-soft:#e1efe9; --out:#a8502b; --warn:#8a6a12; --warn-soft:#f5eccd;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111714; --surface:#19211d; --ink:#e2eae5; --muted:#9aaaa2; --line:#2e3a34; --head:#202a25;
+  --accent:#5cbf9f; --accent-soft:#1c3129; --out:#e48a62; --warn:#e0c060; --warn-soft:#332c16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111714; --surface:#19211d; --ink:#e2eae5; --muted:#9aaaa2; --line:#2e3a34; --head:#202a25;
+  --accent:#5cbf9f; --accent-soft:#1c3129; --out:#e48a62; --warn:#e0c060; --warn-soft:#332c16; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.docnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:18px}
+.docnav a{color:var(--muted);text-decoration:none}
+.docnav a:hover{color:var(--ink)}
+.docnav a[aria-current="page"]{color:var(--ink);font-weight:700}
+.docnav .back{margin-left:auto}
+h1{font-size:clamp(22px,3.4vw,30px);line-height:1.3;margin:0 0 4px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.byline{color:var(--muted);font-size:13px;margin:0 0 22px}
+h2{font-size:19px;margin:34px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+p{margin:0 0 12px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+ol,ul{margin:0 0 14px;padding-left:1.4em}
+li{margin:2px 0}
+.formula{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:0 0 16px}
+.formula p{margin:0 0 6px;font-weight:700}
+.formula ol{margin:0;list-style:none;padding:0}
+.formula li .plus{color:var(--accent);font-weight:700;margin-right:6px}
+.formula li .minus{color:var(--out);font-weight:700;margin-right:6px}
+.tscroll{overflow-x:auto;margin:0 0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--head);font-weight:700;font-size:13px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.in{color:var(--accent)} td.out{color:var(--out)}
+tr.total td{font-weight:700;background:var(--head)}
+.callout{background:var(--warn-soft);border-radius:10px;padding:12px 16px;margin:0 0 14px}
+.callout b{color:var(--warn)}
+.ok{color:var(--accent);font-weight:700}
+.q{color:var(--warn);font-weight:700}
+.maplink{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin:0 0 8px;text-decoration:none;color:var(--ink)}
+.maplink b{color:var(--accent)}
+.checks{list-style:none;padding:0}
+.checks li{padding:6px 0 6px 28px;position:relative;border-bottom:1px dashed var(--line)}
+.checks li::before{content:"";position:absolute;left:2px;top:11px;width:14px;height:14px;border:1.5px solid var(--muted);border-radius:3px}
+a{color:var(--accent)}
+.foot{margin-top:28px;font-size:12.5px;color:var(--muted)}
+@media (max-width:760px){.tscroll table{min-width:640px}.tscroll table.narrow{min-width:0}th,td{padding:7px 10px;font-size:13px}}
+.tscroll::after{content:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="docnav" aria-label="참고 문서">
+    <span>참고 문서</span>
+    <a href="money-map.html">가맹점 돈길 지도</a>
+    <a href="money-flow.html" aria-current="page">가맹점 돈의 흐름</a>
+    <a class="back" href="../index.html">← 정산 맞추기 데모로</a>
+  </nav>
+
+  <h1>프랜차이즈 가맹점 돈의 흐름 — 들어오는 돈·나가는 돈</h1>
+  <p class="byline">2026-11-03 정리</p>
+
+  <h2>요약</h2>
+  <p>가맹점 통장에는 돈이 여러 길로 따로 들어오고 따로 나간다. 그래서 어느 한 곳의 숫자만으로는 통장과 맞지 않는다.</p>
+
+  <div class="formula">
+    <p>통장에 남는 돈 =</p>
+    <ol>
+      <li><span class="plus">＋</span>매장 카드 매출 − 카드 수수료</li>
+      <li><span class="plus">＋</span>배달앱 정산금 (배달 매출 − 수수료·배달비·광고·할인)</li>
+      <li><span class="plus">＋</span>본사 앱 정산금</li>
+      <li><span class="plus">＋</span>현금·간편결제</li>
+      <li><span class="minus">－</span>본사에 낸 돈 (재료비·로열티·분담금)</li>
+      <li><span class="minus">－</span>그 밖 (인건비·임대료·세금)</li>
+    </ol>
+  </div>
+
+  <p><b>예시 — 어느 가게의 일주일</b> <span class="muted">(이해를 돕기 위한 가짜 숫자)</span></p>
+  <div class="tscroll">
+    <table class="narrow">
+      <thead><tr><th>항목</th><th class="r">판 돈</th><th class="r">미리 빠진 돈</th><th class="r">통장에 찍힌 돈</th></tr></thead>
+      <tbody>
+        <tr><td>매장 카드</td><td class="r">100만 원</td><td class="r">1.5만 원</td><td class="r in">+98.5만 원</td></tr>
+        <tr><td>배달앱</td><td class="r">30만 원</td><td class="r">14만 원</td><td class="r in">+16만 원</td></tr>
+        <tr><td>본사 앱</td><td class="r">5만 원</td><td class="r">? (상계 미확인)</td><td class="r in">+5만 원</td></tr>
+        <tr><td>현금</td><td class="r">3만 원</td><td class="r">—</td><td class="r in">+3만 원</td></tr>
+        <tr><td>본사 재료비</td><td class="r"></td><td class="r"></td><td class="r out">−40만 원</td></tr>
+        <tr><td>인건비·임대료 등</td><td class="r"></td><td class="r"></td><td class="r out">−50만 원</td></tr>
+        <tr class="total"><td>합계</td><td class="r">138만 원</td><td class="r"></td><td class="r">+32.5만 원</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p><b>왜 안 맞아 보이나:</b> 바이저 엑셀에는 배달이 ‘30만 원 팔았다’로만 있다. 통장에는 16만 원만 들어왔다. 그래서 엑셀과 통장이 14만 원 차이 난다. 배달 1만 원당 약 5,300원만 남는 셈이다. 배달 매출이 더 큰 가게에서 한 달이 쌓이면, 점장님 말처럼 몇백만 원까지 벌어질 수 있다.</p>
+  </div>
+  <ul>
+    <li><b>매장 카드 매출</b>은 카드사가 수수료만 빼고 보내서, POS와 통장이 대체로 맞는다 (점장님 확인).</li>
+    <li><b>배달 매출</b>은 배달앱이 수수료·배달비·광고·할인을 먼저 떼고 보낸다. 바이저 엑셀에는 이게 없다.</li>
+    <li><b>본사 앱 주문</b>은 본사를 거쳐 정산될 수 있고, 그러면 재료비 등과 서로 빼고(상계) 들어올 수 있다 (미확인).</li>
+    <li>이 셋을 한 번에 맞춰 주는 곳은 없다. 본사·세무사·매출 앱이 각자 일부만 본다.</li>
+  </ul>
+
+  <a class="maplink" href="money-map.html"><span><b>그림으로 보기</b> — 들어오는 길 4개, 나가는 곳 3개를 눌러 보는 지도</span><span>가맹점 돈길 지도 →</span></a>
+  <p class="small muted">배달앱·카드사가 떼 가는 돈은 통장에 나가는 돈으로 찍히지 않는다. 일반적인 국내 커피 프랜차이즈 구조를 기준으로 정리했고, 브랜드별 실제 조건은 정보공개서나 점주 확인이 필요하다.</p>
+
+  <h2>들어오는 돈</h2>
+  <p>들어오는 길은 다섯 가지이고, 길마다 보내는 곳·빠지는 돈·들어오는 날이 다르다.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>길</th><th>누가 보내나</th><th>미리 빠지는 돈</th><th>언제</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>매장 카드 결제</td><td>카드사</td><td>카드 수수료</td><td>보통 영업일 며칠 뒤</td><td>POS와 통장이 대체로 맞음 (점장님)</td></tr>
+        <tr><td>배달앱 주문 (여러 배달앱)</td><td>배달앱</td><td>중개 수수료, 결제 수수료, 수수료 부가세, 가게 부담 배달비, 광고비, 가게 부담 할인·쿠폰</td><td>앱마다 다름, 주 단위 등, 밀리기도 함</td><td>배달 1만 원당 절반 가까이 빠짐 (점장님)</td></tr>
+        <tr><td>본사 앱 주문 (스마트오더)</td><td>본사 또는 결제대행사</td><td>결제 수수료, 앱 이용료·행사 분담 등 (미확인)</td><td>본사 정산 주기</td><td>본사 경유라면 재료비와 상계 가능 (미확인)</td></tr>
+        <tr><td>기프티콘·모바일 상품권</td><td>상품권 회사 또는 본사</td><td>상품권 수수료</td><td>사용 후 정산</td><td>브랜드마다 다름</td></tr>
+        <tr><td>현금·계좌이체·간편결제</td><td>손님 또는 결제사</td><td>간편결제는 수수료</td><td>즉시~며칠</td><td>현금은 통장에 안 찍힐 수 있음</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">수수료율·정산 주기는 계약과 앱마다 다르고 자주 바뀐다. 이 표는 어떤 항목이 빠지는지만 정리했다.</p>
+
+  <h2>나가는 돈</h2>
+  <p>가장 큰 다달 지출은 본사에서 사는 재료비다. 배달앱에 내는 돈은 대부분 정산금에서 미리 빠져 통장에는 안 보인다.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>받는 곳</th><th>항목</th><th>언제·어떻게</th><th>통장에 보이나</th></tr></thead>
+      <tbody>
+        <tr><td>본사</td><td>가맹비·교육비·인테리어</td><td>개점 때 한 번</td><td>다달 정산과 무관</td></tr>
+        <tr><td>본사</td><td>재료비(물류대금): 원두·컵·시럽 등</td><td>발주할 때마다</td><td>보임. 단, 본사 앱 정산금과 상계되면 순액만 보임 (미확인)</td></tr>
+        <tr><td>본사</td><td>로열티</td><td>매출의 % 또는 고정액. 국내 커피 프랜차이즈는 로열티를 낮추고 재료값 마진(차액가맹금)으로 벌기도 함</td><td>보임 또는 재료비에 포함</td></tr>
+        <tr><td>본사</td><td>광고·행사 분담금 (브랜드 광고, 배달앱 브랜드 할인 행사의 가게 몫)</td><td>본사 청구 또는 정산에서 차감</td><td>미확인</td></tr>
+        <tr><td>배달앱</td><td>중개·결제 수수료, 배달비, 가게가 건 광고·쿠폰</td><td>정산금에서 미리 빠짐</td><td>안 보임 (정산 내역서에만)</td></tr>
+        <tr><td>카드사</td><td>카드 수수료</td><td>입금액에서 미리 빠짐</td><td>안 보임</td></tr>
+        <tr><td>그 밖</td><td>인건비, 임대료, 공과금, 세금</td><td>다달·수시</td><td>보임</td></tr>
+        <tr><td>사입처 (마트·도매·온라인몰)</td><td>재료 사입비: 본사 물류 말고 직접 사는 재료 (예: 아이스티)</td><td>살 때마다, 카드·현금·계좌이체</td><td>보임. 단, 본사 엑셀에는 없음. 현금으로 사면 영수증만 남음</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>광고비는 두 곳에 나간다.</b> 본사에는 브랜드 광고 분담, 배달앱에는 가게 노출 광고를 내고, 빠지는 날도 다르다.</p>
+
+  <h2>누가 어떤 숫자를 아나</h2>
+  <p>통장 기준 전체를 보는 곳은 사장님뿐이다. 나머지는 각자 자기 몫만 본다.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>자료</th><th>보이는 것</th><th>안 보이는 것</th></tr></thead>
+      <tbody>
+        <tr><td>POS</td><td>매장 판매, (연동 시) 배달·앱 주문 매출</td><td>수수료, 실입금액, 입금일</td></tr>
+        <tr><td>본사·바이저 엑셀</td><td>본사가 알아야 할 숫자: 매출(로열티용), 발주·재료비, 행사 조건</td><td>배달앱에서 빠진 돈 (점장님: "배달 관련이 없다")</td></tr>
+        <tr><td>배달앱 사장님 사이트·정산 내역서</td><td>그 앱의 주문·차감·정산 예정</td><td>다른 앱, 본사 정산, 재료비</td></tr>
+        <tr><td>매출 관리 앱</td><td>카드·배달앱 매출과 날짜별 입금 예정·완료, 일부 차감 내역. 일부 기능은 유료</td><td>본사 정산·상계, 건별 통장 대조(미확인). 연동이 자주 끊긴다는 공지가 있음</td></tr>
+        <tr><td>세무사</td><td>세금 신고용 장부</td><td>이번 달 정산이 맞는지 건별 확인</td></tr>
+        <tr><td>통장</td><td>실제로 오간 돈</td><td>그 돈이 어느 날 판 어느 주문인지, 왜 그 금액인지</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>안 맞는 이유</h2>
+  <p>어느 커피 프랜차이즈 점장님 사례에서 가장 큰 원인은 ‘빠진 항목’, 남는 차이의 후보는 ‘상계’와 ‘시점’이다.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>유형</th><th>무엇</th><th>점장님 사례 (11/3 인터뷰)</th></tr></thead>
+      <tbody>
+        <tr><td>빠진 항목</td><td>한쪽 자료에 없는 차감이 다른 쪽에서 빠짐</td><td><span class="ok">확인.</span> 바이저 엑셀에 배달 관련이 없어 통장과 몇백만 원 차이</td></tr>
+        <tr><td>시점 차이</td><td>판 날과 들어오는 날이 다름, 정산이 밀림</td><td><span class="ok">확인.</span> 점장님이 정산일 밀림을 직접 체크 중</td></tr>
+        <tr><td>묶음·상계</td><td>여러 건을 한 번에, 또는 받을 돈과 낼 돈을 빼고 입금</td><td><span class="q">미확인.</span> 본사 앱 주문이 본사 경유라면 가능성 큼</td></tr>
+        <tr><td>기준 차이</td><td>부가세 포함/제외, 할인 전/후 금액</td><td><span class="q">미확인</span></td></tr>
+        <tr><td>누락·오류</td><td>정산 누락, 입력 실수</td><td><span class="q">미확인.</span> 점장님은 본사 오류 가능성에 “얼추 비슷해요”</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>점장님은 사업 시작 때부터 엑셀로 직접 맞춰 왔고, 그래도 남는 차이가 있다. “혼자 못 하는 사장님들이 많다”고 했다.</p>
+
+  <h2>확인된 것과 다음 질문</h2>
+  <p>현장에서 확인된 것은 네 가지다: POS는 대체로 맞고, 바이저 엑셀에는 배달이 없고, 배달은 1만 원당 절반 가까이 빠지고, 정산일이 밀린다.</p>
+  <p>다음 방문 때 한두 개씩:</p>
+  <ul class="checks">
+    <li>본사 앱으로 들어온 주문 돈은 카드사에서 들어와요, 본사에서 들어와요? (본사라면) 재료비랑 빼고 들어와요?</li>
+    <li>그 몇백만 원 차이, 엑셀이 더 많아요, 통장이 더 많아요? 한 달 기준이에요?</li>
+    <li>배달앱 할인 행사하면 그 할인은 본사가 내요, 점장님이 내요?</li>
+    <li>배달앱 가격은 점장님이 정하시는 거예요?</li>
+    <li>광고비는 본사에도 내고 배달앱에도 따로 내시는 거예요?</li>
+    <li>카드 매출이랑 배달 정산 모아 보여주는 앱은 왜 안 쓰시게 됐어요?</li>
+    <li>혼자 못 하시는 사장님들은 보통 어떻게 하세요?</li>
+  </ul>
+
+  <h2>출처</h2>
+  <ul>
+    <li><a href="https://v.daum.net/v/5Z26bJtWyd" rel="noopener">배달앱 정산 분쟁 급증 — 아이뉴스24 (다음)</a></li>
+    <li><a href="https://biz.sbs.co.kr/amp/article/20000225428" rel="noopener">배달앱 지각 정산 — SBS Biz</a></li>
+    <li>매출 관리 앱 고객센터·공지 (입금 내역 조회, 연동 안내)</li>
+    <li>커피 프랜차이즈 점장님 인터뷰 (2026-10-30, 11-03, 직접 들음)</li>
+  </ul>
+
+  <p class="foot">공개용 사본입니다. 원본 문서에서 가게·브랜드 이름은 일반 표현으로 바꿨고, 예시 숫자는 이해를 돕기 위한 가짜 숫자입니다.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가맹점 돈길 지도</title>
+<meta name="description" content="가맹점 통장으로 들어오는 돈과 나가는 돈을 눌러 보는 지도 (예시 숫자)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 공개용 사본: 원본 Claude 문서 "가맹점 돈길 지도"를 로그인 없이 보도록 옮김. 가게·브랜드 이름은 일반 표현으로 바꿈. */
+:root{
+  --paper:#f3f6f3; --surface:#ffffff; --ink:#1c2923; --muted:#5a6a62; --line:#cbd5cf;
+  --accent:#1f6f5c; --accent-soft:#e1efe9; --out:#a8502b; --out-soft:#f6e7df; --warn:#8a6a12; --warn-soft:#f5eccd;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111714; --surface:#19211d; --ink:#e2eae5; --muted:#9aaaa2; --line:#2e3a34;
+  --accent:#5cbf9f; --accent-soft:#1c3129; --out:#e48a62; --out-soft:#36231b; --warn:#e0c060; --warn-soft:#332c16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111714; --surface:#19211d; --ink:#e2eae5; --muted:#9aaaa2; --line:#2e3a34;
+  --accent:#5cbf9f; --accent-soft:#1c3129; --out:#e48a62; --out-soft:#36231b; --warn:#e0c060; --warn-soft:#332c16; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.docnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:18px}
+.docnav a{color:var(--muted);text-decoration:none}
+.docnav a:hover{color:var(--ink)}
+.docnav a[aria-current="page"]{color:var(--ink);font-weight:700}
+.docnav .back{margin-left:auto}
+h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:balance;font-weight:700;letter-spacing:-.01em}
+.lead{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;font-weight:500;padding:1px 8px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+.tag.q{background:var(--warn-soft);color:var(--warn)}
+.strip{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:22px}
+.strip b{font-size:18px}
+.strip .arrow{color:var(--muted)}
+.map{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 200px minmax(0,1fr);gap:0 64px;align-items:center}
+.col{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1}
+.colhead{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.node{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);transition:border-color .15s,background .15s}
+.node:hover{border-color:var(--muted)}
+.node:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.node .nm{font-weight:700}
+.node .amt{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
+.node .sub{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+.node.in .amt{color:var(--accent)}
+.node.out .amt{color:var(--out)}
+.node.dashed{border-style:dashed}
+.node[aria-pressed="true"].in{border-color:var(--accent);background:var(--accent-soft)}
+.node[aria-pressed="true"].out{border-color:var(--out);background:var(--out-soft)}
+.bank{position:relative;z-index:1;text-align:center;padding:22px 12px;border:2px solid var(--accent);border-radius:12px;background:var(--accent-soft)}
+.bank .nm{font-weight:700;font-size:17px}
+.bank .amt{font-family:var(--f-num);font-size:22px;color:var(--accent);margin:4px 0}
+#wires{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible}
+#wires path{fill:none;stroke:var(--line);stroke-width:1.5}
+#wires path.on-in{stroke:var(--accent);stroke-width:2.25}
+#wires path.on-out{stroke:var(--out);stroke-width:2.25}
+#wires path.dash{stroke-dasharray:5 4}
+.hint{margin:14px 0 0;font-size:13px;color:var(--muted)}
+.detail{margin-top:22px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:18px 18px 20px}
+.dhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin-bottom:4px}
+.dhead h2{font-size:19px;margin:0}
+.dflow{color:var(--muted);margin:0 0 14px}
+.tree{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.tree li{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px}
+.tree li::before{content:"";position:absolute;left:-18px;top:13px;width:12px;border-top:2px solid var(--line)}
+.tree .t{font-weight:500}
+.tree .d{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.tree .v{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tree.in .v{color:var(--accent)} .tree.out .v{color:var(--out)}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.fact{border-top:1px solid var(--line);padding-top:10px;min-width:0}
+.fact h3{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:0 0 4px;font-weight:700}
+.fact p{margin:0;font-size:13.5px}
+.foot{margin-top:24px}
+@media (max-width:760px){
+  .map{grid-template-columns:minmax(0,1fr);gap:14px}
+  #wires{display:none}
+  .down{display:block;text-align:center;color:var(--muted);font-size:18px;line-height:1}
+  .facts{grid-template-columns:minmax(0,1fr)}
+}
+@media (min-width:761px){.down{display:none}}
+@media (prefers-reduced-motion:reduce){.node{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="docnav" aria-label="참고 문서">
+    <span>참고 문서</span>
+    <a href="money-map.html" aria-current="page">가맹점 돈길 지도</a>
+    <a href="money-flow.html">가맹점 돈의 흐름</a>
+    <a class="back" href="../index.html">← 정산 맞추기 데모로</a>
+  </nav>
+
+  <h1>가맹점 돈길 지도</h1>
+  <p class="lead">돈은 길마다 미리 떼인 채 통장에 모이고, 통장에서 다시 나갑니다. 상자를 누르면 그 길에서 무엇이 빠지는지 아래에 펼쳐집니다.</p>
+
+  <div class="strip" aria-label="예시 요약">
+    <span class="note">어느 가게의 일주일 (예시 숫자)</span>
+    <span>판 돈 <b class="num">138만</b></span>
+    <span class="arrow">→</span>
+    <span>들어온 돈 <b class="num">122.5만</b></span>
+    <span class="arrow">→</span>
+    <span>나간 돈 <b class="num">90만</b></span>
+    <span class="arrow">→</span>
+    <span>남은 돈 <b class="num" style="color:var(--accent)">32.5만</b></span>
+  </div>
+
+  <div class="map" id="map">
+    <svg id="wires" aria-hidden="true"></svg>
+    <div class="col" id="colIn"><div class="colhead">들어오는 돈</div></div>
+    <span class="down" aria-hidden="true">↓</span>
+    <div class="bank" id="bank">
+      <div class="nm">가맹점 통장</div>
+      <div class="amt">+32.5만</div>
+      <div class="note">전체는 사장님만 봄</div>
+    </div>
+    <span class="down" aria-hidden="true">↓</span>
+    <div class="col" id="colOut"><div class="colhead">나가는 돈</div></div>
+  </div>
+  <p class="hint">점선 상자는 브랜드마다 있기도 하고 없기도 한 길입니다.</p>
+
+  <section class="detail" id="detail" aria-live="polite"></section>
+
+  <p class="note foot">숫자는 이해를 돕기 위한 예시이며 실제 수수료율·정산 주기는 계약과 앱마다 다릅니다. 공개용 사본이라 가게·브랜드 이름은 일반 표현으로 바꿨습니다.</p>
+</div>
+
+<script>
+const NODES = [
+  {id:'card', side:'in', name:'카드사', sub:'매장 카드 결제', sold:'100만', got:'+98.5만',
+   flow:'판 돈 100만 − 미리 빠진 돈 1.5만 = 통장 98.5만',
+   kids:[
+     {t:'카드 수수료', v:'−1.5만', d:'카드 종류·가맹점 매출 규모에 따라 요율이 다름'},
+     {t:'입금 시점', v:'며칠 뒤', d:'결제일과 통장 입금일이 다름. 주말·공휴일이 끼면 더 밀림'},
+     {t:'보류·누락', v:'가끔', d:'취소·보류된 건이 섞이면 금액이 어긋남'}],
+   where:'카드사 가맹점 사이트, 여신금융협회 매출 조회, 매출 관리 앱', visor:'매출은 있을 수 있음, 수수료는 없음'},
+  {id:'delivery', side:'in', name:'배달앱', sub:'여러 배달앱', sold:'30만', got:'+16만',
+   flow:'판 돈 30만 − 미리 빠진 돈 14만 = 통장 16만 (1만 원당 약 5,300원)',
+   kids:[
+     {t:'중개 수수료', v:'−2.3만', d:'주문 금액의 몇 %. 앱·요금제·매출 구간마다 다름'},
+     {t:'결제 수수료', v:'−0.9만', d:'손님이 앱에서 결제한 금액에 붙음'},
+     {t:'수수료 부가세', v:'−0.3만', d:'위 수수료들에 붙는 10%'},
+     {t:'배달비 (가게 부담분)', v:'−6만', d:'주문마다 고정이라 1만 원대 주문일수록 비중이 큼'},
+     {t:'광고비', v:'−2만', d:'가게가 직접 건 노출 광고. 본사 브랜드 광고와 별개'},
+     {t:'할인·쿠폰 (가게 부담분)', v:'−2.5만', d:'본사 브랜드 행사의 가게 몫 + 가게가 건 쿠폰'},
+     {t:'정산 시점', v:'주 단위 등', d:'앱마다 정산일이 다르고 밀리기도 함'}],
+   where:'각 배달앱 사장님 사이트의 정산 내역서, 매출 관리 앱', visor:'없음'},
+  {id:'hqapp', side:'in', name:'본사 앱 주문', sub:'스마트오더', sold:'5만', got:'+5만', dashed:true,
+   flow:'본사를 거쳐 들어온다면, 본사에 낼 돈과 서로 빼고(상계) 들어올 수 있음',
+   kids:[
+     {t:'결제 수수료', v:'?', d:'누가 얼마를 내는지 브랜드마다 다름'},
+     {t:'앱 이용료·행사 분담', v:'?', d:'브랜드에 따라 있을 수 있음'},
+     {t:'상계', v:'?', d:'재료비 40만 − 앱 매출 5만 = 35만 청구처럼 순액만 오가면 통장에서 앱 매출이 안 보임'}],
+   where:'본사 정산서, 바이저 자료', visor:'있을 수 있음'},
+  {id:'cash', side:'in', name:'현금·간편결제', sub:'현금, 계좌이체, 페이류', sold:'3만', got:'+3만',
+   flow:'현금은 은행에 넣지 않으면 통장에 아예 안 찍힘',
+   kids:[
+     {t:'현금', v:'수수료 없음', d:'입금하는 날·금액이 사장님 마음대로라 맞추기 어려움'},
+     {t:'간편결제', v:'소액', d:'결제사 수수료가 빠지고 들어옴'}],
+   where:'POS 현금 매출, 입금 기록', visor:'매출은 있을 수 있음'},
+  {id:'hq', side:'out', name:'본사', sub:'재료비·로열티·분담금', sold:'', got:'−40만',
+   flow:'가장 큰 다달 지출. 발주할 때마다 나감',
+   kids:[
+     {t:'재료비 (물류대금)', v:'−40만', d:'원두·컵·시럽 등. 상계되면 순액만 통장에 보임'},
+     {t:'로열티', v:'?', d:'매출의 % 또는 고정액. 재료값 마진(차액가맹금)으로 대신하는 곳도 많음'},
+     {t:'광고·행사 분담금', v:'?', d:'브랜드 광고, 배달앱 브랜드 할인 행사의 가게 몫'},
+     {t:'가맹비·교육비·인테리어', v:'개점 때 1회', d:'다달 정산과는 무관'}],
+   where:'본사 청구서, 바이저 자료', visor:'있음 (본사가 알아야 할 숫자)'},
+  {id:'buy', side:'out', name:'사입처', sub:'마트·도매·온라인몰', sold:'', got:'−5만',
+   flow:'본사 물류 말고 직접 사는 재료',
+   kids:[
+     {t:'재료 사입비', v:'−5만', d:'예: 아이스티. 카드·현금·계좌이체로 살 때마다'},
+     {t:'현금 구매', v:'영수증만', d:'현금으로 사면 통장엔 인출만 찍혀 맞추기 어려움'}],
+   where:'카드 내역, 영수증', visor:'없음'},
+  {id:'etc', side:'out', name:'그 밖', sub:'인건비·임대료·세금', sold:'', got:'−45만',
+   flow:'다달 또는 수시로 나가는 고정비',
+   kids:[
+     {t:'인건비', v:'', d:'아르바이트·직원 급여'},
+     {t:'임대료·관리비', v:'', d:'매달 고정'},
+     {t:'공과금', v:'', d:'전기·수도·가스'},
+     {t:'세금', v:'', d:'부가세·소득세. 세무사 영역'}],
+   where:'통장 출금 내역', visor:'없음'}
+];
+
+const colIn = document.getElementById('colIn'), colOut = document.getElementById('colOut');
+const detail = document.getElementById('detail'), wires = document.getElementById('wires'), map = document.getElementById('map'), bank = document.getElementById('bank');
+let selected = 'delivery';
+
+NODES.forEach(n => {
+  const b = document.createElement('button');
+  b.className = 'node ' + n.side + (n.dashed ? ' dashed' : '');
+  b.id = 'node-' + n.id; b.type = 'button';
+  b.innerHTML = `<span class="nm">${n.name}</span><span class="amt">${n.got}</span><span class="sub">${n.sub}${n.sold ? ' · 판 돈 ' + n.sold : ''}</span>`;
+  b.addEventListener('click', () => { selected = n.id; render(); });
+  (n.side === 'in' ? colIn : colOut).appendChild(b);
+});
+
+function render(){
+  NODES.forEach(n => document.getElementById('node-' + n.id).setAttribute('aria-pressed', String(n.id === selected)));
+  const n = NODES.find(x => x.id === selected);
+  detail.innerHTML = `
+    <div class="dhead"><h2>${n.name}</h2><span class="note">${n.side === 'in' ? '들어오는 돈' : '나가는 돈'}</span>${n.dashed ? '<span class="tag q">브랜드마다 다름</span>' : ''}</div>
+    <p class="dflow">${n.flow}</p>
+    <ul class="tree ${n.side}">${n.kids.map(k => `<li><span class="t">${k.t}</span><span class="v">${k.v}</span><span class="d">${k.d}</span></li>`).join('')}</ul>
+    <div class="facts">
+      <div class="fact"><h3>어디서 확인하나</h3><p>${n.where}</p></div>
+      <div class="fact"><h3>바이저 엑셀에 있나</h3><p>${n.visor}</p></div>
+    </div>`;
+  drawWires();
+}
+
+function drawWires(){
+  if (getComputedStyle(wires).display === 'none') return;
+  const m = map.getBoundingClientRect(), bk = bank.getBoundingClientRect();
+  const bx1 = bk.left - m.left, bx2 = bk.right - m.left, by = bk.top - m.top + bk.height / 2;
+  wires.setAttribute('viewBox', `0 0 ${m.width} ${m.height}`);
+  let d = '';
+  NODES.forEach((n, i) => {
+    const r = document.getElementById('node-' + n.id).getBoundingClientRect();
+    const y = r.top - m.top + r.height / 2;
+    const spread = (i % 4 - 1.5) * 8;
+    let p, cls = [];
+    if (n.side === 'in') { const x = r.right - m.left; p = `M${x} ${y} C${x + 36} ${y}, ${bx1 - 36} ${by + spread}, ${bx1} ${by + spread}`; }
+    else { const x = r.left - m.left; p = `M${bx2} ${by + spread} C${bx2 + 36} ${by + spread}, ${x - 36} ${y}, ${x} ${y}`; }
+    if (n.dashed) cls.push('dash');
+    if (n.id === selected) cls.push(n.side === 'in' ? 'on-in' : 'on-out');
+    d += `<path class="${cls.join(' ')}" d="${p}"/>`;
+  });
+  wires.innerHTML = d;
+}
+window.addEventListener('resize', drawWires);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawWires);
+render();
+</script>
+</body>
+</html>
