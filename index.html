@@ -37,6 +37,8 @@
   .topline { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; margin-bottom: 4px; flex-wrap: wrap; }
   .topline .eyebrow { white-space: nowrap; margin: 0; }
   .upload-link { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; margin-left: auto; }
+  .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .refs-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; max-width: 13em; }
   .design-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
   .design-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
   .eyebrow { font-size: 13px; color: var(--sub); margin: 4px 0 6px; }
@@ -198,6 +200,7 @@
   <div class="topline">
     <p class="eyebrow">배달 정산 맞추기 <span class="demo-tag">예시 데이터</span></p>
     <a class="upload-link" href="upload.html">내 파일로 맞추기 →</a>
+    <span data-refs></span>
     <label class="design-pick">디자인
       <select id="design" aria-label="디자인 고르기">
         <option value="index.html" selected>기본 (카드형)</option>
@@ -536,5 +539,6 @@
   document.getElementById('design').addEventListener('change', function (e) { location.href = e.target.value; });
 })();
 </script>
+<script src="refs.js"></script>
 </body>
 </html>
