@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>매출 정산 맞추기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Noto+Serif+KR:wght@700&display=swap">
+<style>
+/* Layout: 한 장짜리 소개서 — 좁은 본문 칼럼, 가운데 '돈의 길' 막대표가 핵심 */
+:root{
+  --bg:#f6f7f8; --paper:#ffffff; --ink:#18212b; --sub:#5a6672; --line:#dde2e7;
+  --accent:#1f5f8b; --accent-soft:#e6eff6;
+  --ok:#2f7d5b; --warn:#b46a10; --warn-soft:#fbf1e3; --cut:#9aa6b1;
+  --f-display:"Noto Serif KR","Nanum Myeongjo",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --paper:#1a2027; --ink:#e7ecf0; --sub:#9aa7b3; --line:#2c353e;
+  --accent:#6aa9d6; --accent-soft:#1c2c3a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --paper:#1a2027; --ink:#e7ecf0; --sub:#9aa7b3; --line:#2c353e;
+  --accent:#6aa9d6; --accent-soft:#1c2c3a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 56px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:44px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:clamp(26px,5vw,36px)}
+h2{font-size:22px}
+h3{font-size:16px;margin:0}
+p{margin:0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--accent)}
+.lead{color:var(--sub);font-size:17px;max-width:62ch}
+.meta{font-size:13px;color:var(--sub)}
+section{display:grid;gap:16px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px}
+/* 돈의 길 */
+.flow{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 7.2em;gap:12px;align-items:center}
+.row .lab{font-size:14px;line-height:1.4}
+.row .lab small{display:block;color:var(--sub);font-size:12px}
+.track{position:relative;height:18px}
+.bar{position:absolute;top:0;height:100%;border-radius:3px}
+.b-total{background:var(--accent)}
+.b-cut{background:var(--cut)}
+.b-gap{background:var(--warn)}
+.b-real{background:var(--ok)}
+.row .amt{text-align:right;font-size:14px}
+.row.gap .lab,.row.gap .amt{color:var(--warn);font-weight:600}
+.row.key .lab{font-weight:600}
+.note{font-size:13px;color:var(--sub)}
+.callout{background:var(--warn-soft);border-radius:8px;padding:12px 14px;font-size:14px}
+/* 목록 */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.item{display:grid;gap:4px}
+.item p{color:var(--sub);font-size:14.5px}
+.list{display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.list li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
+.list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:.7em}
+.privacy{background:var(--accent-soft);border-radius:10px;padding:18px 20px;display:grid;gap:6px}
+.ask{border-top:2px solid var(--ink);padding-top:20px;display:grid;gap:14px}
+.steps{counter-reset:s;display:grid;gap:10px;padding:0;margin:0;list-style:none}
+.steps li{counter-increment:s;display:grid;grid-template-columns:1.8em minmax(0,1fr);gap:8px}
+.steps li::before{content:counter(s);font-family:var(--f-num);color:var(--accent);font-weight:500}
+.contact{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:15px}
+.contact .mail{font-family:var(--f-num);user-select:all}
+button{font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:560px){
+  .grid2{grid-template-columns:1fr}
+  .row{grid-template-columns:minmax(0,1fr) 6.6em;row-gap:4px}
+  .row .track{grid-column:1 / -1;grid-row:2}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header style="display:grid;gap:14px">
+  <p class="eyebrow">자영업자 매출 정산 대조 · 시범 단계 소개</p>
+  <h1>포스 매출과 통장 입금이 왜 다른지,<br>한 단계씩 찾아 보여 드립니다</h1>
+  <p class="lead">프랜차이즈·배달 매장은 포스 매출과 실제 통장 입금이 매달 몇십만~몇백만 원씩 다릅니다. 이 도구는 그 차이를 수수료·정산 시점·본사 상계·설명 안 된 차이로 나눠, 무엇을 어디에 확인해야 하는지까지 정리합니다.</p>
+  <p class="meta">2026년 11월 · 시범 단계 · 예시 데이터로 만든 데모</p>
+</header>
+
+<section>
+  <h2>사장님들이 겪는 문제</h2>
+  <ul class="list">
+    <li><span>돈이 들어오는 길이 너무 많습니다. 카드사, 배달앱 여러 곳, 본사 앱·기프티콘, 현금이 각자 다른 날짜와 양식으로 정산됩니다.</span></li>
+    <li><span>배달앱 정산서는 앱마다 칸 이름과 부호가 달라, 사장님이 직접 통장과 맞추기 어렵습니다.</span></li>
+    <li><span>본사는 로열티·물품대금을 매출 정산에서 먼저 떼고 보내는 경우가 있어, 통장만 봐서는 얼마가 왜 빠졌는지 알 수 없습니다.</span></li>
+    <li><span>기존 매출관리 앱은 카드·배달앱·은행 연결까지는 해 주지만, 본사 정산과 상계까지 설명해 주지는 않습니다. 이 도구는 그 빈자리를 노립니다.</span></li>
+  </ul>
+</section>
+
+<section aria-labelledby="flow-title">
+  <h2 id="flow-title">한 달 돈의 길을 이렇게 보여 줍니다</h2>
+  <div class="sheet" style="display:grid;gap:16px">
+    <div class="flow" id="flow"></div>
+    <div class="callout">설명 안 된 차이 <b class="num">90,500원</b> = 카드 입금보류 52,000원 + B앱 "기타 차감" 38,500원(사유 안 적힘). 각각 카드사와 B앱 고객센터에 물어볼 항목으로 정리됩니다.</div>
+    <p class="note">모든 숫자는 설명을 위한 예시입니다. 수수료율도 실제 앱 요율이 아닙니다.</p>
+  </div>
+  <p>항목을 누르면 세부 내역과 근거 자료(포스 매출, 배달앱 정산서, 카드사 내역, 본사 청구, 통장 거래내역)가 펼쳐집니다. 실제 입금은 통장 자료 합계로만 계산하고, 본사 상계는 본사 청구와 통장 출금을 따로 비교합니다.</p>
+</section>
+
+<section>
+  <h2>지금 만들어 둔 화면</h2>
+  <div class="grid2">
+    <div class="sheet item"><h3>포스 매출 ↔ 통장</h3><p>위의 7단계 흐름. 간단히/자세히 보기 전환, 부가세 포함·공급가액 기준 전환, 이달 부가세 참고 표.</p></div>
+    <div class="sheet item"><h3>배달 정산 (카드형)</h3><p>배달 주문 건마다 수수료·배달비 등 빠진 돈을 보여 주고, 리스트와 달력으로 봅니다.</p></div>
+    <div class="sheet item"><h3>배달 정산 (대시보드형)</h3><p>월 달력에 입금 누락·덜 들어옴·늦게 입금을 표시. 정산을 확인 필요 / 늦게 들어옴 / 정상으로 나눕니다.</p></div>
+    <div class="sheet item"><h3>내 파일로 맞추기</h3><p>배달앱 정산서와 통장 엑셀을 올리면 자동으로 맞춥니다. 앱마다 다른 칸 이름도 알아서 맞추고, 결과를 엑셀로 받습니다.</p></div>
+  </div>
+</section>
+
+<section class="privacy">
+  <h3>통장·카드 내역은 밖으로 나가지 않습니다</h3>
+  <p>올린 파일은 브라우저 안에서만 읽고 계산합니다. 서버로 보내지 않고 저장하지도 않습니다. 매출·통장 자료처럼 민감한 정보를 다루는 만큼 처음부터 이렇게 설계했습니다.</p>
+</section>
+
+<section>
+  <h2>세무사무소에서 쓰신다면</h2>
+  <ul class="list">
+    <li><span>기장 고객의 배달·카드 매출과 통장 입금을 맞추는 반복 작업 시간을 줄입니다.</span></li>
+    <li><span>부가세 신고 전에 매출 누락이나 설명 안 되는 차이를 미리 걸러 볼 수 있습니다.</span></li>
+    <li><span>"왜 통장에 돈이 덜 들어왔냐"는 사장님 질문에 항목별 근거 자료로 답할 수 있습니다.</span></li>
+  </ul>
+  <p class="note">위 내용은 제가 생각한 쓰임새입니다. 실제 사무소 업무에 맞는지는 세무사님 의견을 듣고 고치려고 합니다.</p>
+</section>
+
+<section class="ask">
+  <h2>부탁드리고 싶은 것</h2>
+  <ol class="steps">
+    <li><span>30분 정도 데모를 보시고, 사무소 업무에서 실제로 쓸 만한지, 무엇이 빠졌는지 솔직한 의견을 듣고 싶습니다.</span></li>
+    <li><span>괜찮으시다면 기장 고객 1~2곳의 자료로 무료 시범 대조를 해 보고 싶습니다. 자료는 사무소 PC 안에서만 처리합니다.</span></li>
+    <li><span>쓸모가 확인되면 사무소 단위 월 이용 방식을 함께 정하고 싶습니다.</span></li>
+  </ol>
+</section>
+
+<section>
+  <h2>만든 사람</h2>
+  <p>현대정보기술(현 롯데정보통신)에서 대학병원 통합의료시스템을 개발·운영했고, 이후 프리랜서로 서울아산병원 프로젝트 등 업무 시스템을 만들어 왔습니다(자바·오라클·파이썬). 지금은 배달 현장에서 여러 가게를 직접 다니며 사장님들의 정산 문제를 듣고, 그 문제를 푸는 도구를 만들고 있습니다.</p>
+  <p class="note">연락처는 따로 전달드립니다.</p>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var rows=[
+    {lab:'포스 매출',sm:'이달 판매 합계',v:12400000,t:'total',key:1},
+    {lab:'정산 과정 차감',sm:'카드·배달앱 수수료, 배달비',v:-1180000,t:'cut'},
+    {lab:'정산 시점 조정',sm:'지난달·다음달로 넘어간 돈',v:-143000,t:'cut'},
+    {lab:'통장 밖으로 간 돈',sm:'현금 보유, 본사 상계',v:-2350000,t:'cut'},
+    {lab:'예상 통장 입금',sm:'여기까지 계산한 값',v:8727000,t:'total',key:1},
+    {lab:'설명 안 된 차이',sm:'확인이 필요한 돈',v:-90500,t:'gap',gap:1},
+    {lab:'실제 통장 입금',sm:'통장 거래내역 합계',v:8636500,t:'real',key:1}
+  ];
+  var max=12400000,level=0,html='';
+  function w(n){return n.toLocaleString('ko-KR');}
+  rows.forEach(function(r){
+    var left,width;
+    if(r.t==='total'||r.t==='real'){left=0;width=r.v/max;level=r.v;}
+    else{width=-r.v/max;level=level+r.v;left=level/max;}
+    html+='<div class="row'+(r.gap?' gap':'')+(r.key?' key':'')+'"><div class="lab">'+r.lab+'<small>'+r.sm+'</small></div>'+
+      '<div class="track"><div class="bar b-'+r.t+'" style="left:'+(left*100)+'%;width:max(3px,'+(width*100)+'%)"></div></div>'+
+      '<div class="amt num">'+(r.v<0?'−':'')+w(Math.abs(r.v))+'</div></div>';
+  });
+  document.getElementById('flow').innerHTML=html;
+})();
+</script>
+</body>
+</html>
