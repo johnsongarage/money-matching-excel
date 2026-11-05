@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>예시 엑셀 미리보기</title>
+<style>
+  /* 저장소 다른 화면과 같은 색 토큰 */
+  :root {
+    --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
+    --line: #e5e7eb; --head: #f3f4f6;
+    --green: #16a34a; --green-bg: #dcfce7; --red: #dc2626; --red-bg: #fee2e2; --amber: #b45309; --amber-bg: #fef3c7;
+    --blue: #2563eb; --blue-bg: #dbeafe;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #111214; --panel: #1a1b1e; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+      --line: #2c2d31; --head: #222327;
+      --green: #4ade80; --green-bg: #14321f; --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d;
+      --blue: #60a5fa; --blue-bg: #172554; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #111214; --panel: #1a1b1e; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+    --line: #2c2d31; --head: #222327;
+    --green: #4ade80; --green-bg: #14321f; --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d;
+    --blue: #60a5fa; --blue-bg: #172554; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+    font-size: 15px; line-height: 1.7; font-variant-numeric: tabular-nums;
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
+  .topnav { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+  a { color: var(--blue); }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 28px; }
+  section { display: grid; gap: 12px; }
+  h2 { margin: 0; font-size: 20px; line-height: 1.4; text-wrap: balance; }
+  h3 { margin: 0; font-size: 15px; }
+  p { margin: 0; }
+  .step { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--blue); }
+  .muted { color: var(--sub); }
+  .small { font-size: 13px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
+  .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .summary .card .n { font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .summary .card .l { font-size: 13px; color: var(--sub); }
+  .red { color: var(--red); } .green { color: var(--green); } .amber { color: var(--amber); }
+  ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+  .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: var(--head); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.r, th.r { text-align: right; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .pill.green { background: var(--green-bg); }
+  .pill.red { background: var(--red-bg); }
+  .pill.amber { background: var(--amber-bg); }
+  .pill.gray { background: var(--head); color: var(--sub); }
+  .cols { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cols code { font-family: inherit; font-size: 12.5px; background: var(--head); border: 1px solid var(--line); border-radius: 5px; padding: 1px 7px; }
+  .cols code.new { background: var(--amber-bg); border-color: transparent; }
+  figure { margin: 0; display: grid; gap: 6px; }
+  figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; display: block; background: var(--panel); }
+  figcaption { font-size: 13px; color: var(--sub); }
+  .fix { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+  .fix b { color: var(--blue); }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0b1220; } }
+  :root[data-theme="dark"] .btn.primary { color: #0b1220; }
+  .note { background: var(--amber-bg); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+  @media (max-width: 640px) {
+    .summary { grid-template-columns: 1fr; }
+    .top { padding: 10px 16px; }
+    .top h1 { font-size: 16px; }
+  }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tab { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; font: inherit; font-size: 13px; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--sub); }
+  .bar label { display: inline-flex; gap: 6px; align-items: center; color: var(--ink); }
+  .bar a { margin-left: auto; }
+  .sheet { max-height: 70vh; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+  .sheet table { font-size: 12.5px; }
+  .sheet th { position: sticky; top: 0; z-index: 1; }
+  .sheet td, .sheet th { white-space: nowrap; padding: 6px 10px; }
+  .sheet td.n { text-align: right; }
+  .sheet tr.title td { color: var(--sub); background: var(--page); }
+  .sheet tr.mark td { background: var(--amber-bg); }
+  .sheet td.why { white-space: normal; min-width: 12em; color: var(--amber); font-weight: 600; }
+  .legend { font-size: 13px; color: var(--sub); }
+  .legend b { background: var(--amber-bg); color: var(--ink); padding: 0 6px; border-radius: 4px; font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>예시 엑셀 미리보기</h1>
+  <nav class="topnav"><a href="upload.html">내 파일로 맞추기</a><a href="hq-check.html">본사 정산 확인</a><a href="simulation.html">시뮬레이션 기록</a></nav>
+</header>
+<main class="wrap" style="max-width:1100px">
+  <section>
+    <h2>가상 분식 가맹점 10월, 예시 파일 4개</h2>
+    <p class="muted">받지 않고 여기서 바로 봅니다. 모두 지어낸 데이터이고, 칸 구성은 공개 안내를 참고한 가정입니다. <span class="legend"><b>노란 줄</b>은 일부러 문제를 심은 곳입니다.</span></p>
+    <div class="tabs" role="tablist" id="files"></div>
+    <div class="tabs" role="tablist" id="sheets"></div>
+    <div class="bar">
+      <label><input type="checkbox" id="only"> 문제 심은 줄만 보기</label>
+      <span id="count"></span>
+      <a id="dl" href="#" download>이 파일 받기</a>
+    </div>
+    <div class="sheet" id="sheet"><p class="muted" style="padding:16px">불러오는 중…</p></div>
+    <p class="small muted" id="note"></p>
+  </section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var FILES = [
+    { name: 'A앱 정산서', file: 'A앱_정산내역_2026-10_예시.xlsx', note: '매일 정산, 3영업일 뒤 입금. 주문 한 건이 한 줄, 날마다 광고비 줄이 따로 있습니다.' },
+    { name: 'B앱 정산서', file: 'B앱_정산내역_2026-10_예시.xlsx', note: '주 단위 지급. 차감 금액을 양수로 적는 양식입니다.' },
+    { name: '통장 거래내역', file: '통장_거래내역_2026-10_예시.xlsx', note: '배달앱 입금, 카드사 매출대금, 본사 정산 출금 등이 섞여 있습니다.' },
+    { name: '본사 정산서', file: '본사_정산서_2026-10_예시.xlsx', note: '바이저가 내려주는 엑셀을 가정했습니다. 시트 2개(매출집계, 청구내역).' }
+  ];
+  // 문제를 심은 줄 표시: 머리글 이름으로 칸을 찾아 판단
+  function at(h, r, name) { var j = h.indexOf(name); return j >= 0 ? r[j] : ''; }
+  var seenPO = {};
+  var RULES = {
+    'A앱 정산서': function (h, r) {
+      if (at(h, r, '정산상태') === '정산보류') return '정산보류 — 통장에 입금 없음';
+      if (+at(h, r, '조정금액')) return '조정금액(고객 보상) — 도구에서 "기타"로 보여야 함';
+    },
+    'B앱 정산서': function (h, r) { if (/환급/.test(at(h, r, '비고'))) return '통장에 안 들어온 환급금'; },
+    '통장 거래내역': function (h, r) {
+      var d = String(at(h, r, '거래일시')).slice(0, 10), who = at(h, r, '기재내용');
+      if (who === 'A앱정산' && d === '2026.10.23' && +at(h, r, '입금액') === 68244) return '10/22에 들어왔어야 할 돈 — 하루 늦음';
+      if (who === 'A앱정산' && d === '2026.10.26') return '정산서보다 3,300원 덜 들어옴';
+      if (who === 'A앱정산' && /2026\.10\.0[126]/.test(d)) return '9월 말 주문분 — 10월 정산서엔 없음(정상, 시점 차이)';
+      if (who === '본사 정산' && d === '2026.11.05') return '청구보다 15,000원 더 빠짐';
+    },
+    '본사 정산서': function (h, r) {
+      var po = at(h, r, '발주번호'), k = at(h, r, '구분');
+      if (po) { if (seenPO[po]) return '같은 발주번호가 한 번 더 청구됨'; seenPO[po] = 1; }
+      if (k === '판촉분담금') return '흔하지 않은 항목 — 동의했는지 확인';
+      if (k === '로열티') return '부가세 포함 매출 + 배달팁의 3%로 계산됨';
+      if (k === '기프티콘' && /수수료/.test(at(h, r, '내용'))) return '수수료 8%를 점주가 전부 냄';
+    }
+  };
+  var books = {}, cur = { f: 0, s: 0 };
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(v) { return String(v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(v) { return typeof v === 'number' ? v.toLocaleString('ko-KR') : esc(v); }
+
+  function tabs(el, list, sel, on) {
+    el.innerHTML = list.map(function (t, i) { return '<button type="button" class="tab" role="tab" aria-selected="' + (i === sel) + '" data-i="' + i + '">' + esc(t) + '</button>'; }).join('');
+    el.onclick = function (e) { var b = e.target.closest('.tab'); if (b) on(+b.dataset.i); };
+  }
+  function draw() {
+    var F = FILES[cur.f];
+    tabs($('files'), FILES.map(function (f) { return f.name; }), cur.f, function (i) { cur = { f: i, s: 0 }; draw(); });
+    $('dl').href = 'samples/' + F.file; $('dl').textContent = F.file + ' 받기';
+    $('note').textContent = F.note;
+    var wb = books[F.file];
+    if (!wb) { $('sheets').innerHTML = ''; $('sheet').innerHTML = '<p class="muted" style="padding:16px">불러오는 중…</p>'; return; }
+    $('sheets').hidden = wb.SheetNames.length < 2;
+    tabs($('sheets'), wb.SheetNames, cur.s, function (i) { cur.s = i; draw(); });
+    var aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[cur.s]], { header: 1, raw: true, defval: '' });
+    // 머리글 줄: 칸이 가장 많이 찬 첫 줄
+    var hi = 0, best = 0;
+    aoa.slice(0, 10).forEach(function (r, i) { var n = r.filter(function (x) { return x !== ''; }).length; if (n > best) { best = n; hi = i; } });
+    var H = aoa[hi].map(String), rule = RULES[F.name], only = $('only').checked, marked = 0, shown = 0;
+    seenPO = {};
+    var body = aoa.slice(hi + 1).filter(function (r) { return r.some(function (x) { return x !== ''; }); }).map(function (r) {
+      var why = rule ? rule(H, r) : '';
+      if (why) marked++;
+      if (only && !why) return '';
+      shown++;
+      return '<tr' + (why ? ' class="mark"' : '') + '>' + H.map(function (h, j) { var v = r[j] == null ? '' : r[j]; return '<td' + (typeof v === 'number' ? ' class="n"' : '') + '>' + fmt(v) + '</td>'; }).join('') + '<td class="why">' + (why || '') + '</td></tr>';
+    }).join('');
+    var titles = aoa.slice(0, hi).filter(function (r) { return r.some(function (x) { return x !== ''; }); })
+      .map(function (r) { return '<tr class="title"><td colspan="' + (H.length + 1) + '">' + esc(r.filter(Boolean).join(' ')) + '</td></tr>'; }).join('');
+    $('sheet').innerHTML = '<table><thead><tr>' + H.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '<th>심은 문제</th></tr></thead><tbody>' + titles + body + '</tbody></table>';
+    $('count').textContent = shown + '줄 보는 중 · 문제 심은 줄 ' + marked + '개';
+  }
+  $('only').addEventListener('change', draw);
+  if (typeof XLSX === 'undefined') { $('sheet').innerHTML = '<p class="muted" style="padding:16px">엑셀을 읽는 도구를 불러오지 못했어요. 새로고침해 주세요.</p>'; return; }
+  draw();
+  FILES.forEach(function (F) {
+    fetch('samples/' + encodeURIComponent(F.file)).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(function (b) { books[F.file] = XLSX.read(new Uint8Array(b), { type: 'array' }); draw(); })
+      .catch(function () { if (FILES[cur.f] === F) $('sheet').innerHTML = '<p class="muted" style="padding:16px">파일을 불러오지 못했어요. 위 링크로 받아 주세요.</p>'; });
+  });
+})();
+</script>
+</body>
+</html>
