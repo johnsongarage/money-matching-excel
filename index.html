@@ -83,6 +83,16 @@
   .basis button[aria-pressed="true"] { background: var(--total); border-color: var(--total); color: #fff; font-weight: 700; }
   .basis button:focus-visible { outline: 2px solid var(--total); outline-offset: 2px; }
   .fall { display: grid; gap: 4px; }
+  .fall-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .fall-head h2 { margin: 0; }
+  .viewsw { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px; background: var(--page); }
+  .viewsw button { font-size: 13px; border: 0; background: transparent; border-radius: 999px; padding: 4px 14px; cursor: pointer; color: var(--sub); }
+  .viewsw button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .viewsw button:focus-visible { outline: 2px solid var(--total); outline-offset: 2px; }
+  .fall.simple { gap: 6px; margin-top: 8px; }
+  .fall.simple .step { padding: 8px 6px; }
+  .fall.simple .step .name { font-size: 14px; }
+  .fall.simple .step .amt { font-size: 14px; }
   .stage { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--sub); margin: 10px 4px 2px; }
   .step { display: grid; grid-template-columns: minmax(12em, 16em) minmax(0, 1fr) 7.5em 1.4em; gap: 10px; align-items: center;
     width: 100%; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 5px 6px; cursor: pointer; }
@@ -202,15 +212,22 @@
   <div class="kpis" id="kpis"></div>
 
   <section class="card pad" aria-labelledby="fall-title">
-    <h2 id="fall-title">본사 엑셀에서 실제 입금까지</h2>
-    <p class="muted">본사 엑셀의 매출이 어떤 이유로 줄거나 다른 달로 넘어가서 통장 입금이 되는지 보여 줍니다. <b>막대를 누르면</b> 세부 내역과 어느 자료에서 나온 숫자인지 펼쳐져요.</p>
+    <div class="fall-head">
+      <h2 id="fall-title">본사 엑셀에서 실제 입금까지</h2>
+      <div class="viewsw" id="view" role="group" aria-label="보기 방식">
+        <button type="button" data-view="simple" aria-pressed="false">간단히</button>
+        <button type="button" data-view="full" aria-pressed="true">자세히</button>
+      </div>
+    </div>
+    <p class="muted" id="fall-simple-note" hidden>다섯 덩어리로만 묶었어요. 줄을 누르면 무엇이 들어 있는지 나와요.</p>
+    <p class="muted" id="fall-full-note">본사 엑셀의 매출이 어떤 이유로 줄거나 다른 달로 넘어가서 통장 입금이 되는지 보여 줍니다. <b>막대를 누르면</b> 세부 내역과 어느 자료에서 나온 숫자인지 펼쳐져요.</p>
     <div class="basis" id="basis" role="group" aria-label="본사 엑셀 매출의 부가세 기준">
       <span>본사 엑셀 매출은</span>
       <button type="button" data-basis="gross" aria-pressed="true">부가세 포함</button>
       <button type="button" data-basis="net" aria-pressed="false">부가세 뺀 금액 (공급가액)</button>
       <span class="tag-s check">확인 필요</span>
     </div>
-    <div class="legend" aria-label="막대 모양 설명">
+    <div class="legend" id="legend" aria-label="막대 모양 설명">
       <span><i class="sw-total"></i>합계</span>
       <span><i class="sw-cost"></i>정산 과정에서 빠진 돈 (비용)</span>
       <span><i class="sw-timing"></i>시점 차이 (비용 아님)</span>
@@ -383,7 +400,10 @@
 
   // ================================================================ 그리기 (본사 엑셀 기준에 따라)
   var basis = 'gross'; // gross = 부가세 포함(판매가), net = 공급가액(부가세 뺀)
-  var open = { gap: true };
+  var open = { gap: true, 's-gap': true };
+  var view = 'full';
+  try { if (localStorage.getItem('hq-view') === 'simple') view = 'simple'; } catch (e) {}
+  if (/simple/.test(location.hash)) view = 'simple';
 
   function render() {
     var shown = basis === 'gross' ? grossTotal : Math.round(grossTotal / 1.1);
@@ -456,6 +476,25 @@
       { id: 'act', kind: 'total', name: '실제 통장 입금', note: '통장 거래내역 기준', v: actualTotal,
         detail: rowsHTML([['카드사 입금 (' + BANK.deposits.card.n + '건)', won(BANK.deposits.card.sum)]].concat(apps.map(function (a) { return [a.name + ' 입금 (' + a.n + '건)', won(a.actual)]; })).concat([['현금 입금 (' + BANK.deposits.cash.n + '건)', won(BANK.deposits.cash.sum)]])) + srcHTML([{ t: '통장 거래내역 (예시)' }]) });
 
+    if (view === 'simple') {
+      var simple = [
+        { id: 's-base', kind: 'total', name: '본사 엑셀 매출', v: shown,
+          detail: rowsHTML([['매장 카드·현금', won(basis === 'gross' ? S.card + S.cash : Math.round((S.card + S.cash) / 1.1))], ['배달앱 A·B·C', won(basis === 'gross' ? A('sale') : Math.round(A('sale') / 1.1))], ['본사 앱·기프티콘', won(basis === 'gross' ? S.hqapp + S.gift : Math.round((S.hqapp + S.gift) / 1.1))]]) }];
+      if (basisAdj) simple.push({ id: 's-basis', kind: 'adj', name: '부가세 더해 맞추기', v: basisAdj,
+          detail: '<p class="note">엑셀이 부가세 뺀 금액이라 통장(판매가)과 기준을 맞춘 것. 돈이 생긴 게 아니에요.</p>' });
+      simple.push(
+        { id: 's-cost', kind: 'cost', name: '수수료·배달비로 빠진 돈', v: -costTotal,
+          detail: rowsHTML([['수수료·세금', '−' + won(feesTax), '배달앱·카드·본사 앱·기프티콘'], ['배달비·광고·점주 할인', '−' + won(delivMkt), '배달앱']]) },
+        { id: 's-timing', kind: 'timing', name: '다른 달로 넘어간 돈', v: prevIn - nextOut,
+          detail: rowsHTML([['지난달 판 돈이 이번 달에', '+' + won(prevIn)], ['이번 달 판 돈이 다음 달에', '−' + won(nextOut), '기프티콘은 정산이 늦어 몇 달 걸리기도']]) + '<p class="note">사라진 돈이 아니에요.</p>' },
+        { id: 's-off', kind: 'off', name: '통장 대신 본사 대금·금고로', v: -offRoute,
+          detail: rowsHTML([['본사 앱·기프티콘 가게 몫', '−' + won(hq.net + gift.net), '본사 대금에서 빼고 줌 (확인 필요)'], ['통장에 안 넣은 현금', '−' + won(cash.kept)]]) + '<p class="note">사라진 돈이 아니에요.</p>' },
+        { id: 's-gap', kind: 'gap', name: '⚠ 설명 안 된 돈', v: -gap,
+          detail: rowsHTML([['카드 입금보류', '−' + won(sum(CARD.holds, function (h) { return h.amount; })), '카드사에 문의'], ['B앱 기타 차감', '−' + won(APP_NOTES.B.amount), 'B앱 고객센터에 문의']]) },
+        { id: 's-act', kind: 'total', name: '실제 통장 입금', v: actualTotal,
+          detail: '<p class="note">통장 거래내역 기준 합계예요.</p>' });
+      steps = simple;
+    }
     var max = grossTotal + prevIn, run = 0, h = '';
     steps.forEach(function (s) {
       if (s.stage) { h += '<div class="stage">' + s.stage + '</div>'; return; }
@@ -466,13 +505,27 @@
       var left = Math.max(0, from) / max * 100, width = Math.abs(to - from) / max * 100;
       var amt = s.kind === 'total' ? won(s.v) : signed(s.v);
       h += '<button type="button" class="step ' + s.kind + '" data-id="' + s.id + '" aria-expanded="' + !!open[s.id] + '" aria-controls="d-' + s.id + '">' +
-        '<span class="name">' + s.name + (s.check ? '<span class="tag-s check">확인 필요</span>' : '') + (s.notcost ? '<span class="tag-s notcost">비용 아님</span>' : '') + '<small>' + s.note + '</small></span>' +
+        '<span class="name">' + s.name + (s.check ? '<span class="tag-s check">확인 필요</span>' : '') + (s.notcost ? '<span class="tag-s notcost">비용 아님</span>' : '') + (s.note ? '<small>' + s.note + '</small>' : '') + '</span>' +
         '<span class="track" aria-hidden="true"><span class="bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span></span>' +
         '<span class="amt">' + amt + '</span><span class="chev" aria-hidden="true">›</span></button>' +
         '<div class="detail" id="d-' + s.id + '"' + (open[s.id] ? '' : ' hidden') + '>' + s.detail + '</div>';
     });
-    document.getElementById('fall').innerHTML = h;
+    var fall = document.getElementById('fall');
+    fall.innerHTML = h;
+    fall.classList.toggle('simple', view === 'simple');
+    var simpleOn = view === 'simple';
+    document.getElementById('fall-simple-note').hidden = !simpleOn;
+    document.getElementById('fall-full-note').hidden = simpleOn;
+    document.getElementById('basis').hidden = simpleOn;
+    document.getElementById('legend').hidden = simpleOn;
+    Array.prototype.forEach.call(document.querySelectorAll('#view button'), function (x) { x.setAttribute('aria-pressed', String(x.dataset.view === view)); });
   }
+  document.getElementById('view').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-view]'); if (!b) return;
+    view = b.dataset.view;
+    try { localStorage.setItem('hq-view', view); } catch (err) {}
+    render();
+  });
   function num(s) { return Number(String(s).replace(/[^0-9-]/g, '')); }
 
   document.getElementById('fall').addEventListener('click', function (e) {
