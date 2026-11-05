@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var SCREENS = [
-    { file: 'index.html', title: '본사 엑셀 ↔ 통장' },
+    { file: 'index.html', title: '포스 매출 ↔ 통장' },
     { file: 'delivery.html', title: '배달 정산 (카드형)' },
     { file: 'dashboard.html', title: '배달 정산 (대시보드형)' },
     { file: 'upload.html', title: '내 파일로 맞추기' }
