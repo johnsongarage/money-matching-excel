@@ -96,9 +96,9 @@
     <h2>바이저가 내려준 본사 정산서를 사장님 편에서 검증해 봤습니다</h2>
     <p>1부(배달 정산)에는 본사가 없었습니다. 그런데 찾아본 범위에서는 가맹점주가 본사 정산서를 검증하는 서비스가 없었습니다. 본사용 도구는 가맹점에서 받을 돈을 관리하고, 점주용 매출 앱은 카드·배달앱과 통장만 맞춥니다. 그래서 같은 가상 분식 가맹점의 10월 본사 정산서를 만들고, 문제 5개를 심은 뒤 새로 만든 "본사 정산 확인" 화면에 넣어 봤습니다.</p>
     <div class="summary">
-      <div class="card"><span class="l">찾은 문제</span><span class="n green">5 / 5</span><span class="l">정상 항목 2개는 "맞음"으로 나옴</span></div>
-      <div class="card"><span class="l">더 낸 것으로 보이는 돈</span><span class="n red">474,777원</span><span class="l">로열티·중복 발주·기프티콘·출금 차이</span></div>
-      <div class="card"><span class="l">동의 확인이 필요한 돈</span><span class="n">132,000원</span><span class="l">동의 목록에 없는 판촉분담금</span></div>
+      <div class="card"><span class="l">계약 조건 없이</span><span class="n green">5 / 5</span><span class="l">엑셀 두 개만 올려서 문제 5개 모두 짚음</span></div>
+      <div class="card"><span class="l">차이가 확인된 돈</span><span class="n red">353,800원</span><span class="l">중복 발주, 청구와 다른 출금</span></div>
+      <div class="card"><span class="l">바이저님께 확인할 돈</span><span class="n">207,937원</span><span class="l">로열티 기준, 판촉분담금 + 기프티콘 분담</span></div>
     </div>
   </section>
 
@@ -128,6 +128,7 @@
   <section>
     <p class="step">2단계 · 예시 파일과 계약</p>
     <h2>본사 정산서 1개(시트 2개)와 1부의 통장 거래내역</h2>
+    <p>사장님이 올리는 건 이 두 파일뿐입니다. 계약 조건은 몰라도 되고, 아시는 경우에만 접힌 칸을 열어 넣습니다.</p>
     <div class="tbl"><table>
       <thead><tr><th>파일</th><th>내용</th></tr></thead>
       <tbody>
@@ -140,7 +141,7 @@
       <h3>본사 정산서 칸</h3>
       <div class="cols"><code>구분</code><code>건수</code><code>매출액(부가세포함)</code><code>공급가액</code><code>부가세</code><code>고객 배달팁</code></div>
       <div class="cols"><code>청구일</code><code>구분</code><code>발주번호</code><code>내용</code><code>공급가액</code><code>부가세</code><code>청구금액</code><code>출금예정일</code><code>비고</code></div>
-      <h3>예시 계약 (사장님이 화면에 넣는 값)</h3>
+      <h3>예시 계약 (선택 칸에 넣었을 때만 쓰는 값)</h3>
       <ul class="clean">
         <li>로열티: 공급가액(부가세 뺀 매출)의 3%, 고객 배달팁은 빼고</li>
         <li>광고분담금: 월 50,000원 (부가세 별도)</li>
@@ -150,29 +151,33 @@
     </div>
     <figure>
       <img src="docs/sim/hq-contract.png" alt="본사 정산 확인 화면의 계약 조건 입력" loading="lazy">
-      <figcaption>계약 조건 입력. 정액 로열티 브랜드는 "매달 정해진 금액"으로 바꾸면 됩니다.</figcaption>
+      <figcaption>계약 조건은 접힌 선택 칸. 넣은 값은 저장되지 않습니다.</figcaption>
     </figure>
   </section>
 
   <section>
     <p class="step">3단계 · 정답지와 결과</p>
-    <h2>심은 문제 5개를 모두 찾았습니다</h2>
+    <h2>계약 조건 없이도 문제 5개를 모두 짚었습니다</h2>
+    <p>처음에는 계약 조건을 넣어야 로열티와 기프티콘을 계산하게 만들었습니다. 그런데 정확히 계산하려면 계약·특약·변경 이력까지 필요해, 사장님께 너무 많은 정보를 요구하게 됩니다. 그래서 <b>정답을 계산하는 대신, 이상한 곳을 짚고 바이저님께 물어볼 질문을 만드는 것</b>을 기본으로 바꿨습니다.</p>
     <div class="tbl"><table>
-      <thead><tr><th>#</th><th>심은 문제</th><th>도구가 보여 준 것</th><th class="r">금액</th></tr></thead>
+      <thead><tr><th>#</th><th>심은 문제</th><th>계약 조건 없이 (기본)</th><th>계약 조건을 넣으면</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td>로열티를 부가세 포함 매출 + 배달팁으로 계산</td><td><span class="pill red">차이</span> 계약대로면 497,141원인데 566,175원 청구. "본사 금액은 부가세 포함 매출 + 배달팁의 3%와 같다"고 계산 방식까지 짚음</td><td class="r">+75,937</td></tr>
-        <tr><td>2</td><td>같은 발주번호 PO-261007이 두 번 청구됨</td><td><span class="pill red">차이</span> 10/22 포장 용기 발주가 한 번 더 있음</td><td class="r">+338,800</td></tr>
-        <tr><td>3</td><td>기프티콘 수수료를 점주가 100% 냄</td><td><span class="pill red">차이</span> 사용액의 8.0%를 뗐는데 계약대로면 4.0%</td><td class="r">+45,040</td></tr>
-        <tr><td>4</td><td>11/5 본사 출금이 청구보다 15,000원 많음</td><td><span class="pill red">차이</span> 10/20 출금은 맞음, 11/5 출금만 다름</td><td class="r">+15,000</td></tr>
-        <tr><td>5</td><td>동의 목록에 없는 판촉분담금</td><td><span class="pill amber">확인 필요</span> 할인 행사 분담금, 사전 동의 기준 안내</td><td class="r">132,000</td></tr>
-        <tr><td>-</td><td>광고분담금 (정상)</td><td><span class="pill green">맞음</span></td><td class="r">0</td></tr>
-        <tr><td>-</td><td>본사앱 주문 지급 (정상)</td><td>청구 합계에 상계로 들어가 출금과 맞음</td><td class="r">0</td></tr>
+        <tr><td>1</td><td>로열티를 부가세 포함 매출 + 배달팁으로 계산</td><td><span class="pill amber">확인 필요</span> "부가세 포함 매출 + 배달팁의 3.0%로 계산된 것으로 보임", 공급가액 기준이면 75,937원 적어야 함</td><td><span class="pill red">차이</span> +75,937원</td></tr>
+        <tr><td>2</td><td>같은 발주번호 PO-261007 두 번 청구</td><td><span class="pill red">차이</span> +338,800원</td><td>같음</td></tr>
+        <tr><td>3</td><td>기프티콘 수수료를 점주가 100% 냄</td><td><span class="pill amber">확인 필요</span> 사용액의 8.0%를 뗐음, 분담 비율 질문</td><td><span class="pill red">차이</span> +45,040원</td></tr>
+        <tr><td>4</td><td>11/5 출금이 청구보다 15,000원 많음</td><td><span class="pill red">차이</span> +15,000원</td><td>같음</td></tr>
+        <tr><td>5</td><td>판촉분담금 (동의 여부 불명)</td><td><span class="pill amber">확인 필요</span> 흔하지 않은 항목 132,000원, 사전 동의 기준 안내</td><td>같음</td></tr>
+        <tr><td>-</td><td>광고분담금 (정상)</td><td>계약 없이는 보지 않음</td><td><span class="pill green">맞음</span></td></tr>
       </tbody>
     </table></div>
-    <p>로열티 차이는 처음에 부가세를 뺀 69,034원으로 나왔습니다. 로열티에도 부가세가 붙어 실제로는 75,937원이 더 나가므로, 차이 금액에 부가세를 넣도록 고쳤습니다. 숫자는 예시 파일을 만든 코드에서 따로 계산해 맞춰 봤습니다.</p>
+    <p>결과 끝에는 바이저님께 보낼 질문 5개가 자동으로 정리됩니다. 숫자는 예시 파일을 만든 코드에서 따로 계산해 맞춰 봤습니다. 로열티 차이는 로열티에 붙는 부가세까지 넣은 금액입니다.</p>
     <figure>
-      <img src="docs/sim/hq-result.png" alt="본사 정산 확인 결과. 차이 4개, 확인 필요 1개, 맞음 1개와 바이저에게 물어볼 내용" loading="lazy">
-      <figcaption>결과 화면. 맨 아래에 바이저님께 보낼 질문이 자동으로 정리됩니다.</figcaption>
+      <img src="docs/sim/hq-result.png" alt="계약 조건 없이 본사 정산 확인 결과. 차이 2개, 확인 필요 3개와 바이저에게 물어볼 내용" loading="lazy">
+      <figcaption>계약 조건 없이 돌린 결과. 맨 아래에 바이저님께 보낼 질문이 정리됩니다.</figcaption>
+    </figure>
+    <figure>
+      <img src="docs/sim/hq-result-contract.png" alt="계약 조건을 넣고 돌린 결과. 차이 4개, 확인 필요 1개, 맞음 1개" loading="lazy">
+      <figcaption>예시 계약을 넣고 돌린 결과. 확인 필요였던 항목이 금액이 있는 "차이"로 바뀝니다.</figcaption>
     </figure>
   </section>
 
@@ -182,7 +187,7 @@
     <div class="card">
       <ul class="clean">
         <li><b>실제 엑셀 양식.</b> 시트가 몇 개인지, 매출 집계가 있는지 청구만 있는지에 따라 로열티 검사가 달라집니다. 매출 집계가 없으면 포스 매출을 따로 넣어야 합니다.</li>
-        <li><b>사장님이 계약 조건을 알아야 함.</b> 계약서를 모르셔도, 도구가 "본사가 어떤 기준으로 계산했는지"를 짚어 주므로 그걸로 바이저에게 물어볼 수 있습니다.</li>
+        <li><b>지난달과 비교.</b> 두 달치 정산서를 함께 올리면 갑자기 늘어난 항목을 짚을 수 있습니다. 아직 만들지 않았습니다.</li>
         <li><b>물품 마진 자체는 계산 못 함.</b> 적정 도매가를 넘는 부분은 점주 파일만으로 알 수 없어서, 중복 청구와 단가 변동까지만 봅니다. 정보공개서의 평균 수치와 비교하는 기능을 생각해 볼 수 있습니다.</li>
         <li><b>정액 로열티 브랜드.</b> 로열티 검사는 단순해지고, 물품대금·기프티콘·판촉분담금이 더 중요해집니다.</li>
       </ul>
@@ -192,7 +197,7 @@
 
   <section>
     <h2>직접 해 보기</h2>
-    <p>"본사 정산 확인" 화면에서 <b>예시 → 바로 해 보기</b>를 누르면 이 기록과 같은 결과가 나옵니다. 계약 조건을 바꾸면 결과가 바로 바뀝니다.</p>
+    <p>"본사 정산 확인" 화면에서 <b>예시 → 바로 해 보기</b>를 누르면 이 기록과 같은 결과가 나옵니다. 계약 조건 칸을 열어 "계약 조건으로도 계산하기"를 켜면 두 번째 결과가 나옵니다.</p>
     <div class="cta"><a class="btn primary" href="hq-check.html">본사 정산 확인 열기</a><a class="btn" href="simulation.html">1부: 배달 정산 기록</a></div>
   </section>
 

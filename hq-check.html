@@ -71,6 +71,9 @@
   .contract label { display: grid; gap: 4px; font-size: 13px; color: var(--sub); }
   .contract input, .contract select { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 6px; padding: 5px 8px; font-size: 14px; color: var(--ink); width: 100%; }
   .contract .row { display: flex; gap: 6px; align-items: center; }
+  #c-box summary { cursor: pointer; list-style-position: outside; }
+  #c-box[open] summary { margin-bottom: 8px; }
+  .use { display: flex; gap: 6px; align-items: center; font-size: 14px; margin: 4px 0 6px; }
   .agreed { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
   .agreed label { display: inline-flex; gap: 5px; align-items: center; color: var(--ink); }
   .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -134,8 +137,10 @@
   </section>
 
   <section class="card pad" aria-labelledby="h2">
-    <h2 id="h2">2. 계약 조건</h2>
-    <p class="muted">가맹계약서에 적힌 대로 넣어 주세요. 처음 값은 예시 계약입니다.</p>
+    <details id="c-box">
+    <summary><h2 id="h2" style="display:inline">2. 계약 조건 (선택)</h2> <span class="muted">— 몰라도 됩니다. 아시면 더 정확히 봐요</span></summary>
+    <label class="use"><input type="checkbox" id="c-use"> 계약 조건으로도 계산하기 (로열티·광고분담금·기프티콘 분담)</label>
+    <p class="muted">가맹계약서에 적힌 숫자만 넣어 주세요. 계약서를 올릴 필요는 없고, 넣은 값은 저장되지 않습니다. 처음 값은 예시 계약입니다.</p>
     <div class="contract">
       <label>로열티 방식
         <select id="c-mode"><option value="rate">매출의 몇 % (정률)</option><option value="flat">매달 정해진 금액 (정액)</option></select>
@@ -154,6 +159,7 @@
     </div>
     <p class="muted" style="margin-top:12px">동의한 청구 항목 (계약서·동의서에 있는 것만 체크)</p>
     <div class="agreed" id="agreed"></div>
+    </details>
   </section>
 
   <section id="result" hidden aria-labelledby="h3">
@@ -256,7 +262,7 @@
   }).join('');
   function contract() {
     return {
-      mode: $('c-mode').value, rate: num($('c-rate').value) / 100, flat: num($('c-flat').value), basis: $('c-basis').value, tip: $('c-tip').value === 'yes',
+      use: $('c-use').checked, mode: $('c-mode').value, rate: num($('c-rate').value) / 100, flat: num($('c-flat').value), basis: $('c-basis').value, tip: $('c-tip').value === 'yes',
       ad: num($('c-ad').value), gfee: num($('c-gfee').value) / 100, gshare: num($('c-gshare').value) / 100,
       agreed: ITEMS.filter(function (k, i) { return $('ag-' + i).checked; })
     };
@@ -268,6 +274,7 @@
   document.querySelector('.contract').addEventListener('change', function () { syncForm(); render(); });
   document.querySelector('.contract').addEventListener('input', render);
   $('agreed').addEventListener('change', render);
+  $('c-use').addEventListener('change', render);
 
   // 확인
   function sumBy(list, f) { return list.reduce(function (s, x) { return s + f(x); }, 0); }
@@ -279,37 +286,48 @@
 
     // 1) 로열티
     var roy = cl.filter(function (r) { return /로열티/.test(r.k); }), royHq = sumBy(roy, function (r) { return r.sup; });
-    if (roy.length) {
+    var royVat = royHq ? sumBy(roy, function (r) { return r.vat; }) / royHq : 0.1;
+    var BASES = [['공급가액(부가세 뺀 매출)', sup, false], ['공급가액 + 배달팁', sup + tip, true], ['부가세 포함 매출', gross, true], ['부가세 포함 매출 + 배달팁', gross + tip, true]];
+    if (roy.length && C.use) {
       var ok, why;
       if (C.mode === 'flat') { ok = C.flat; why = '계약: 매달 ' + won(C.flat) + '원'; }
       else {
         var base = (C.basis === 'supply' ? sup : gross) + (C.tip ? tip : 0);
         ok = Math.round(base * C.rate);
         why = '계약: ' + (C.basis === 'supply' ? '공급가액' : '부가세 포함 매출') + (C.tip ? ' + 배달팁' : '') + ' ' + won(base) + '원 × ' + (C.rate * 100).toFixed(1) + '% = ' + won(ok) + '원';
-        if (!S.length) why += ' (매출집계 시트가 없어 기준 매출을 0으로 봄)';
       }
-      var royVat = royHq ? sumBy(roy, function (r) { return r.vat; }) / royHq : 0.1;
-      var d = Math.round((royHq - ok) * (1 + royVat)), guess = '';
-      if (Math.abs(d) > 10 && C.mode === 'rate' && S.length) {
-        [['부가세 포함 매출', gross], ['부가세 포함 매출 + 배달팁', gross + tip], ['공급가액 + 배달팁', sup + tip], ['공급가액', sup]].some(function (g) {
-          if (Math.abs(Math.round(g[1] * C.rate) - royHq) <= 10) { guess = '본사 금액은 "' + g[0] + ' ' + won(g[1]) + '원"의 ' + (C.rate * 100).toFixed(1) + '%와 같습니다.'; return true; }
-        });
+      var d = Math.round((royHq - ok) * (1 + royVat));
+      out.push({ id: 'royalty', title: '로열티 (계약과 비교)', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
+        lines: ['본사 청구 ' + won(royHq) + '원 (부가세 빼고)', why, '차이 금액은 로열티에 붙는 부가세까지 넣은 값입니다.'],
+        ask: Math.abs(d) > 10 ? '10월 로열티가 ' + won(royHq) + '원으로 청구됐는데, 계약대로 계산하면 ' + won(ok) + '원입니다. 기준 매출 확인 부탁드립니다.' : '' });
+    } else if (roy.length && S.length) {
+      // 계약 없이: 어떤 매출의 몇 %인지 거꾸로 짚기 (0.1% 단위로 딱 떨어지는 기준을 찾음)
+      var fits = BASES.filter(function (b) { return b[1] > 0; }).map(function (b) { var pct = royHq / b[1] * 100; return { name: b[0], base: b[1], pct: pct, extra: b[2], clean: Math.abs(pct * 10 - Math.round(pct * 10)) < 0.01 }; });
+      var hit = fits.filter(function (f) { return f.clean; })[0];
+      var lines = ['본사 청구 ' + won(royHq) + '원 (부가세 빼고)'];
+      if (hit) {
+        var r = Math.round(hit.pct * 10) / 10;
+        lines.push('"' + hit.name + ' ' + won(hit.base) + '원"의 ' + r.toFixed(1) + '%로 계산된 것으로 보입니다.');
+        var gap = hit.extra ? Math.round((royHq - Math.round(sup * r / 100)) * (1 + royVat)) : 0;
+        if (hit.extra) lines.push('공급가액(부가세 뺀 매출) 기준이라면 ' + won(gap) + '원(부가세 포함) 적게 나와야 합니다. 계약 기준을 바이저님께 확인해 보세요.');
+        out.push({ id: 'royalty', title: '로열티 계산 기준', status: hit.extra ? 'warn' : 'ok', amount: gap, lines: lines,
+          ask: hit.extra ? '10월 로열티 ' + won(royHq) + '원이 "' + hit.name + '"의 ' + r.toFixed(1) + '%로 계산된 것 같습니다. 계약상 기준 매출에 ' + (/부가세 포함/.test(hit.name) ? '부가세' : '') + (/부가세 포함/.test(hit.name) && /배달팁/.test(hit.name) ? '와 ' : '') + (/배달팁/.test(hit.name) ? '배달팁' : '') + '이 들어가는 게 맞는지 확인 부탁드립니다.' : '' });
+      } else {
+        lines.push('매출의 몇 %로 딱 떨어지지 않습니다. 정액 로열티이거나 다른 기준일 수 있습니다.');
+        out.push({ id: 'royalty', title: '로열티 계산 기준', status: 'ok', amount: 0, lines: lines, ask: '' });
       }
-      out.push({ id: 'royalty', title: '로열티', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
-        lines: ['본사 청구 ' + won(royHq) + '원 (부가세 빼고)', why, '차이 금액은 로열티에 붙는 부가세까지 넣은 값입니다.'].concat(guess ? [guess] : []),
-        ask: Math.abs(d) > 10 ? '10월 로열티가 ' + won(royHq) + '원으로 청구됐는데, 계약대로 계산하면 ' + won(ok) + '원입니다. 기준 매출에 부가세나 배달팁이 들어갔는지 확인 부탁드립니다.' : '' });
     }
     // 2) 광고분담금
     var ad = cl.filter(function (r) { return /광고/.test(r.k); }), adHq = sumBy(ad, function (r) { return r.sup; });
-    if (ad.length) {
+    if (ad.length && C.use) {
       d = Math.round((adHq - C.ad) * 1.1);
       out.push({ id: 'ad', title: '광고분담금', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d, lines: ['본사 청구 ' + won(adHq) + '원, 계약 ' + won(C.ad) + '원'],
         ask: Math.abs(d) > 10 ? '광고분담금이 계약 금액(' + won(C.ad) + '원)과 다르게 ' + won(adHq) + '원 청구됐습니다. 사유 확인 부탁드립니다.' : '' });
     }
     // 3) 동의 안 한 항목
     var odd = cl.filter(function (r) { return !C.agreed.some(function (a) { return r.k.indexOf(a) >= 0 || (a === '광고분담금' && /광고/.test(r.k)); }); });
-    out.push({ id: 'agreed', title: '동의 목록에 없는 청구', status: odd.length ? 'warn' : 'ok', amount: sumBy(odd, function (r) { return r.amt; }),
-      lines: odd.length ? odd.map(function (r) { return md(r.d) + ' ' + r.k + ' — ' + r.what + ' ' + won(r.amt) + '원' + (r.note ? ' (' + r.note + ')' : ''); }).concat(['광고는 점주 50% 이상, 판촉은 70% 이상 사전 동의가 필요합니다(2022년 7월부터). 동의한 적이 있는지 확인해 보세요.']) : ['체크한 항목 밖의 청구가 없습니다.'],
+    out.push({ id: 'agreed', title: C.use ? '동의 목록에 없는 청구' : '흔하지 않은 청구 항목', status: odd.length ? 'warn' : 'ok', amount: sumBy(odd, function (r) { return r.amt; }),
+      lines: odd.length ? (C.use ? [] : ['물품대금·로열티·광고분담금·기프티콘·본사앱 말고 다른 항목입니다.']).concat(odd.map(function (r) { return md(r.d) + ' ' + r.k + ' — ' + r.what + ' ' + won(r.amt) + '원' + (r.note ? ' (' + r.note + ')' : ''); })).concat(['광고는 점주 50% 이상, 판촉은 70% 이상 사전 동의가 필요합니다(2022년 7월부터). 동의한 적이 있는지 확인해 보세요.']) : ['체크한 항목 밖의 청구가 없습니다.'],
       ask: odd.length ? odd.map(function (r) { return '"' + r.what + '" ' + won(r.amt) + '원은 어떤 동의(또는 계약 조항)에 따른 청구인지 알려 주세요.'; }).join('\n') : '' });
     // 4) 발주번호 중복
     var seen = {}, dups = [];
@@ -322,12 +340,19 @@
     if (g.length) {
       var use = -sumBy(g.filter(function (r) { return r.amt < 0; }), function (r) { return r.amt; });
       var feeHq = sumBy(g.filter(function (r) { return r.amt > 0; }), function (r) { return r.amt; });
-      var feeOk = Math.round(use * C.gfee * C.gshare);
-      d = feeHq - feeOk;
-      out.push({ id: 'gift', title: '기프티콘 수수료', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
-        lines: ['사용액 ' + won(use) + '원, 본사가 뗀 수수료 ' + won(feeHq) + '원 (사용액의 ' + (use ? (feeHq / use * 100).toFixed(1) : 0) + '%)',
-          '계약: ' + won(use) + '원 × ' + (C.gfee * 100).toFixed(1) + '% × 점주 부담 ' + Math.round(C.gshare * 100) + '% = ' + won(feeOk) + '원'],
-        ask: Math.abs(d) > 10 ? '기프티콘 수수료가 ' + won(feeHq) + '원 차감됐는데, 점주 부담 ' + Math.round(C.gshare * 100) + '%로 계산하면 ' + won(feeOk) + '원입니다. 분담 비율 확인 부탁드립니다.' : '' });
+      var pctUse = use ? feeHq / use * 100 : 0;
+      if (C.use) {
+        var feeOk = Math.round(use * C.gfee * C.gshare);
+        d = feeHq - feeOk;
+        out.push({ id: 'gift', title: '기프티콘 수수료 (계약과 비교)', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
+          lines: ['사용액 ' + won(use) + '원, 본사가 뗀 수수료 ' + won(feeHq) + '원 (사용액의 ' + pctUse.toFixed(1) + '%)',
+            '계약: ' + won(use) + '원 × ' + (C.gfee * 100).toFixed(1) + '% × 점주 부담 ' + Math.round(C.gshare * 100) + '% = ' + won(feeOk) + '원'],
+          ask: Math.abs(d) > 10 ? '기프티콘 수수료가 ' + won(feeHq) + '원 차감됐는데, 점주 부담 ' + Math.round(C.gshare * 100) + '%로 계산하면 ' + won(feeOk) + '원입니다. 분담 비율 확인 부탁드립니다.' : '' });
+      } else if (feeHq > 0) {
+        out.push({ id: 'gift', title: '기프티콘 수수료 분담', status: 'warn', amount: 0,
+          lines: ['사용액 ' + won(use) + '원 중 ' + won(feeHq) + '원(사용액의 ' + pctUse.toFixed(1) + '%)을 수수료로 뗐습니다.', '발행사 수수료를 점주가 전부 내는지, 본사와 나누는지 확인해 보세요. 반반으로 바꾼 브랜드도 있습니다.'],
+          ask: '기프티콘 수수료가 사용액의 ' + pctUse.toFixed(1) + '%(' + won(feeHq) + '원) 차감됐는데, 발행사 수수료 중 점주 부담 비율이 어떻게 되는지 알려 주세요.' });
+      }
     }
     // 6) 청구 ↔ 통장 출금
     var byDue = {};
@@ -357,8 +382,8 @@
     var nBad = res.checks.filter(function (c) { return c.status === 'bad'; }).length;
     $('kpis').innerHTML =
       '<div class="card kpi"><p class="label">본사 청구 합계</p><div class="num">' + won(res.total) + '원</div><p class="desc">청구내역 ' + data.claims.length + '줄 (상계 포함)</p></div>' +
-      '<div class="card kpi"><p class="label">더 낸 것으로 보이는 돈</p><div class="num red">' + won(over) + '원</div><p class="desc">' + nBad + '개 항목에서 계약·통장과 다름</p></div>' +
-      '<div class="card kpi"><p class="label">동의 확인이 필요한 돈</p><div class="num">' + won(warn) + '원</div><p class="desc">동의 목록에 없는 청구</p></div>';
+      '<div class="card kpi"><p class="label">차이가 확인된 돈</p><div class="num red">' + won(over) + '원</div><p class="desc">' + nBad + '개 항목 · 파일끼리 맞지 않음' + (contract().use ? '·계약과 다름' : '') + '</p></div>' +
+      '<div class="card kpi"><p class="label">바이저님께 확인할 돈</p><div class="num">' + won(warn) + '원</div><p class="desc">' + res.checks.filter(function (c) { return c.status === 'warn'; }).length + '개 항목 · 계산 기준·동의 여부</p></div>';
     var LBL = { ok: ['green', '맞음'], bad: ['red', '차이'], warn: ['amber', '확인 필요'] }, rank = { bad: 0, warn: 1, ok: 2 };
     $('checks').innerHTML = res.checks.slice().sort(function (a, b) { return rank[a.status] - rank[b.status]; }).map(function (c) {
       return '<div class="card check ' + c.status + '"><div class="check-head"><span class="pill ' + LBL[c.status][0] + '">' + LBL[c.status][1] + '</span><h3>' + c.title + '</h3>' +
