@@ -67,6 +67,7 @@
   .btn.primary:hover { opacity: .9; }
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .samples { margin-top: 12px; display: flex; gap: 6px 10px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--sub); }
+  .samples a { color: var(--blue); font-size: 13px; }
   .samples button { background: none; border: 0; padding: 0; color: var(--blue); cursor: pointer; text-decoration: underline; font-size: 13px; }
   .err { color: var(--red); font-size: 13px; margin: 8px 0 0; }
 
@@ -177,6 +178,16 @@
       <button type="button" data-dl="C">C앱 정산서</button>
       <button type="button" data-dl="bank">통장 거래내역</button>
     </div>
+    <div class="samples">
+      <span>10월 한 달 현실형 예시:</span>
+      <button type="button" id="try-real">바로 해 보기</button>
+      <span>·</span>
+      <a href="samples/A앱_정산내역_2026-10_예시.xlsx" download>A앱 정산서</a>
+      <a href="samples/B앱_정산내역_2026-10_예시.xlsx" download>B앱 정산서</a>
+      <a href="samples/통장_거래내역_2026-10_예시.xlsx" download>통장 거래내역</a>
+      <span>·</span>
+      <a href="simulation.html">이 예시로 돌려 본 기록</a>
+    </div>
     <p class="err" id="lib-err" hidden>엑셀을 읽는 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
   </section>
 
@@ -213,7 +224,7 @@
     <p class="muted" id="notes" style="margin:10px 2px 0"></p>
   </section>
 
-  <p class="foot">정산 묶음 = 같은 배달앱에서 같은 날 들어오기로 한 주문들의 합. 통장 적요에 배달앱 이름(또는 직접 적은 이름)이 들어 있는 입금과 맞춰 봅니다. 날짜가 다르면 7일 안에 같은 금액이 들어왔는지 찾아 "늦게 들어옴"으로 봅니다.</p>
+  <p class="foot">정산 묶음 = 같은 배달앱에서 같은 날 들어오기로 한 주문들의 합. 통장 거래내역 줄(적요·기재내용 등)에 배달앱 이름(또는 직접 적은 이름)이 들어 있는 입금과 맞춰 봅니다. 정산서에 "보류" 상태가 있으면 "정산 보류"로 따로 보여 줍니다. 날짜가 다르면 7일 안에 같은 금액이 들어왔는지 찾아 "늦게 들어옴"으로 봅니다.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -232,13 +243,14 @@
     { key: 'order', label: '주문번호', type: 'text', aliases: ['주문ID', '주문 번호', '오더번호'] },
     { key: 'sale', label: '주문금액', req: true, type: 'num', aliases: ['메뉴금액', '판매금액', '결제금액', '상품금액', '매출금액'] },
     { key: 'broker', label: '중개수수료', type: 'num', aliases: ['중개이용료', '중개 수수료', '수수료', '이용료'] },
-    { key: 'pay', label: '결제수수료', type: 'num', aliases: ['결제대행수수료', 'PG수수료', '결제 수수료', '외부결제수수료'] },
+    { key: 'pay', label: '결제수수료', type: 'num', aliases: ['결제대행수수료', '결제정산수수료', '결제정산이용료', 'PG수수료', '결제 수수료', '외부결제수수료'] },
     { key: 'delivery', label: '배달비', type: 'num', aliases: ['가게부담 배달팁', '배달팁', '배달대행료', '배달료', '가게부담배달비'] },
     { key: 'coupon', label: '할인·쿠폰', type: 'num', aliases: ['즉시할인(사장님부담)', '쿠폰(가게부담)', '할인', '가게부담 할인', '할인부담', '쿠폰'] },
     { key: 'ad', label: '광고비', type: 'num', aliases: ['광고', '광고료'] },
     { key: 'vat', label: '부가세', type: 'num', aliases: ['VAT', '부가가치세', '수수료 부가세'] },
-    { key: 'net', label: '정산금액', req: true, type: 'num', aliases: ['입금예정액', '정산액', '지급예정액', '지급액', '정산 금액'] },
-    { key: 'due', label: '정산예정일', req: true, type: 'date', aliases: ['지급예정일', '지급일', '입금예정일', '정산일', '지급 예정일'] }
+    { key: 'net', label: '정산금액', req: true, type: 'num', aliases: ['입금예정액', '정산액', '지급예정액', '지급액', '지급금액', '정산 금액'] },
+    { key: 'due', label: '정산예정일', req: true, type: 'date', aliases: ['지급예정일', '지급일', '입금예정일', '정산일', '지급 예정일'] },
+    { key: 'state', label: '정산상태', type: 'text', aliases: ['상태', '지급상태', '정산 상태'] }
   ];
   var BANK = [
     { key: 'date', label: '거래일', req: true, type: 'date', aliases: ['거래일시', '거래일자', '일자', '날짜'] },
@@ -246,7 +258,8 @@
     { key: 'deposit', label: '입금액', req: true, type: 'num', aliases: ['입금', '맡기신금액', '입금금액'] }
   ];
   var DEDUCT = ['broker', 'pay', 'delivery', 'coupon', 'ad', 'vat'];
-  var DEDUCT_LABEL = { broker: '중개 수수료', pay: '결제 수수료', delivery: '배달비', coupon: '할인·쿠폰', ad: '광고비', vat: '부가세', other: '기타(칸 없음)' };
+  var DEDUCT_LABEL = { broker: '중개 수수료', pay: '결제 수수료', delivery: '배달비', coupon: '할인·쿠폰', ad: '광고비', vat: '부가세', other: '기타(칸 없음)', plus: '환급·조정으로 더해진 돈' };
+  function isOrder(o) { return o.sale > 0; }
 
   // ---------------------------------------------------------------- 값 다듬기
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -369,6 +382,7 @@
         o[c.key] = v;
       });
       if (f.kind === 'bank' && ok && !(o.deposit > 0)) return; // 출금 줄은 대조 대상 아님
+      if (f.kind === 'bank') o.text = r.filter(function (x, j) { return typeof x === 'string' && x.trim() && j !== f.map.date && !isFinite(num(x)); }).join(' ');
       if (ok) out.push(o); else skipped++;
     });
     return { rows: out, skipped: skipped };
@@ -395,7 +409,7 @@
     var deposits = [], otherDeposits = 0;
     bankFiles.forEach(function (f) {
       var t = rowsOf(f); skipped += t.skipped;
-      t.rows.forEach(function (d) { deposits.push({ date: d.date, memo: d.memo, amount: d.deposit, used: false, app: null }); });
+      t.rows.forEach(function (d) { deposits.push({ date: d.date, memo: d.text || d.memo, amount: d.deposit, used: false, app: null }); });
     });
 
     // 묶음: 같은 앱 + 같은 정산예정일
@@ -404,6 +418,7 @@
       var k = o.app + '|' + o.due;
       (bm[k] = bm[k] || { app: o.app, memoKey: o.memoKey, due: o.due, orders: [], expected: 0, sale: 0 });
       bm[k].orders.push(o); bm[k].expected += o.net; bm[k].sale += o.sale;
+      if (/보류/.test(o.state || '')) bm[k].hold = true;
     });
     var batches = Object.keys(bm).map(function (k) { return bm[k]; })
       .sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : a.app.localeCompare(b.app); });
@@ -445,7 +460,7 @@
     // 4) 아무것도 없음
     batches.forEach(function (b) {
       if (b.status) return;
-      b.paid = 0; b.paidOn = ''; b.diff = -b.expected; b.status = b.due > today ? 'wait' : 'miss';
+      b.paid = 0; b.paidOn = ''; b.diff = -b.expected; b.status = b.hold ? 'hold' : b.due > today ? 'wait' : 'miss';
     });
     var stray = deposits.filter(function (d) { return d.app && !d.used; });
 
@@ -453,7 +468,9 @@
     var expected = orders.reduce(function (s, o) { return s + o.net; }, 0);
     var paid = batches.reduce(function (s, b) { return s + (b.paid || 0); }, 0);
     var leaks = {};
-    DEDUCT.concat(['other']).forEach(function (k) { leaks[k] = orders.reduce(function (s, o) { return s + (o[k] || 0); }, 0); });
+    DEDUCT.forEach(function (k) { leaks[k] = orders.reduce(function (s, o) { return s + (o[k] || 0); }, 0); });
+    leaks.other = orders.reduce(function (s, o) { return s + Math.max(o.other, 0); }, 0);
+    leaks.plus = orders.reduce(function (s, o) { return s + Math.max(-o.other, 0); }, 0);
     var dates = orders.map(function (o) { return o.date; }).filter(Boolean).sort();
     return {
       orders: orders, batches: batches, stray: stray, sale: sale, expected: expected, paid: paid, leaks: leaks,
@@ -543,7 +560,7 @@
   // ---------------------------------------------------------------- 그리기: 결과
   var open = {};
   var STATUS = {
-    ok: '정상', bad: '덜 들어옴', over: '더 들어옴', late: '늦게 들어옴', miss: '안 들어옴', wait: '입금 예정'
+    ok: '정상', bad: '덜 들어옴', over: '더 들어옴', late: '늦게 들어옴', miss: '안 들어옴', hold: '정산 보류', wait: '입금 예정'
   };
 
   function renderResult() {
@@ -558,32 +575,34 @@
     var per10k = res.sale ? Math.round(res.paid / res.sale * 10000 / 100) * 100 : 0;
     var shortSum = res.batches.reduce(function (s, b) { return s + (b.status === 'bad' ? -b.diff : 0); }, 0);
     var missSum = res.batches.reduce(function (s, b) { return s + (b.status === 'miss' ? b.expected : 0); }, 0);
+    var holdSum = res.batches.reduce(function (s, b) { return s + (b.status === 'hold' ? b.expected : 0); }, 0);
     document.getElementById('kpis').innerHTML =
-      '<div class="card kpi"><p class="label">판매 합계</p><div class="num">' + won(res.sale) + '원</div><p class="desc">' + md(res.from) + '~' + md(res.to) + ' · 주문 ' + res.orders.length + '건</p></div>' +
+      '<div class="card kpi"><p class="label">판매 합계</p><div class="num">' + won(res.sale) + '원</div><p class="desc">' + md(res.from) + '~' + md(res.to) + ' · 주문 ' + res.orders.filter(isOrder).length + '건</p></div>' +
       '<div class="card kpi"><p class="label">통장 입금 (맞춘 것)</p><div class="num green">' + won(res.paid) + '원</div><p class="desc">1만 원 팔면 ' + won(per10k) + '원 · 정산서 예정액 ' + won(res.expected) + '원</p></div>' +
-      '<div class="card kpi"><p class="label">못 받았거나 덜 받은 돈</p><div class="num red">' + won(shortSum + missSum) + '원</div><p class="desc">덜 들어옴 ' + won(shortSum) + ' · 안 들어옴 ' + won(missSum) + '</p></div>';
+      '<div class="card kpi"><p class="label">못 받았거나 덜 받은 돈</p><div class="num red">' + won(shortSum + missSum + holdSum) + '원</div><p class="desc">덜 들어옴 ' + won(shortSum) + ' · 안 들어옴 ' + won(missSum) + (holdSum ? ' · 보류 ' + won(holdSum) : '') + '</p></div>';
 
     var cnt = {};
     res.batches.forEach(function (b) { cnt[b.status] = (cnt[b.status] || 0) + 1; });
     var pill = function (cls, k) { return cnt[k] ? '<span class="pill ' + cls + '">' + STATUS[k] + ' ' + cnt[k] + '묶음</span>' : ''; };
     document.getElementById('pills').innerHTML =
-      pill('red', 'miss') + pill('red', 'bad') + pill('amber', 'late') + pill('amber', 'over') + pill('gray', 'wait') + pill('green', 'ok') +
+      pill('red', 'miss') + pill('red', 'bad') + pill('amber', 'hold') + pill('amber', 'late') + pill('amber', 'over') + pill('gray', 'wait') + pill('green', 'ok') +
       (res.stray.length ? '<span class="pill amber">정산서에 없는 앱 입금 ' + res.stray.length + '건</span>' : '');
 
-    var leakKeys = DEDUCT.concat(['other']).filter(function (k) { return Math.abs(res.leaks[k]) >= 1; })
+    var leakKeys = DEDUCT.concat(['other', 'plus']).filter(function (k) { return Math.abs(res.leaks[k]) >= 1; })
       .sort(function (a, b) { return res.leaks[b] - res.leaks[a]; });
     document.getElementById('leaks').innerHTML = leakKeys.map(function (k) {
       return '<div class="leak"><div class="n">' + DEDUCT_LABEL[k] + '</div><div class="v">' + won(res.leaks[k]) + '원</div>' +
         '<div class="n">판매의 ' + (res.sale ? (res.leaks[k] / res.sale * 100).toFixed(1) : 0) + '%</div></div>';
     }).join('');
 
-    var rank = { miss: 0, bad: 1, late: 2, over: 3, wait: 4, ok: 5 };
+    var rank = { miss: 0, bad: 1, hold: 2, late: 3, over: 4, wait: 5, ok: 6 };
     var list = res.batches.slice().sort(function (a, b) { return (rank[a.status] - rank[b.status]) || (a.due < b.due ? -1 : 1); });
     document.getElementById('batches').innerHTML = list.map(function (b) {
       var key = b.app + '|' + b.due;
-      var status = STATUS[b.status] + (b.status === 'late' ? '<span class="s">' + md(b.paidOn) + '에 들어옴 (' + daysBetween(b.due, b.paidOn) + '일 늦음)</span>' : '');
+      var status = STATUS[b.status] + (b.status === 'late' ? '<span class="s">' + md(b.paidOn) + '에 들어옴 (' + daysBetween(b.due, b.paidOn) + '일 늦음)</span>' : '') +
+        (b.status === 'hold' ? '<span class="s">정산서에 "보류" — 앱에서 사유 확인</span>' : '');
       var tr = '<tr class="batch ' + b.status + '" data-k="' + esc(key) + '" tabindex="0" aria-expanded="' + !!open[key] + '">' +
-        '<td class="l">' + esc(b.app) + '</td><td class="l">' + md(b.due) + '</td><td class="hide-m">' + b.orders.length + '건</td><td class="hide-m">' + won(b.sale) + '</td>' +
+        '<td class="l">' + esc(b.app) + '</td><td class="l">' + md(b.due) + '</td><td class="hide-m">' + b.orders.filter(isOrder).length + '건</td><td class="hide-m">' + won(b.sale) + '</td>' +
         '<td>' + won(b.expected) + '</td><td>' + (b.paidOn ? won(b.paid) + (b.paidOn !== b.due ? '<span class="s">' + md(b.paidOn) + '</span>' : '') : '-') + '</td>' +
         '<td>' + (Math.abs(b.diff) < 1 ? '0' : (b.diff > 0 ? '+' : '−') + won(Math.abs(b.diff))) + '</td>' +
         '<td class="l">' + status + '</td></tr>';
@@ -605,6 +624,7 @@
     notes.push('줄을 누르면 그 묶음의 주문별 빠진 돈이 나와요.');
     if (res.otherDeposits) notes.push('배달앱 이름이 없는 입금 ' + res.otherDeposits + '건(카드 대금·이체 등)은 대조에서 뺐어요.');
     if (res.skipped) notes.push('합계·빈칸 등 ' + res.skipped + '줄은 건너뛰었어요.');
+    if (res.leaks.plus >= 1) notes.push('"환급·조정으로 더해진 돈"은 주문금액보다 정산금액이 큰 줄(환급금·보상 조정 등)이에요.');
     if (res.leaks.other >= 1) notes.push('"기타"는 정산서에 칸이 없어 주문금액 − 정산금액에서 아는 항목을 뺀 나머지예요.');
     document.getElementById('notes').textContent = notes.join(' ');
   }
@@ -706,6 +726,27 @@
     ['A', 'B', 'C', 'bank'].forEach(function (k) { var x = FAKE[k](); addAoA(x[0], x[1]); });
     refresh();
     document.getElementById('files-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // 현실형 예시: samples 폴더의 엑셀을 그대로 읽음 (웹에 올린 상태에서만 됨)
+  var REAL = ['A앱_정산내역_2026-10_예시.xlsx', 'B앱_정산내역_2026-10_예시.xlsx', '통장_거래내역_2026-10_예시.xlsx'];
+  document.getElementById('try-real').addEventListener('click', function () {
+    if (!hasXLSX) return;
+    Promise.all(REAL.map(function (n) {
+      return fetch('samples/' + encodeURIComponent(n)).then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(function (buf) { return { name: n, buf: buf }; });
+    })).then(function (list) {
+      files = [];
+      list.forEach(function (x) {
+        var wb = XLSX.read(new Uint8Array(x.buf), { type: 'array' });
+        addAoA(x.name, XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' }));
+      });
+      refresh();
+      document.getElementById('files-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function () {
+      document.getElementById('lib-err').textContent = '예시 파일을 불러오지 못했어요. 위 링크로 받아서 직접 올려 주세요.';
+      document.getElementById('lib-err').hidden = false;
+    });
   });
 
   // ---------------------------------------------------------------- 끌어다 놓기

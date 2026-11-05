@@ -6,7 +6,8 @@
   'use strict';
   var DOCS = [
     { title: '가맹점 돈길 지도', note: '들어오는 돈·나가는 돈을 눌러 보는 지도', url: 'docs/money-map.html' },
-    { title: '가맹점 돈의 흐름', note: '항목별 설명 · 안 맞는 이유 · 다음 질문', url: 'docs/money-flow.html' }
+    { title: '가맹점 돈의 흐름', note: '항목별 설명 · 안 맞는 이유 · 다음 질문', url: 'docs/money-flow.html' },
+    { title: '정산 맞추기 시뮬레이션 기록', note: '현실형 예시 파일로 돌려 본 과정과 결과', url: 'simulation.html' }
   ];
   function open(url) { location.href = url; }
   Array.prototype.forEach.call(document.querySelectorAll('[data-refs]'), function (host) {
