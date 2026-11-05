@@ -92,24 +92,26 @@ a{color:var(--accent)}
     </ol>
   </div>
 
-  <p><b>예시 — 어느 가게의 일주일</b> <span class="muted">(이해를 돕기 위한 가짜 숫자)</span></p>
+  <p><b>예시 — 어느 가게의 한 달</b> <span class="muted">(이해를 돕기 위한 가짜 숫자)</span></p>
+  <p class="small muted">맞춰 보는 건 보통 한 달에 한 번이다. 본사 엑셀·청구서, 인건비·임대료, 세무사 자료가 모두 달 단위라서다. 돈 자체는 길마다 다른 주기로 오간다 — 카드는 매일(1~3영업일 뒤), 배달앱은 앱마다 매일~주 1회, 본사 재료비는 발주마다, 인건비·임대료는 매달. 그래서 달 끝에 판 돈 일부는 다음 달 통장에 들어온다. 세금은 신고 달에 따로 크게 나가서 이 표엔 넣지 않았다.</p>
   <div class="tscroll">
     <table class="narrow">
       <thead><tr><th>항목</th><th class="r">판 돈</th><th class="r">미리 빠진 돈</th><th class="r">통장에 찍힌 돈</th></tr></thead>
       <tbody>
-        <tr><td>매장 카드</td><td class="r">100만 원</td><td class="r">1.5만 원</td><td class="r in">+98.5만 원</td></tr>
-        <tr><td>배달앱</td><td class="r">30만 원</td><td class="r">14만 원</td><td class="r in">+16만 원</td></tr>
-        <tr><td>본사 앱</td><td class="r">5만 원</td><td class="r">? (상계 미확인)</td><td class="r in">+5만 원</td></tr>
-        <tr><td>현금</td><td class="r">3만 원</td><td class="r">—</td><td class="r in">+3만 원</td></tr>
-        <tr><td>본사 재료비</td><td class="r"></td><td class="r"></td><td class="r out">−40만 원</td></tr>
-        <tr><td>인건비·임대료 등</td><td class="r"></td><td class="r"></td><td class="r out">−50만 원</td></tr>
-        <tr class="total"><td>합계</td><td class="r">138만 원</td><td class="r"></td><td class="r">+32.5만 원</td></tr>
+        <tr><td>매장 카드</td><td class="r">1,800만 원</td><td class="r">27만 원</td><td class="r in">+1,773만 원</td></tr>
+        <tr><td>배달앱</td><td class="r">600만 원</td><td class="r">280만 원</td><td class="r in">+320만 원</td></tr>
+        <tr><td>본사 앱</td><td class="r">100만 원</td><td class="r">? (상계 미확인)</td><td class="r in">+100만 원</td></tr>
+        <tr><td>현금</td><td class="r">60만 원</td><td class="r">—</td><td class="r in">+60만 원</td></tr>
+        <tr><td>본사 재료비</td><td class="r"></td><td class="r"></td><td class="r out">−800만 원</td></tr>
+        <tr><td>사입처 재료</td><td class="r"></td><td class="r"></td><td class="r out">−100만 원</td></tr>
+        <tr><td>인건비·임대료·공과금</td><td class="r"></td><td class="r"></td><td class="r out">−920만 원</td></tr>
+        <tr class="total"><td>합계</td><td class="r">2,560만 원</td><td class="r"></td><td class="r">+433만 원</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="callout">
-    <p><b>왜 안 맞아 보이나:</b> 본사 엑셀에는 배달이 ‘30만 원 팔았다’로만 있다. 통장에는 16만 원만 들어왔다. 그래서 엑셀과 통장이 14만 원 차이 난다. 배달 1만 원당 약 5,300원만 남는 셈이다. 배달 매출이 더 큰 가게에서 한 달이 쌓이면, 점장님 말처럼 몇백만 원까지 벌어질 수 있다.</p>
+    <p><b>왜 안 맞아 보이나:</b> 본사 엑셀에는 배달이 ‘600만 원 팔았다’로만 있다. 통장에는 320만 원만 들어왔다. 그래서 엑셀과 통장이 배달에서만 280만 원 차이 난다. 배달 1만 원당 약 5,300원만 남는 셈이다. 점장님 말처럼 한 달에 몇백만 원이 벌어지는 크기다.</p>
   </div>
   <ul>
     <li><b>매장 카드 매출</b>은 카드사가 수수료만 빼고 보내서, POS와 통장이 대체로 맞는다 (점장님 확인).</li>
@@ -128,7 +130,7 @@ a{color:var(--accent)}
       <thead><tr><th>길</th><th>누가 보내나</th><th>미리 빠지는 돈</th><th>언제</th><th>비고</th></tr></thead>
       <tbody>
         <tr><td>매장 카드 결제</td><td>카드사</td><td>카드 수수료</td><td>보통 영업일 며칠 뒤</td><td>POS와 통장이 대체로 맞음 (점장님)</td></tr>
-        <tr><td>배달앱 주문 (여러 배달앱)</td><td>배달앱</td><td>중개 수수료, 결제 수수료, 수수료 부가세, 가게 부담 배달비, 광고비, 가게 부담 할인·쿠폰</td><td>앱마다 다름, 주 단위 등, 밀리기도 함</td><td>배달 1만 원당 절반 가까이 빠짐 (점장님)</td></tr>
+        <tr><td>배달앱 주문 (여러 배달앱)</td><td>배달앱</td><td>중개 수수료, 결제 수수료, 수수료 부가세, 가게 부담 배달비, 광고비, 가게 부담 할인·쿠폰</td><td>앱마다 매일~주 1회, 밀리기도 함. 달 끝 주문은 다음 달에</td><td>배달 1만 원당 절반 가까이 빠짐 (점장님)</td></tr>
         <tr><td>본사 앱 주문 (스마트오더)</td><td>본사 또는 결제대행사</td><td>결제 수수료, 앱 이용료·행사 분담 등 (미확인)</td><td>본사 정산 주기</td><td>본사 경유라면 재료비와 상계 가능 (미확인)</td></tr>
         <tr><td>기프티콘·모바일 상품권</td><td>상품권 회사 또는 본사</td><td>상품권 수수료</td><td>사용 후 정산</td><td>브랜드마다 다름</td></tr>
         <tr><td>현금·계좌이체·간편결제</td><td>손님 또는 결제사</td><td>간편결제는 수수료</td><td>즉시~며칠</td><td>현금은 통장에 안 찍힐 수 있음</td></tr>
