@@ -272,7 +272,7 @@
 </header>
 
 <main class="content">
-  <section class="card pad"><p class="lead" id="lead"></p><p class="muted assume-line">출발점은 <b>포스 매출(전체)</b>로, 본사 엑셀은 <b>본사에 낼 돈·상계를 보는 자료</b>로 봤어요. 본사 엑셀에 매출도 있는지는 확인 필요.</p></section>
+  <section class="card pad"><p class="lead" id="lead"></p><p class="muted assume-line">출발점은 <b>포스 매출(전체)</b>로, 본사 엑셀은 <b>본사에 낼 돈·상계를 보는 자료</b>로 봤어요. 현장 이야기로는 본사가 정리된 엑셀을 내려주지 않고 바이저가 보여 주는 정도라, 맞출 때는 포스·배달앱 정산서·통장을 기준으로 해요.</p></section>
 
   <div class="kpis" id="kpis"></div>
 
@@ -763,7 +763,7 @@
     '<div class="todo-item"><span class="ic">⚠</span><span class="t">B앱 "기타 차감"</span><span class="v">' + won(APP_NOTES.B.amount) + '원</span>' +
     '<span class="d">' + APP_NOTES.B.what + '으로만 적혀 있고 사유가 없음 → ' + APP_NOTES.B.how + '.</span></div>' +
     '<div class="todo-item check"><span class="ic">?</span><span class="t">본사 엑셀에 무엇이 있나</span><span class="v">출발점</span>' +
-    '<span class="d">매출도 나오는지, 청구·상계만 나오는지. 매출이 있다면 포스 매출과 같은지(배달 포함 여부, 로열티용 매출인지). 이 화면은 포스 매출을 출발점으로 봤어요.</span></div>' +
+    '<span class="d">한 매장 이야기로는 본사가 정리된 엑셀을 내려주지 않고 바이저가 보여 주는 정도예요. 매장·바이저마다 다를 수 있어 확인 필요. 본사 청구·상계는 본사 청구서·출금 내역으로 맞춰요.</span></div>' +
     '<div class="todo-item check"><span class="ic">?</span><span class="t">본사 앱 매출 상계</span><span class="v">' + won(hq.net) + '원</span>' +
     '<span class="d">본사 정산서에서 확인: 상계 항목이 있는지, 앱 수수료 ' + (HQ_EXCEL.hqappFeeRate * 100) + '%를 본사가 떼는지, 수수료에 부가세가 붙는지.</span></div>' +
     '<div class="todo-item check"><span class="ic">?</span><span class="t">기프티콘 정산</span><span class="v">' + won(gift.net) + '원</span>' +
