@@ -48,6 +48,7 @@ h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:ba
 .node .nm{font-weight:700}
 .node .amt{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
 .node .sub{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+.node .cyc{grid-column:1/-1;font-size:11.5px;color:var(--muted);opacity:.85}
 .node.in .amt{color:var(--accent)}
 .node.out .amt{color:var(--out)}
 .node.dashed{border-style:dashed}
@@ -73,11 +74,15 @@ h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:ba
 .tree .d{grid-column:1/-1;font-size:13px;color:var(--muted)}
 .tree .v{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tree.in .v{color:var(--accent)} .tree.out .v{color:var(--out)}
-.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .fact{border-top:1px solid var(--line);padding-top:10px;min-width:0}
 .fact h3{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:0 0 4px;font-weight:700}
 .fact p{margin:0;font-size:13.5px}
 .foot{margin-top:24px}
+.why{margin-top:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 16px}
+.why h2{font-size:16px;margin:0 0 6px}
+.why p{margin:0 0 8px;font-size:14px}
+.why p:last-child{margin:0}
 @media (max-width:760px){
   /* 휴대폰: 위아래로 늘어놓지 않고 PC처럼 좌(들어오는 돈)·가운데(통장)·우(나가는 돈)를 한 화면에 요약해서 */
   .strip{gap:4px 10px;padding:10px 12px;font-size:13px}
@@ -91,6 +96,7 @@ h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:ba
   .node .nm{font-size:13.5px;line-height:1.3}
   .node .amt{text-align:left;font-size:13px}
   .node .sub{display:none}
+  .node .cyc{font-size:10.5px;line-height:1.3;margin-top:1px}
   .col#colOut .node{text-align:right}
   .col#colOut .node .amt{text-align:right}
   .bank{padding:12px 4px;border-radius:10px}
@@ -120,14 +126,14 @@ h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:ba
   <p class="lead">돈은 길마다 미리 떼인 채 통장에 모이고, 통장에서 다시 나갑니다. 상자를 누르면 그 길에서 무엇이 빠지는지 아래에 펼쳐집니다.</p>
 
   <div class="strip" aria-label="예시 요약">
-    <span class="note">어느 가게의 일주일 (예시 숫자)</span>
-    <span>판 돈 <b class="num">138만</b></span>
+    <span class="note">어느 가게의 한 달 (예시 숫자)</span>
+    <span>판 돈 <b class="num">2,560만</b></span>
     <span class="arrow">→</span>
-    <span>들어온 돈 <b class="num">122.5만</b></span>
+    <span>들어온 돈 <b class="num">2,253만</b></span>
     <span class="arrow">→</span>
-    <span>나간 돈 <b class="num">90만</b></span>
+    <span>나간 돈 <b class="num">1,820만</b></span>
     <span class="arrow">→</span>
-    <span>남은 돈 <b class="num" style="color:var(--accent)">32.5만</b></span>
+    <span>남은 돈 <b class="num" style="color:var(--accent)">433만</b></span>
   </div>
 
   <div class="map" id="map">
@@ -136,74 +142,87 @@ h1{font-size:clamp(22px,3.4vw,30px);line-height:1.25;margin:0 0 6px;text-wrap:ba
     <span class="down" aria-hidden="true">↓</span>
     <div class="bank" id="bank">
       <div class="nm">가맹점 통장</div>
-      <div class="amt">+32.5만</div>
+      <div class="amt">+433만</div>
       <div class="note">전체는 사장님만 봄</div>
     </div>
     <span class="down" aria-hidden="true">↓</span>
     <div class="col" id="colOut"><div class="colhead r">나가는 돈</div></div>
   </div>
-  <p class="hint">점선 상자는 브랜드마다 있기도 하고 없기도 한 길입니다.</p>
+  <p class="hint">점선 상자는 브랜드마다 있기도 하고 없기도 한 길입니다. 상자 아래 작은 글씨는 돈이 오가는 주기입니다.</p>
   <p class="tapnote">상자를 누르면 바로 아래에 자세히 나옵니다.</p>
 
   <section class="detail" id="detail" aria-live="polite"></section>
+
+  <div class="why">
+    <h2>왜 한 달 단위로 보나</h2>
+    <p>돈은 <b>길마다 다른 주기</b>로 오갑니다. 카드는 매일, 배달앱은 매일~주 1회, 본사 재료비는 발주마다, 인건비·임대료는 매달. 그래도 <b>맞춰 보는 건 보통 한 달에 한 번</b>입니다 — 본사 엑셀과 청구서, 인건비·임대료, 세무사에게 넘기는 자료가 모두 달 단위이기 때문입니다.</p>
+    <p>한 달로 보면 <b>달 끝에 판 돈이 다음 달에 들어오는</b> 차이가 생깁니다 (카드 며칠, 배달앱은 앱마다). 이건 잘못이 아니라 넘어간 돈이라 따로 표시합니다. 덜 들어온 돈을 일찍 잡고 싶으면 주 1회 가볍게 들어온 돈만 보는 방법도 있습니다.</p>
+  </div>
 
   <p class="note foot">숫자는 이해를 돕기 위한 예시이며 실제 수수료율·정산 주기는 계약과 앱마다 다릅니다. 공개용 사본이라 가게·브랜드 이름은 일반 표현으로 바꿨습니다.</p>
 </div>
 
 <script>
 const NODES = [
-  {id:'card', side:'in', name:'카드사', sub:'매장 카드 결제', sold:'100만', got:'+98.5만',
-   flow:'판 돈 100만 − 미리 빠진 돈 1.5만 = 통장 98.5만',
+  {id:'card', side:'in', name:'카드사', sub:'매장 카드 결제', cyc:'매일 · 1~3영업일 뒤', sold:'1,800만', got:'+1,773만',
+   flow:'판 돈 1,800만 − 미리 빠진 돈 27만 = 통장 1,773만',
    kids:[
-     {t:'카드 수수료', v:'−1.5만', d:'카드 종류·가맹점 매출 규모에 따라 요율이 다름'},
-     {t:'입금 시점', v:'며칠 뒤', d:'결제일과 통장 입금일이 다름. 주말·공휴일이 끼면 더 밀림'},
-     {t:'보류·누락', v:'가끔', d:'취소·보류된 건이 섞이면 금액이 어긋남'}],
+     {t:'카드 수수료', v:'−27만', d:'카드 종류·가맹점 매출 규모에 따라 요율이 다름'},
+     {t:'입금 시점', v:'1~3영업일 뒤', d:'카드사마다 따로, 매일 들어옴. 주말·공휴일이 끼면 몰려서 들어옴'},
+     {t:'보류·누락', v:'가끔', d:'취소·매입 보류된 건이 섞이면 금액이 어긋남'}],
+   cycText:'매일 들어오지만 카드사마다 따로라 통장에 한 달 수십~수백 줄',
    where:'카드사 가맹점 사이트, 여신금융협회 매출 조회, 매출 관리 앱', visor:'매출은 있을 수 있음, 수수료는 없음'},
-  {id:'delivery', side:'in', name:'배달앱', sub:'여러 배달앱', sold:'30만', got:'+16만',
-   flow:'판 돈 30만 − 미리 빠진 돈 14만 = 통장 16만 (1만 원당 약 5,300원)',
+  {id:'delivery', side:'in', name:'배달앱', sub:'여러 배달앱', cyc:'앱마다 매일~주 1회', sold:'600만', got:'+320만',
+   flow:'판 돈 600만 − 미리 빠진 돈 280만 = 통장 320만 (1만 원당 약 5,300원)',
    kids:[
-     {t:'중개 수수료', v:'−2.3만', d:'주문 금액의 몇 %. 앱·요금제·매출 구간마다 다름'},
-     {t:'결제 수수료', v:'−0.9만', d:'손님이 앱에서 결제한 금액에 붙음'},
-     {t:'수수료 부가세', v:'−0.3만', d:'위 수수료들에 붙는 10%'},
-     {t:'배달비 (가게 부담분)', v:'−6만', d:'주문마다 고정이라 1만 원대 주문일수록 비중이 큼'},
-     {t:'광고비', v:'−2만', d:'가게가 직접 건 노출 광고. 본사 브랜드 광고와 별개'},
-     {t:'할인·쿠폰 (가게 부담분)', v:'−2.5만', d:'본사 브랜드 행사의 가게 몫 + 가게가 건 쿠폰'},
-     {t:'정산 시점', v:'주 단위 등', d:'앱마다 정산일이 다르고 밀리기도 함'}],
+     {t:'중개 수수료', v:'−46만', d:'주문 금액의 몇 %. 앱·요금제·매출 구간마다 다름'},
+     {t:'결제 수수료', v:'−18만', d:'손님이 앱에서 결제한 금액에 붙음'},
+     {t:'수수료 부가세', v:'−6만', d:'위 수수료들에 붙는 10%'},
+     {t:'배달비 (가게 부담분)', v:'−120만', d:'주문마다 고정이라 1만 원대 주문일수록 비중이 큼'},
+     {t:'광고비', v:'−40만', d:'가게가 직접 건 노출 광고. 본사 브랜드 광고와 별개'},
+     {t:'할인·쿠폰 (가게 부담분)', v:'−50만', d:'본사 브랜드 행사의 가게 몫 + 가게가 건 쿠폰'},
+     {t:'정산 시점', v:'앱마다 다름', d:'매일 묶어 며칠 뒤 주는 앱도, 주 단위로 주는 앱도 있음. 달 끝 주문은 다음 달에 들어옴'}],
+   cycText:'앱마다 매일~주 1회. 정산서는 앱 사장님 사이트에서 날짜별로 받음',
    where:'각 배달앱 사장님 사이트의 정산 내역서, 매출 관리 앱', visor:'없음'},
-  {id:'hqapp', side:'in', name:'본사 앱 주문', sub:'스마트오더', sold:'5만', got:'+5만', dashed:true,
+  {id:'hqapp', side:'in', name:'본사 앱 주문', sub:'스마트오더', cyc:'본사 정산 때', sold:'100만', got:'+100만', dashed:true,
    flow:'본사를 거쳐 들어온다면, 본사에 낼 돈과 서로 빼고(상계) 들어올 수 있음',
    kids:[
      {t:'결제 수수료', v:'?', d:'누가 얼마를 내는지 브랜드마다 다름'},
      {t:'앱 이용료·행사 분담', v:'?', d:'브랜드에 따라 있을 수 있음'},
-     {t:'상계', v:'?', d:'재료비 40만 − 앱 매출 5만 = 35만 청구처럼 순액만 오가면 통장에서 앱 매출이 안 보임'}],
+     {t:'상계', v:'?', d:'재료비 800만 − 앱 매출 100만 = 700만 청구처럼 순액만 오가면 통장에서 앱 매출이 안 보임'}],
+   cycText:'본사 정산 주기를 따름 (주·월). 브랜드마다 다름',
    where:'본사 정산서·자료', visor:'있을 수 있음'},
-  {id:'cash', side:'in', name:'현금·간편결제', sub:'현금, 계좌이체, 페이류', sold:'3만', got:'+3만',
+  {id:'cash', side:'in', name:'현금·간편결제', sub:'현금, 계좌이체, 페이류', cyc:'입금할 때', sold:'60만', got:'+60만',
    flow:'현금은 은행에 넣지 않으면 통장에 아예 안 찍힘',
    kids:[
      {t:'현금', v:'수수료 없음', d:'입금하는 날·금액이 사장님 마음대로라 맞추기 어려움'},
      {t:'간편결제', v:'소액', d:'결제사 수수료가 빠지고 들어옴'}],
+   cycText:'현금은 사장님이 은행에 넣는 날, 간편결제는 결제사마다',
    where:'POS 현금 매출, 입금 기록', visor:'매출은 있을 수 있음'},
-  {id:'hq', side:'out', name:'본사', sub:'재료비·로열티·분담금', sold:'', got:'−40만',
-   flow:'가장 큰 다달 지출. 발주할 때마다 나감',
+  {id:'hq', side:'out', name:'본사', sub:'재료비·로열티·분담금', cyc:'발주마다 · 매달', sold:'', got:'−800만',
+   flow:'가장 큰 다달 지출. 재료비는 발주할 때마다, 나머지는 보통 한 달에 한 번',
    kids:[
-     {t:'재료비 (물류대금)', v:'−40만', d:'원두·컵·시럽 등. 상계되면 순액만 통장에 보임'},
-     {t:'로열티', v:'?', d:'매출의 % 또는 고정액. 재료값 마진(차액가맹금)으로 대신하는 곳도 많음'},
+     {t:'재료비 (물류대금)', v:'−800만', d:'원두·컵·시럽 등. 발주마다 또는 주·월로 모아 청구. 상계되면 순액만 통장에 보임'},
+     {t:'로열티', v:'?', d:'매출의 % 또는 고정액, 보통 매달. 재료값 마진(차액가맹금)으로 대신하는 곳도 많음'},
      {t:'광고·행사 분담금', v:'?', d:'브랜드 광고, 배달앱 브랜드 할인 행사의 가게 몫'},
      {t:'가맹비·교육비·인테리어', v:'개점 때 1회', d:'다달 정산과는 무관'}],
+   cycText:'재료비는 발주마다 또는 주·월로 모아서, 로열티·분담금은 보통 매달',
    where:'본사 청구서·자료', visor:'있음 (본사가 알아야 할 숫자)'},
-  {id:'buy', side:'out', name:'사입처', sub:'마트·도매·온라인몰', sold:'', got:'−5만',
+  {id:'buy', side:'out', name:'사입처', sub:'마트·도매·온라인몰', cyc:'살 때마다', sold:'', got:'−100만',
    flow:'본사 물류 말고 직접 사는 재료',
    kids:[
-     {t:'재료 사입비', v:'−5만', d:'예: 아이스티. 카드·현금·계좌이체로 살 때마다'},
+     {t:'재료 사입비', v:'−100만', d:'예: 아이스티. 카드·현금·계좌이체로 살 때마다'},
      {t:'현금 구매', v:'영수증만', d:'현금으로 사면 통장엔 인출만 찍혀 맞추기 어려움'}],
+   cycText:'살 때마다. 카드로 사면 다음 달 카드값으로 한꺼번에 빠짐',
    where:'카드 내역, 영수증', visor:'없음'},
-  {id:'etc', side:'out', name:'그 밖', sub:'인건비·임대료·세금', sold:'', got:'−45만',
-   flow:'다달 또는 수시로 나가는 고정비',
+  {id:'etc', side:'out', name:'그 밖', sub:'인건비·임대료·공과금', cyc:'매달', sold:'', got:'−920만',
+   flow:'다달 나가는 고정비. 세금은 매달이 아니라 신고 때 크게 나감',
    kids:[
-     {t:'인건비', v:'', d:'아르바이트·직원 급여'},
-     {t:'임대료·관리비', v:'', d:'매달 고정'},
-     {t:'공과금', v:'', d:'전기·수도·가스'},
-     {t:'세금', v:'', d:'부가세·소득세. 세무사 영역'}],
+     {t:'인건비', v:'−600만', d:'아르바이트·직원 급여. 보통 매달 정해진 날'},
+     {t:'임대료·관리비', v:'−250만', d:'매달 고정'},
+     {t:'공과금', v:'−70만', d:'전기·수도·가스'},
+     {t:'세금', v:'신고 때', d:'부가세(개인 일반과세자는 1월·7월 신고, 4월·10월 예정고지), 종합소득세(5월). 이 달 숫자엔 안 넣음. 세무사 영역'}],
+   cycText:'매달 정해진 날. 세금은 신고 달에 몰림',
    where:'통장 출금 내역', visor:'없음'}
 ];
 
@@ -215,7 +234,7 @@ NODES.forEach(n => {
   const b = document.createElement('button');
   b.className = 'node ' + n.side + (n.dashed ? ' dashed' : '');
   b.id = 'node-' + n.id; b.type = 'button';
-  b.innerHTML = `<span class="nm">${n.name}</span><span class="amt">${n.got}</span><span class="sub">${n.sub}${n.sold ? ' · 판 돈 ' + n.sold : ''}</span>`;
+  b.innerHTML = `<span class="nm">${n.name}</span><span class="amt">${n.got}</span><span class="sub">${n.sub}${n.sold ? ' · 판 돈 ' + n.sold : ''}</span><span class="cyc">${n.cyc}</span>`;
   b.addEventListener('click', () => {
     selected = n.id; render();
     if (matchMedia('(max-width:760px)').matches) {
@@ -234,6 +253,7 @@ function render(){
     <p class="dflow">${n.flow}</p>
     <ul class="tree ${n.side}">${n.kids.map(k => `<li><span class="t">${k.t}</span><span class="v">${k.v}</span><span class="d">${k.d}</span></li>`).join('')}</ul>
     <div class="facts">
+      <div class="fact"><h3>언제 들어오나·나가나</h3><p>${n.cycText}</p></div>
       <div class="fact"><h3>어디서 확인하나</h3><p>${n.where}</p></div>
       <div class="fact"><h3>본사 엑셀에 있나</h3><p>${n.visor}</p></div>
     </div>`;
