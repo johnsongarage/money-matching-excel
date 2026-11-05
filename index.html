@@ -174,6 +174,42 @@
   .vat-tile .d { font-size: 12px; color: var(--sub); }
   .vat-tile ul { margin: 4px 0 0; padding-left: 1.1em; font-size: 12px; color: var(--sub); }
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
+
+  /* 배달 1만 원당 */
+  .p10-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin: 10px 0 8px; }
+  .p10-legend i { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .k-in { background: var(--green); } .k-fee { background: var(--cost); } .k-del { background: var(--timing); }
+  .k-ad { background: var(--off); border: 1px dashed var(--sub); } .k-cp { background: var(--amber); }
+  .p10 { display: grid; gap: 4px; }
+  .p10-row { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 6.5em 1.2em; gap: 10px; align-items: center; width: 100%; text-align: left;
+    background: transparent; border: 0; border-radius: 6px; padding: 7px 6px; cursor: pointer; }
+  .p10-row:hover { background: var(--hover); }
+  .p10-row:focus-visible { outline: 2px solid var(--total); outline-offset: 1px; }
+  .p10-row .nm { font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .p10-row .nm small { display: block; font-weight: 400; color: var(--sub); font-size: 11px; }
+  .p10-row .stack { display: flex; height: 20px; border-radius: 4px; overflow: hidden; background: var(--track); }
+  .p10-row .stack span { display: block; height: 100%; }
+  .p10-row .stack .s-in { background: var(--green); } .p10-row .stack .s-fee { background: var(--cost); }
+  .p10-row .stack .s-del { background: var(--timing); } .p10-row .stack .s-ad { background: var(--off); }
+  .p10-row .stack .s-cp { background: var(--amber); }
+  .p10-row .big { text-align: right; font-size: 16px; font-weight: 800; white-space: nowrap; }
+  .p10-row .big small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
+  .p10-row.ref .nm, .p10-row.ref .big { color: var(--sub); }
+  .p10-row .chev { color: var(--sub); font-size: 12px; text-align: center; transition: transform .15s; }
+  .p10-row[aria-expanded="true"] .chev { transform: rotate(90deg); }
+  .p10-take { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 10px; }
+  .p10-take .tk { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+  .p10-take .tk .k { font-size: 12px; font-weight: 600; color: var(--sub); }
+  .p10-take .tk .n { font-size: 18px; font-weight: 800; }
+  .p10-take .tk .d { font-size: 12px; color: var(--sub); }
+  @media (max-width: 760px) {
+    .p10-row { grid-template-columns: minmax(0, 1fr) auto 1.2em; gap: 4px 8px; }
+    .p10-row .nm { grid-column: 1; grid-row: 1; }
+    .p10-row .big { grid-column: 2; grid-row: 1; }
+    .p10-row .chev { grid-column: 3; grid-row: 1; }
+    .p10-row .stack { grid-column: 1 / -1; grid-row: 2; height: 14px; }
+    .p10-take { grid-template-columns: 1fr; }
+  }
   .foot b { color: var(--ink); }
 
   @media (max-width: 760px) {
@@ -239,6 +275,21 @@
       <span><i class="sw-gap"></i>⚠ 설명 안 된 차이</span>
     </div>
     <div class="fall" id="fall"></div>
+  </section>
+
+  <section class="card pad" aria-labelledby="p10-title">
+    <h2 id="p10-title">배달 1만 원 팔면 얼마 남나</h2>
+    <p class="muted">앱마다 1만 원어치 팔았을 때 무엇이 빠지고 통장에 얼마 들어오는지. 매장 카드 결제와 나란히 놓았어요. 줄을 누르면 자세히.</p>
+    <div class="p10-legend" aria-label="막대 색 설명">
+      <span><i class="k-in"></i>통장에 들어오는 돈</span>
+      <span><i class="k-fee"></i>수수료·세금</span>
+      <span><i class="k-del"></i>배달비</span>
+      <span><i class="k-ad"></i>광고</span>
+      <span><i class="k-cp"></i>점주 부담 할인</span>
+    </div>
+    <div class="p10" id="p10"></div>
+    <div class="p10-take" id="p10-take"></div>
+    <p class="muted" id="p10-note"></p>
   </section>
 
   <section class="card" aria-labelledby="ch-title">
@@ -545,6 +596,60 @@
     render();
   });
   render();
+
+  // ================================================================ 배달 1만 원당 (정산서 기준, 같은 달 주문으로)
+  var MATERIAL_RATE = 0.35; // 재료비 비율 (예시 · 가게마다 다름)
+  function per(x, sale) { return Math.round(x / sale * 10000); }
+  var p10rows = apps.map(function (a) {
+    var fee = a.broker + a.pay + Math.round((a.broker + a.pay) * 0.1);
+    var del = a.deliv + (a.vat - Math.round((a.broker + a.pay) * 0.1));
+    var parts = { fee: per(fee, a.sale), del: per(del, a.sale), ad: per(a.ad, a.sale), cp: per(a.couponStore, a.sale) };
+    var inn = 10000 - parts.fee - parts.del - parts.ad - parts.cp;
+    return { id: a.key, name: a.name, sub: a.orders + '건 · 평균 ' + won(a.sale / a.orders) + '원', inn: inn, parts: parts,
+      month: { sale: a.sale, fee: fee, del: del, ad: a.ad, cp: a.couponStore }, perOrder: a.perOrder, avg: a.sale / a.orders };
+  });
+  var cardRow = { id: 'card', name: '매장 카드', sub: '비교용', ref: true, inn: 10000 - per(card.fee, card.sale),
+    parts: { fee: per(card.fee, card.sale), del: 0, ad: 0, cp: 0 }, month: { sale: card.sale, fee: card.fee, del: 0, ad: 0, cp: 0 } };
+  var p10open = {};
+  function p10render() {
+    var all = [cardRow].concat(p10rows), h = '';
+    all.forEach(function (r) {
+      var seg = function (cls, v) { return v > 0 ? '<span class="' + cls + '" style="width:' + (v / 100).toFixed(2) + '%"></span>' : ''; };
+      var left = r.inn - Math.round(10000 * MATERIAL_RATE);
+      h += '<button type="button" class="p10-row' + (r.ref ? ' ref' : '') + '" data-id="' + r.id + '" aria-expanded="' + !!p10open[r.id] + '" aria-controls="p10d-' + r.id + '">' +
+        '<span class="nm">' + r.name + '<small>' + r.sub + '</small></span>' +
+        '<span class="stack" aria-hidden="true">' + seg('s-in', r.inn) + seg('s-fee', r.parts.fee) + seg('s-del', r.parts.del) + seg('s-ad', r.parts.ad) + seg('s-cp', r.parts.cp) + '</span>' +
+        '<span class="big">' + won(r.inn) + '원<small>재료비 빼면 ' + won(left) + '원</small></span><span class="chev" aria-hidden="true">›</span></button>' +
+        '<div class="detail" id="p10d-' + r.id + '"' + (p10open[r.id] ? '' : ' hidden') + '>' +
+        rowsHTML([['판 돈', '10,000', '이 달 ' + won(r.month.sale) + '원'],
+          ['수수료·세금', '−' + won(r.parts.fee), r.ref ? '카드 수수료' : '중개·결제 수수료 + 부가세 · 이 달 ' + won(r.month.fee) + '원'],
+          ['배달비 (가게 부담)', r.parts.del ? '−' + won(r.parts.del) : '0', r.ref ? '' : '주문마다 ' + won(r.perOrder) + '원 고정 + 부가세 · 이 달 ' + won(r.month.del) + '원'],
+          ['광고', r.parts.ad ? '−' + won(r.parts.ad) : '0', r.ref ? '' : '이 달 ' + won(r.month.ad) + '원'],
+          ['점주 부담 할인', r.parts.cp ? '−' + won(r.parts.cp) : '0', r.ref ? '' : '이 달 ' + won(r.month.cp) + '원 · 본사 부담분은 뺌'],
+          ['= 통장에 들어오는 돈', won(r.inn)],
+          ['− 재료비 (예시 ' + Math.round(MATERIAL_RATE * 100) + '%)', '−' + won(Math.round(10000 * MATERIAL_RATE)), '원두·우유·컵 등 · 가게마다 다름'],
+          ['= 재료비까지 빼고 남는 돈', won(left), '인건비·임대료는 아직 안 뺌']]) +
+        (r.ref ? '' : '<p class="note">배달비는 주문마다 고정이라 <b>주문 금액이 작을수록 1만 원당 더 커져요</b>. 평균 주문 ' + won(r.avg) + '원 기준, 1만 원짜리 주문이면 배달비만 ' + won(r.perOrder * 1.1) + '원.</p>') +
+        srcHTML(r.ref ? [{ t: '카드사 매출 내역' }] : [{ t: '배달앱 정산서 ' + r.id }, { t: '재료비 비율은 예시', assume: true }]) + '</div>';
+    });
+    document.getElementById('p10').innerHTML = h;
+  }
+  p10render();
+  document.getElementById('p10').addEventListener('click', function (e) {
+    var b = e.target.closest('.p10-row'); if (!b) return;
+    var id = b.dataset.id; p10open[id] = !p10open[id];
+    b.setAttribute('aria-expanded', String(p10open[id]));
+    document.getElementById('p10d-' + id).hidden = !p10open[id];
+  });
+  var bestApp = p10rows.slice().sort(function (x, y) { return y.inn - x.inn; })[0];
+  var worstApp = p10rows.slice().sort(function (x, y) { return x.inn - y.inn; })[0];
+  var adApp = p10rows.slice().sort(function (x, y) { return y.parts.ad - x.parts.ad; })[0];
+  var delAll = sum(p10rows, function (r) { return r.month.del; }), saleAll = sum(p10rows, function (r) { return r.month.sale; });
+  document.getElementById('p10-take').innerHTML =
+    '<div class="tk"><span class="k">가장 많이 남는 앱</span><span class="n">' + bestApp.name + ' ' + won(bestApp.inn) + '원</span><span class="d">가장 적게 남는 ' + worstApp.name + '보다 1만 원당 ' + won(bestApp.inn - worstApp.inn) + '원 더</span></div>' +
+    '<div class="tk"><span class="k">가장 큰 구멍</span><span class="n">배달비 1만 원당 ' + won(per(delAll, saleAll)) + '원</span><span class="d">주문마다 고정이라 작은 주문일수록 커요. 최소 주문 금액·묶음 메뉴로 줄일 수 있는지</span></div>' +
+    '<div class="tk"><span class="k">광고가 가장 큰 앱</span><span class="n">' + adApp.name + ' 1만 원당 ' + won(adApp.parts.ad) + '원</span><span class="d">광고를 줄이면 이만큼 더 남지만 주문도 줄 수 있어요. 한 달 끄고 비교해 볼 만한지</span></div>';
+  document.getElementById('p10-note').textContent = '예시 숫자예요. 같은 달 정산서의 주문으로 계산했고(정산 시점과 무관), 재료비 비율 ' + Math.round(MATERIAL_RATE * 100) + '%는 가정입니다. 실제로는 사장님 정산서와 원가로 바꿔 넣어요. 인건비·임대료는 빼지 않았어요.';
 
   // ================================================================ 길별 표 (판매가 기준)
   function chRow(name, sale, cost, timing, off, exp, act, status, cls) {
