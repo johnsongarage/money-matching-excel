@@ -175,6 +175,32 @@
   .vat-tile ul { margin: 4px 0 0; padding-left: 1.1em; font-size: 12px; color: var(--sub); }
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
 
+  /* 배달앱이 떼 가는 돈 */
+  #delivery { scroll-margin-top: 8px; }
+  .dcut-quote { margin: 2px 0 10px; font-size: 15px; font-weight: 600; }
+  .dcut-head { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .dcut-head .t { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .dcut-head .t .k { font-size: 12px; font-weight: 600; color: var(--sub); }
+  .dcut-head .t .n { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+  .dcut-head .t .d { font-size: 12px; color: var(--sub); }
+  .dcut-head .t.cut { border-color: var(--red); background: var(--red-bg); }
+  .dcut-head .t.cut .n { color: var(--red); }
+  .dcut-head .t.in .n { color: var(--green); }
+  .dcut-bars { display: grid; gap: 8px; margin-top: 14px; }
+  .dcut-bar { display: grid; grid-template-columns: 11em minmax(0, 1fr) 8.5em; gap: 10px; align-items: center; }
+  .dcut-bar .nm { font-weight: 700; font-size: 14px; line-height: 1.3; }
+  .dcut-bar .nm small { display: block; font-weight: 400; color: var(--sub); font-size: 11px; }
+  .dcut-bar .trk { height: 18px; background: var(--track); border-radius: 4px; overflow: hidden; }
+  .dcut-bar .trk span { display: block; height: 100%; background: var(--red); opacity: .75; border-radius: 4px; }
+  .dcut-bar .v { text-align: right; font-weight: 800; white-space: nowrap; }
+  .dcut-bar .v small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
+  @media (max-width: 760px) {
+    .dcut-head { grid-template-columns: 1fr; gap: 8px; }
+    .dcut-head .t .n { font-size: 22px; }
+    .dcut-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
+    .dcut-bar .trk { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+  }
+
   /* 배달 1만 원당 */
   .p10-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--sub); margin: 10px 0 8px; }
   .p10-legend i { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
@@ -277,8 +303,15 @@
     <div class="fall" id="fall"></div>
   </section>
 
+  <section class="card pad" id="delivery" aria-labelledby="dcut-title">
+    <h2 id="dcut-title">배달앱이 떼 가는 돈</h2>
+    <p class="dcut-quote">사장님들 말씀처럼, 배달은 1만 원 팔면 절반 가까이 빠져요.</p>
+    <div class="dcut-head" id="dcut-head"></div>
+    <div class="dcut-bars" id="dcut-bars"></div>
+  </section>
+
   <section class="card pad" aria-labelledby="p10-title">
-    <h2 id="p10-title">배달 1만 원 팔면 얼마 남나</h2>
+    <h2 id="p10-title">배달 1만 원 팔면 얼마 남나 · 앱별</h2>
     <p class="muted">앱마다 1만 원어치 팔았을 때 무엇이 빠지고 통장에 얼마 들어오는지. 매장 카드 결제와 나란히 놓았어요. 줄을 누르면 자세히.</p>
     <div class="p10-legend" aria-label="막대 색 설명">
       <span><i class="k-in"></i>통장에 들어오는 돈</span>
@@ -650,6 +683,30 @@
     '<div class="tk"><span class="k">가장 큰 구멍</span><span class="n">배달비 1만 원당 ' + won(per(delAll, saleAll)) + '원</span><span class="d">주문마다 고정이라 작은 주문일수록 커요. 최소 주문 금액·묶음 메뉴로 줄일 수 있는지</span></div>' +
     '<div class="tk"><span class="k">광고가 가장 큰 앱</span><span class="n">' + adApp.name + ' 1만 원당 ' + won(adApp.parts.ad) + '원</span><span class="d">광고를 줄이면 이만큼 더 남지만 주문도 줄 수 있어요. 한 달 끄고 비교해 볼 만한지</span></div>';
   document.getElementById('p10-note').textContent = '예시 숫자예요. 같은 달 정산서의 주문으로 계산했고(정산 시점과 무관), 재료비 비율 ' + Math.round(MATERIAL_RATE * 100) + '%는 가정입니다. 실제로는 사장님 정산서와 원가로 바꿔 넣어요. 인건비·임대료는 빼지 않았어요.';
+
+  // ================================================================ 배달앱이 떼 가는 돈 (한 달 합계, 큰 덩어리 순)
+  (function () {
+    var tot = { sale: 0, fee: 0, del: 0, ad: 0, cp: 0 };
+    p10rows.forEach(function (r) { ['sale', 'fee', 'del', 'ad', 'cp'].forEach(function (k) { tot[k] += r.month[k]; }); });
+    var cut = tot.fee + tot.del + tot.ad + tot.cp, inn = tot.sale - cut;
+    var orders = A('orders');
+    document.getElementById('dcut-head').innerHTML =
+      '<div class="t"><span class="k">이번 달 배달로 판 돈</span><div class="n">' + man(tot.sale) + ' 원</div><span class="d">A·B·C앱 ' + orders + '건</span></div>' +
+      '<div class="t cut"><span class="k">배달앱 쪽으로 빠진 돈</span><div class="n">' + man(cut) + ' 원</div><span class="d">판 돈의 ' + Math.round(cut / tot.sale * 100) + '% · 주문 1건당 약 ' + won(cut / orders) + '원</span></div>' +
+      '<div class="t in"><span class="k">가게 몫으로 정산된 돈</span><div class="n">' + man(inn) + ' 원</div><span class="d">1만 원 팔면 ' + won(inn / tot.sale * 10000) + '원</span></div>';
+    var items = [
+      { nm: '배달비 (가게 부담)', sub: '주문마다 고정 · 작은 주문일수록 아픔', v: tot.del },
+      { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee },
+      { nm: '점주 부담 할인', sub: '가게가 건 쿠폰 + 브랜드 행사 가게 몫', v: tot.cp },
+      { nm: '광고', sub: '가게가 직접 건 노출 광고', v: tot.ad }
+    ].sort(function (x, y) { return y.v - x.v; });
+    var mx = items[0].v;
+    document.getElementById('dcut-bars').innerHTML = items.map(function (it) {
+      return '<div class="dcut-bar"><span class="nm">' + it.nm + '<small>' + it.sub + '</small></span>' +
+        '<span class="trk" aria-hidden="true"><span style="width:' + (it.v / mx * 100).toFixed(1) + '%"></span></span>' +
+        '<span class="v">−' + won(it.v) + '원<small>1만 원당 ' + won(it.v / tot.sale * 10000) + '원</small></span></div>';
+    }).join('') + '<p class="muted">예시 숫자예요. 수수료율·배달비는 실제 앱 요율이 아니고, 사장님 정산서로 바꿔 넣어요. 앱별로는 바로 아래에.</p>';
+  })();
 
   // ================================================================ 길별 표 (판매가 기준)
   function chRow(name, sale, cost, timing, off, exp, act, status, cls) {
