@@ -7,7 +7,8 @@
     { file: 'index.html', title: '포스 매출 ↔ 통장' },
     { file: 'delivery.html', title: '배달 정산 (카드형)' },
     { file: 'dashboard.html', title: '배달 정산 (대시보드형)' },
-    { file: 'upload.html', title: '내 파일로 맞추기' }
+    { file: 'upload.html', title: '내 파일로 맞추기' },
+    { file: 'hq-check.html', title: '본사 정산 확인' }
   ];
   var here = location.pathname.split('/').pop() || 'index.html';
   Array.prototype.forEach.call(document.querySelectorAll('[data-screens]'), function (host) {

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>본사 정산 확인</title>
+<meta name="description" content="배달앱 정산서와 통장 거래내역 엑셀을 올려 정산 묶음과 입금을 맞춰 보는 화면 (파일은 브라우저 안에서만 읽음)">
+<style>
+  :root {
+    --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
+    --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6; --hover: #f3f4f6; --nav-active: #eef0f2;
+    --green: #16a34a; --green-bg: #dcfce7; --red: #dc2626; --red-bg: #fee2e2; --amber: #b45309; --amber-bg: #fef3c7;
+    --blue: #2563eb; --blue-bg: #dbeafe;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #111214; --panel: #1a1b1e; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+      --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428; --nav-active: #26272b;
+      --green: #4ade80; --green-bg: #14321f; --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d;
+      --blue: #60a5fa; --blue-bg: #172554;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #111214; --panel: #1a1b1e; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
+    --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428; --nav-active: #26272b;
+    --green: #4ade80; --green-bg: #14321f; --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d;
+    --blue: #60a5fa; --blue-bg: #172554;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  a { color: inherit; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
+  .top a { font-size: 13px; color: var(--sub); text-decoration: none; }
+  .top a:hover { color: var(--ink); }
+  .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .refs-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; max-width: 13em; }
+  .design-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .design-pick select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; }
+  .topnav { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .content { max-width: 1180px; margin: 0 auto; padding: 16px 20px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .content > * { min-width: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .pad { padding: 14px 16px; }
+  h2 { font-size: 15px; margin: 0 0 6px; }
+  .muted { color: var(--sub); font-size: 13px; margin: 0; }
+  .safe { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--green); background: var(--green-bg); border-radius: 6px; padding: 8px 10px; margin-top: 10px; }
+
+  /* 본사 정산 확인 */
+  .drop { margin-top: 12px; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 18px 16px; text-align: center; background: var(--page); }
+  .drop.over { border-color: var(--blue); background: var(--blue-bg); }
+  .drop p { margin: 0 0 10px; }
+  .btn { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .samples { margin-top: 12px; display: flex; gap: 6px 10px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--sub); }
+  .samples a { color: var(--blue); }
+  .samples button { background: none; border: 0; padding: 0; color: var(--blue); cursor: pointer; text-decoration: underline; font-size: 13px; }
+  .err { color: var(--red); font-size: 13px; margin: 8px 0 0; }
+  .loaded { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+  .loaded span { background: var(--head); border-radius: 6px; padding: 3px 9px; }
+  .contract { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px 18px; margin-top: 10px; }
+  .contract label { display: grid; gap: 4px; font-size: 13px; color: var(--sub); }
+  .contract input, .contract select { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 6px; padding: 5px 8px; font-size: 14px; color: var(--ink); width: 100%; }
+  .contract .row { display: flex; gap: 6px; align-items: center; }
+  .agreed { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+  .agreed label { display: inline-flex; gap: 5px; align-items: center; color: var(--ink); }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi { padding: 12px 14px; }
+  .kpi .label { font-size: 13px; font-weight: 600; margin: 0; }
+  .kpi .num { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+  .kpi .num.red { color: var(--red); } .kpi .num.green { color: var(--green); }
+  .kpi .desc { font-size: 12px; color: var(--sub); margin: 0; }
+  .checks { display: grid; gap: 10px; }
+  .check { padding: 12px 14px; display: grid; gap: 6px; border-left: 4px solid var(--line-strong); }
+  .check.bad { border-left-color: var(--red); }
+  .check.warn { border-left-color: var(--amber); }
+  .check.ok { border-left-color: var(--green); }
+  .check-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .check-head h3 { margin: 0; font-size: 14px; }
+  .check-head .amt { margin-left: auto; font-weight: 700; }
+  .check p { margin: 0; font-size: 13px; }
+  .check .why { color: var(--sub); }
+  .pill { font-size: 12px; font-weight: 600; border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+  .pill.red { color: var(--red); background: var(--red-bg); }
+  .pill.amber { color: var(--amber); background: var(--amber-bg); }
+  .pill.green { color: var(--green); background: var(--green-bg); }
+  .ask { padding: 14px 16px; display: grid; gap: 8px; }
+  .ask pre { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; background: var(--page); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .foot { font-size: 12px; color: var(--sub); margin: 0; }
+  @media (max-width: 760px) {
+    .top { padding: 10px 16px; } .top h1 { font-size: 16px; }
+    .content { padding: 12px 16px 28px; }
+    .kpis { grid-template-columns: 1fr; gap: 8px; }
+    .kpi .num { font-size: 22px; }
+    .check-head .amt { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>본사 정산 확인</h1>
+  <nav class="topnav"><span data-refs></span><span data-screens></span></nav>
+</header>
+
+<div class="content">
+  <section class="card pad" aria-labelledby="h1">
+    <h2 id="h1">1. 파일 올리기</h2>
+    <p class="muted">바이저가 내려준 <b>본사 정산서 엑셀</b>과 인터넷뱅킹 <b>통장 거래내역 엑셀</b>을 올려 주세요.</p>
+    <div class="safe" role="note">🔒 <span>파일은 이 브라우저 안에서만 읽어요. 어디로도 보내지 않습니다.</span></div>
+    <div class="drop" id="drop">
+      <p>여기로 파일을 끌어다 놓거나</p>
+      <label class="btn primary">파일 고르기<input type="file" id="pick" multiple accept=".xlsx,.xls,.csv" hidden></label>
+    </div>
+    <div class="samples">
+      <span>예시 (가상 분식 가맹점 10월):</span>
+      <button type="button" id="try-real">바로 해 보기</button>
+      <span>·</span>
+      <a href="samples/본사_정산서_2026-10_예시.xlsx" download>본사 정산서</a>
+      <a href="samples/통장_거래내역_2026-10_예시.xlsx" download>통장 거래내역</a>
+      <span>·</span>
+      <a href="simulation-hq.html">이 예시로 돌려 본 기록</a>
+    </div>
+    <div class="loaded" id="loaded"></div>
+    <p class="err" id="err" hidden></p>
+  </section>
+
+  <section class="card pad" aria-labelledby="h2">
+    <h2 id="h2">2. 계약 조건</h2>
+    <p class="muted">가맹계약서에 적힌 대로 넣어 주세요. 처음 값은 예시 계약입니다.</p>
+    <div class="contract">
+      <label>로열티 방식
+        <select id="c-mode"><option value="rate">매출의 몇 % (정률)</option><option value="flat">매달 정해진 금액 (정액)</option></select>
+      </label>
+      <label id="l-rate">로열티 비율 (%)<input id="c-rate" type="number" step="0.1" value="3"></label>
+      <label id="l-flat" hidden>월 로열티 (원, 부가세 빼고)<input id="c-flat" type="number" step="1000" value="250000"></label>
+      <label id="l-basis">로열티 기준 매출
+        <select id="c-basis"><option value="supply">공급가액 (부가세 뺀 매출)</option><option value="gross">부가세 포함 매출</option></select>
+      </label>
+      <label id="l-tip">고객 배달팁
+        <select id="c-tip"><option value="no">기준 매출에서 뺌</option><option value="yes">기준 매출에 넣음</option></select>
+      </label>
+      <label>광고분담금 (월, 부가세 빼고)<input id="c-ad" type="number" step="1000" value="50000"></label>
+      <label>기프티콘 발행사 수수료 (%)<input id="c-gfee" type="number" step="0.1" value="8"></label>
+      <label>기프티콘 수수료 중 점주 부담 (%)<input id="c-gshare" type="number" step="5" value="50"></label>
+    </div>
+    <p class="muted" style="margin-top:12px">동의한 청구 항목 (계약서·동의서에 있는 것만 체크)</p>
+    <div class="agreed" id="agreed"></div>
+  </section>
+
+  <section id="result" hidden aria-labelledby="h3">
+    <h2 id="h3" style="margin:4px 2px 10px">3. 확인 결과</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="checks" id="checks" style="margin-top:12px"></div>
+    <div class="card ask" style="margin-top:12px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">바이저님께 물어볼 내용</h2><button type="button" class="btn" id="copy" style="margin-left:auto">복사</button></div>
+      <pre id="ask"></pre>
+    </div>
+  </section>
+
+  <p class="foot">본사 정산서의 "매출집계"(채널별 매출·공급가액·배달팁)와 "청구내역"(구분·발주번호·공급가액·부가세·청구금액·출금예정일)을 읽습니다. 통장은 "본사"가 들어간 출금을 출금예정일 앞뒤 3일 안에서 찾습니다. 차액가맹금(물품 마진) 자체는 이 파일들로 계산할 수 없어서, 발주번호 중복까지만 봅니다.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var hasXLSX = typeof window.XLSX !== 'undefined';
+  var ITEMS = ['물품대금', '로열티', '광고분담금', '판촉분담금', '기프티콘', '본사앱'];
+  var $ = function (id) { return document.getElementById(id); };
+  function won(n) { return Math.round(n).toLocaleString('ko-KR'); }
+  function norm(h) { return String(h == null ? '' : h).replace(/[\s_\-()[\]·.:/]/g, '').toLowerCase(); }
+  function num(v) {
+    if (typeof v === 'number') return v;
+    var s = String(v == null ? '' : v).replace(/[,원₩\s]/g, '');
+    if (s === '' || s === '-') return 0;
+    var n = Number(s); return isFinite(n) ? n : 0;
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function date(v) {
+    if (typeof v === 'number' && v > 20000 && v < 80000) {
+      var d = new Date(Date.UTC(1899, 11, 30) + Math.floor(v) * 86400000);
+      return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
+    }
+    var m = String(v == null ? '' : v).trim().match(/^(\d{4})\s*[.\-/년]?\s*(\d{1,2})\s*[.\-/월]?\s*(\d{1,2})/);
+    return m ? m[1] + '-' + pad(+m[2]) + '-' + pad(+m[3]) : '';
+  }
+  function md(s) { return s ? (+s.slice(5, 7)) + '/' + (+s.slice(8, 10)) : '-'; }
+  function days(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // 머리글 줄 찾기: 필요한 이름이 가장 많이 든 줄
+  function findHeader(aoa, want) {
+    var best = -1, score = 0;
+    for (var i = 0; i < Math.min(aoa.length, 20); i++) {
+      var hs = (aoa[i] || []).map(norm), n = 0;
+      want.forEach(function (w) { if (hs.some(function (h) { return h.indexOf(norm(w)) >= 0; })) n++; });
+      if (n > score) { score = n; best = i; }
+    }
+    return score >= Math.min(3, want.length) ? best : -1;
+  }
+  function col(header, names) {
+    var hs = header.map(norm);
+    for (var k = 0; k < names.length; k++) { var j = hs.indexOf(norm(names[k])); if (j >= 0) return j; }
+    for (k = 0; k < names.length; k++) { j = hs.findIndex(function (h) { return h.indexOf(norm(names[k])) >= 0; }); if (j >= 0) return j; }
+    return -1;
+  }
+
+  var data = { sales: null, claims: null, bank: null, names: [] };
+
+  function readSheet(name, aoa) {
+    var h;
+    if ((h = findHeader(aoa, ['구분', '공급가액', '매출액', '건수'])) >= 0 && col(aoa[h], ['청구금액']) < 0) {
+      var H = aoa[h], c = { k: col(H, ['구분']), gross: col(H, ['매출액(부가세포함)', '매출액', '총매출']), sup: col(H, ['공급가액']), tip: col(H, ['배달팁', '배달비']) };
+      data.sales = aoa.slice(h + 1).filter(function (r) { return r && r[c.k] && !/합계|소계/.test(r[c.k]); })
+        .map(function (r) { return { k: String(r[c.k]), gross: num(r[c.gross]), sup: num(r[c.sup]), tip: c.tip >= 0 ? num(r[c.tip]) : 0 }; });
+      data.names.push(name); return;
+    }
+    if ((h = findHeader(aoa, ['구분', '청구금액', '공급가액', '출금예정일'])) >= 0) {
+      H = aoa[h];
+      c = { d: col(H, ['청구일', '일자']), k: col(H, ['구분']), po: col(H, ['발주번호', '주문번호']), what: col(H, ['내용', '품목', '적요']),
+        sup: col(H, ['공급가액']), vat: col(H, ['부가세']), amt: col(H, ['청구금액', '합계금액']), due: col(H, ['출금예정일', '출금일', '결제일']), note: col(H, ['비고']) };
+      data.claims = aoa.slice(h + 1).filter(function (r) { return r && r[c.k] && !/합계|소계/.test(r[c.k]); }).map(function (r) {
+        return { d: date(r[c.d]), k: String(r[c.k]).trim(), po: c.po >= 0 ? String(r[c.po] || '').trim() : '', what: c.what >= 0 ? String(r[c.what] || '') : '',
+          sup: num(r[c.sup]), vat: num(r[c.vat]), amt: c.amt >= 0 ? num(r[c.amt]) : num(r[c.sup]) + num(r[c.vat]), due: date(r[c.due]), note: c.note >= 0 ? String(r[c.note] || '') : '' };
+      });
+      data.names.push(name); return;
+    }
+    if ((h = findHeader(aoa, ['거래일', '출금', '입금'])) >= 0) {
+      H = aoa[h];
+      c = { d: col(H, ['거래일시', '거래일자', '거래일']), out: col(H, ['출금액', '출금', '찾으신금액']) };
+      data.bank = aoa.slice(h + 1).filter(function (r) { return r && date(r[c.d]); }).map(function (r) {
+        return { d: date(r[c.d]), out: num(r[c.out]), text: r.filter(function (x) { return typeof x === 'string'; }).join(' ') };
+      });
+      data.names.push(name); return;
+    }
+  }
+  function addWorkbook(name, buf) {
+    var wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+    wb.SheetNames.forEach(function (sn) {
+      readSheet(name + (wb.SheetNames.length > 1 ? ' · ' + sn : ''), XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: '' }));
+    });
+  }
+
+  // 계약 조건
+  $('agreed').innerHTML = ITEMS.map(function (k, i) {
+    return '<label><input type="checkbox" id="ag-' + i + '" value="' + k + '"' + (k === '판촉분담금' ? '' : ' checked') + '>' + k + '</label>';
+  }).join('');
+  function contract() {
+    return {
+      mode: $('c-mode').value, rate: num($('c-rate').value) / 100, flat: num($('c-flat').value), basis: $('c-basis').value, tip: $('c-tip').value === 'yes',
+      ad: num($('c-ad').value), gfee: num($('c-gfee').value) / 100, gshare: num($('c-gshare').value) / 100,
+      agreed: ITEMS.filter(function (k, i) { return $('ag-' + i).checked; })
+    };
+  }
+  function syncForm() {
+    var flat = $('c-mode').value === 'flat';
+    $('l-rate').hidden = flat; $('l-basis').hidden = flat; $('l-tip').hidden = flat; $('l-flat').hidden = !flat;
+  }
+  document.querySelector('.contract').addEventListener('change', function () { syncForm(); render(); });
+  document.querySelector('.contract').addEventListener('input', render);
+  $('agreed').addEventListener('change', render);
+
+  // 확인
+  function sumBy(list, f) { return list.reduce(function (s, x) { return s + f(x); }, 0); }
+  function check() {
+    var C = contract(), cl = data.claims, out = [];
+    if (!cl) return null;
+    var S = data.sales || [];
+    var gross = sumBy(S, function (r) { return r.gross; }), sup = sumBy(S, function (r) { return r.sup; }), tip = sumBy(S, function (r) { return r.tip; });
+
+    // 1) 로열티
+    var roy = cl.filter(function (r) { return /로열티/.test(r.k); }), royHq = sumBy(roy, function (r) { return r.sup; });
+    if (roy.length) {
+      var ok, why;
+      if (C.mode === 'flat') { ok = C.flat; why = '계약: 매달 ' + won(C.flat) + '원'; }
+      else {
+        var base = (C.basis === 'supply' ? sup : gross) + (C.tip ? tip : 0);
+        ok = Math.round(base * C.rate);
+        why = '계약: ' + (C.basis === 'supply' ? '공급가액' : '부가세 포함 매출') + (C.tip ? ' + 배달팁' : '') + ' ' + won(base) + '원 × ' + (C.rate * 100).toFixed(1) + '% = ' + won(ok) + '원';
+        if (!S.length) why += ' (매출집계 시트가 없어 기준 매출을 0으로 봄)';
+      }
+      var royVat = royHq ? sumBy(roy, function (r) { return r.vat; }) / royHq : 0.1;
+      var d = Math.round((royHq - ok) * (1 + royVat)), guess = '';
+      if (Math.abs(d) > 10 && C.mode === 'rate' && S.length) {
+        [['부가세 포함 매출', gross], ['부가세 포함 매출 + 배달팁', gross + tip], ['공급가액 + 배달팁', sup + tip], ['공급가액', sup]].some(function (g) {
+          if (Math.abs(Math.round(g[1] * C.rate) - royHq) <= 10) { guess = '본사 금액은 "' + g[0] + ' ' + won(g[1]) + '원"의 ' + (C.rate * 100).toFixed(1) + '%와 같습니다.'; return true; }
+        });
+      }
+      out.push({ id: 'royalty', title: '로열티', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
+        lines: ['본사 청구 ' + won(royHq) + '원 (부가세 빼고)', why, '차이 금액은 로열티에 붙는 부가세까지 넣은 값입니다.'].concat(guess ? [guess] : []),
+        ask: Math.abs(d) > 10 ? '10월 로열티가 ' + won(royHq) + '원으로 청구됐는데, 계약대로 계산하면 ' + won(ok) + '원입니다. 기준 매출에 부가세나 배달팁이 들어갔는지 확인 부탁드립니다.' : '' });
+    }
+    // 2) 광고분담금
+    var ad = cl.filter(function (r) { return /광고/.test(r.k); }), adHq = sumBy(ad, function (r) { return r.sup; });
+    if (ad.length) {
+      d = Math.round((adHq - C.ad) * 1.1);
+      out.push({ id: 'ad', title: '광고분담금', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d, lines: ['본사 청구 ' + won(adHq) + '원, 계약 ' + won(C.ad) + '원'],
+        ask: Math.abs(d) > 10 ? '광고분담금이 계약 금액(' + won(C.ad) + '원)과 다르게 ' + won(adHq) + '원 청구됐습니다. 사유 확인 부탁드립니다.' : '' });
+    }
+    // 3) 동의 안 한 항목
+    var odd = cl.filter(function (r) { return !C.agreed.some(function (a) { return r.k.indexOf(a) >= 0 || (a === '광고분담금' && /광고/.test(r.k)); }); });
+    out.push({ id: 'agreed', title: '동의 목록에 없는 청구', status: odd.length ? 'warn' : 'ok', amount: sumBy(odd, function (r) { return r.amt; }),
+      lines: odd.length ? odd.map(function (r) { return md(r.d) + ' ' + r.k + ' — ' + r.what + ' ' + won(r.amt) + '원' + (r.note ? ' (' + r.note + ')' : ''); }).concat(['광고는 점주 50% 이상, 판촉은 70% 이상 사전 동의가 필요합니다(2022년 7월부터). 동의한 적이 있는지 확인해 보세요.']) : ['체크한 항목 밖의 청구가 없습니다.'],
+      ask: odd.length ? odd.map(function (r) { return '"' + r.what + '" ' + won(r.amt) + '원은 어떤 동의(또는 계약 조항)에 따른 청구인지 알려 주세요.'; }).join('\n') : '' });
+    // 4) 발주번호 중복
+    var seen = {}, dups = [];
+    cl.forEach(function (r) { if (!r.po) return; var key = r.po; if (seen[key]) dups.push(r); else seen[key] = r; });
+    out.push({ id: 'dup', title: '같은 발주번호 두 번 청구', status: dups.length ? 'bad' : 'ok', amount: sumBy(dups, function (r) { return r.amt; }),
+      lines: dups.length ? dups.map(function (r) { return r.po + ' (' + md(r.d) + ' ' + r.what + ') ' + won(r.amt) + '원이 한 번 더 있음'; }) : ['물품대금 ' + cl.filter(function (r) { return r.po; }).length + '건, 중복 없음'],
+      ask: dups.length ? dups.map(function (r) { return '발주번호 ' + r.po + '(' + md(r.d) + ')가 두 번 청구된 것 같습니다. 한 번만 받은 물건이라 확인 부탁드립니다.'; }).join('\n') : '' });
+    // 5) 기프티콘 수수료
+    var g = cl.filter(function (r) { return /기프티콘/.test(r.k); });
+    if (g.length) {
+      var use = -sumBy(g.filter(function (r) { return r.amt < 0; }), function (r) { return r.amt; });
+      var feeHq = sumBy(g.filter(function (r) { return r.amt > 0; }), function (r) { return r.amt; });
+      var feeOk = Math.round(use * C.gfee * C.gshare);
+      d = feeHq - feeOk;
+      out.push({ id: 'gift', title: '기프티콘 수수료', status: Math.abs(d) <= 10 ? 'ok' : 'bad', amount: d,
+        lines: ['사용액 ' + won(use) + '원, 본사가 뗀 수수료 ' + won(feeHq) + '원 (사용액의 ' + (use ? (feeHq / use * 100).toFixed(1) : 0) + '%)',
+          '계약: ' + won(use) + '원 × ' + (C.gfee * 100).toFixed(1) + '% × 점주 부담 ' + Math.round(C.gshare * 100) + '% = ' + won(feeOk) + '원'],
+        ask: Math.abs(d) > 10 ? '기프티콘 수수료가 ' + won(feeHq) + '원 차감됐는데, 점주 부담 ' + Math.round(C.gshare * 100) + '%로 계산하면 ' + won(feeOk) + '원입니다. 분담 비율 확인 부탁드립니다.' : '' });
+    }
+    // 6) 청구 ↔ 통장 출금
+    var byDue = {};
+    cl.forEach(function (r) { if (r.due) byDue[r.due] = (byDue[r.due] || 0) + r.amt; });
+    var outs = (data.bank || []).filter(function (b) { return b.out > 0 && /본사/.test(b.text); }), used = {};
+    var rows = Object.keys(byDue).sort().map(function (due) {
+      var b = outs.find(function (x, i) { return !used[i] && Math.abs(days(due, x.d)) <= 3 && (used[i] = true); });
+      return { due: due, claim: byDue[due], paid: b ? b.out : 0, on: b ? b.d : '' };
+    });
+    var bad = rows.filter(function (r) { return Math.abs(r.paid - r.claim) > 10; });
+    out.push({ id: 'bank', title: '본사 청구 ↔ 통장 출금', status: !data.bank ? 'warn' : bad.length ? 'bad' : 'ok', amount: sumBy(rows, function (r) { return r.paid ? r.paid - r.claim : 0; }),
+      lines: !data.bank ? ['통장 거래내역을 올리면 확인합니다.'] : rows.map(function (r) {
+        return md(r.due) + ' 출금 예정 ' + won(r.claim) + '원 → ' + (r.paid ? md(r.on) + ' 실제 출금 ' + won(r.paid) + '원' + (Math.abs(r.paid - r.claim) > 10 ? ' (차이 ' + (r.paid > r.claim ? '+' : '−') + won(Math.abs(r.paid - r.claim)) + '원)' : ' (맞음)') : '통장에서 못 찾음');
+      }),
+      ask: bad.filter(function (r) { return r.paid; }).map(function (r) { return md(r.on) + ' 본사 출금이 ' + won(r.paid) + '원인데 정산서 청구는 ' + won(r.claim) + '원입니다. 차이 ' + won(Math.abs(r.paid - r.claim)) + '원이 무엇인지 알려 주세요.'; }).join('\n') });
+
+    return { checks: out, total: sumBy(cl, function (r) { return r.amt; }), gross: gross };
+  }
+
+  function render() {
+    var res = check();
+    $('result').hidden = !res;
+    $('loaded').innerHTML = data.names.map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('');
+    if (!res) return;
+    var over = sumBy(res.checks.filter(function (c) { return c.status === 'bad' && c.amount > 0; }), function (c) { return c.amount; });
+    var warn = sumBy(res.checks.filter(function (c) { return c.status === 'warn'; }), function (c) { return c.amount; });
+    var nBad = res.checks.filter(function (c) { return c.status === 'bad'; }).length;
+    $('kpis').innerHTML =
+      '<div class="card kpi"><p class="label">본사 청구 합계</p><div class="num">' + won(res.total) + '원</div><p class="desc">청구내역 ' + data.claims.length + '줄 (상계 포함)</p></div>' +
+      '<div class="card kpi"><p class="label">더 낸 것으로 보이는 돈</p><div class="num red">' + won(over) + '원</div><p class="desc">' + nBad + '개 항목에서 계약·통장과 다름</p></div>' +
+      '<div class="card kpi"><p class="label">동의 확인이 필요한 돈</p><div class="num">' + won(warn) + '원</div><p class="desc">동의 목록에 없는 청구</p></div>';
+    var LBL = { ok: ['green', '맞음'], bad: ['red', '차이'], warn: ['amber', '확인 필요'] }, rank = { bad: 0, warn: 1, ok: 2 };
+    $('checks').innerHTML = res.checks.slice().sort(function (a, b) { return rank[a.status] - rank[b.status]; }).map(function (c) {
+      return '<div class="card check ' + c.status + '"><div class="check-head"><span class="pill ' + LBL[c.status][0] + '">' + LBL[c.status][1] + '</span><h3>' + c.title + '</h3>' +
+        (c.status !== 'ok' && c.amount ? '<span class="amt">' + (c.amount > 0 ? '+' : '−') + won(Math.abs(c.amount)) + '원</span>' : '') + '</div>' +
+        c.lines.map(function (l, i) { return '<p' + (i ? ' class="why"' : '') + '>' + esc(l) + '</p>'; }).join('') + '</div>';
+    }).join('');
+    var asks = res.checks.map(function (c) { return c.ask; }).filter(Boolean);
+    $('ask').textContent = asks.length ? '안녕하세요, 10월 정산서 확인하다가 여쭤볼 게 있어서요.\n\n' + asks.map(function (a, i) { return (i + 1) + '. ' + a; }).join('\n') + '\n\n확인 부탁드립니다. 감사합니다.' : '물어볼 내용이 없습니다.';
+  }
+  $('copy').addEventListener('click', function () {
+    var b = this;
+    try { navigator.clipboard.writeText($('ask').textContent).then(function () { b.textContent = '복사됨'; }); } catch (e) { /* 직접 선택 */ }
+  });
+
+  function reset() { data = { sales: null, claims: null, bank: null, names: [] }; }
+  function readFiles(list) {
+    if (!hasXLSX) return;
+    reset();
+    Promise.all(Array.prototype.map.call(list, function (f) {
+      return f.arrayBuffer().then(function (buf) { try { addWorkbook(f.name, buf); } catch (e) { showErr(f.name + ' 파일을 읽지 못했어요.'); } });
+    })).then(function () { if (!data.claims) showErr('본사 정산서의 청구내역(구분·청구금액·출금예정일 칸)을 찾지 못했어요.'); render(); });
+  }
+  function showErr(t) { $('err').textContent = t; $('err').hidden = false; }
+  $('pick').addEventListener('change', function (e) { $('err').hidden = true; readFiles(e.target.files); e.target.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { $('err').hidden = true; if (e.dataTransfer && e.dataTransfer.files.length) readFiles(e.dataTransfer.files); });
+  $('try-real').addEventListener('click', function () {
+    if (!hasXLSX) return;
+    reset(); $('err').hidden = true;
+    var names = ['본사_정산서_2026-10_예시.xlsx', '통장_거래내역_2026-10_예시.xlsx'];
+    Promise.all(names.map(function (n) { return fetch('samples/' + encodeURIComponent(n)).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }); }))
+      .then(function (bufs) { bufs.forEach(function (b, i) { addWorkbook(names[i], b); }); render(); $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); })
+      .catch(function () { showErr('예시 파일을 불러오지 못했어요. 위 링크로 받아서 직접 올려 주세요.'); });
+  });
+  if (!hasXLSX) showErr('엑셀을 읽는 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');
+  syncForm();
+})();
+</script>
+<script src="refs.js"></script>
+<script src="screens.js"></script>
+</body>
+</html>

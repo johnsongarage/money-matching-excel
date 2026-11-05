@@ -163,14 +163,98 @@ for d in days(dt.date(2026, 10, 1), dt.date(2026, 11, 5)):
         lines.append((dt.datetime.combine(d, dt.time(14, 20)), "CMS입금", "카드사 매출대금",
                       0, rnd.randint(18, 46) * 10_000 + rnd.randint(0, 99) * 100, "CMS"))
 lines += [
-    (dt.datetime(2026, 10, 10, 10, 0), "자동이체", "본사 물품대금", 1_284_000, 0, "자동이체"),
-    (dt.datetime(2026, 10, 24, 10, 0), "자동이체", "본사 물품대금", 1_197_500, 0, "자동이체"),
     (dt.datetime(2026, 10, 25, 9, 0), "자동이체", "임대료", 1_650_000, 0, "자동이체"),
     (dt.datetime(2026, 10, 15, 8, 30), "자동이체", "배달대행 충전", 300_000, 0, "인터넷"),
     (dt.datetime(2026, 10, 27, 11, 12), "자동이체", "전기요금", 238_400, 0, "자동이체"),
     (dt.datetime(2026, 10, 30, 18, 3), "체크카드", "식자재마트", 412_800, 0, "체크카드"),
 ]
 lines.sort()
+
+
+# ------------------------------------------------------------------ 본사 정산서 (바이저가 내려주는 엑셀)
+# 예시 계약 (실제 브랜드 조건 아님): 로열티 = 공급가액(부가세 뺀 매출)의 3%, 고객 배달팁 제외
+#   광고분담금 월 50,000원+VAT, 기프티콘 발행사 수수료 8%를 본사·점주 반반, 동의한 청구 항목만
+CONTRACT = {"royalty_rate": 0.03, "royalty_basis": "공급가액", "include_tip": False, "ad_fee": 50_000,
+            "gift_fee_rate": 0.08, "gift_owner_share": 0.5,
+            "agreed": ["물품대금", "로열티", "광고분담금", "기프티콘", "본사앱"]}
+a_del = [r for r in a_rows if r["kind"] == "배달"]
+b_oct = [r for r in b_rows if r["no"] and r["d"].month == 10]
+TIP = 2000  # 고객이 낸 배달팁 (주문당, 예시)
+channels = [
+    ("매장 카드", 612, 7_856_000, 0), ("매장 현금", 41, 384_500, 0),
+    ("A앱 배달", sum(1 for r in a_rows if r["kind"] != "광고"), sum(r["sale"] for r in a_rows), len(a_del) * TIP),
+    ("B앱 배달", len(b_oct), sum(r["sale"] for r in b_oct), len(b_oct) * TIP),
+    ("본사앱", 38, 642_000, 0), ("기프티콘 사용", 97, 1_126_000, 0),
+]
+def supply(v): return round(v / 1.1)
+sales_rows = [[c, n, v, supply(v), v - supply(v), t] for c, n, v, t in channels]
+tot_v = sum(r[2] for r in sales_rows); tot_s = sum(r[3] for r in sales_rows); tot_t = sum(r[5] for r in sales_rows)
+sales_rows.append(["합계", sum(r[1] for r in sales_rows), tot_v, tot_s, tot_v - tot_s, tot_t])
+
+claims = []  # [청구일, 구분, 발주번호, 내용, 공급가액, 부가세, 출금예정일, 비고]
+items = ["떡볶이 소스·떡", "튀김류 냉동", "김밥 재료 세트", "포장 용기·봉투", "소스·양념 묶음", "음료·부자재"]
+po = 0
+for d in days(dt.date(2026, 10, 1), dt.date(2026, 10, 31)):
+    if d.weekday() in (0, 3):  # 월·목 발주
+        po += 1
+        sup = rnd.randint(28, 66) * 10_000 + rnd.randint(0, 9) * 1_000
+        pay = dt.date(2026, 10, 20) if d.day <= 15 else dt.date(2026, 11, 5)
+        claims.append([d, "물품대금", f"PO-2610{po:02d}", rnd.choice(items) + " 외", sup, round(sup * 0.1), pay, ""])
+dup = next(c for c in claims if c[0] == dt.date(2026, 10, 22))
+claims.insert(claims.index(dup) + 1, list(dup))  # 심은 문제: 같은 발주번호 두 번
+end, pay2 = dt.date(2026, 10, 31), dt.date(2026, 11, 5)
+roy_base_hq = tot_v + tot_t  # 본사 계산: 부가세 포함 매출 + 배달팁
+roy_hq = round(roy_base_hq * CONTRACT["royalty_rate"])
+roy_ok = round(tot_s * CONTRACT["royalty_rate"])
+gift_use = 1_126_000
+gift_fee_hq = round(gift_use * CONTRACT["gift_fee_rate"])          # 본사: 수수료 전부 점주에게
+gift_fee_ok = round(gift_use * CONTRACT["gift_fee_rate"] * CONTRACT["gift_owner_share"])
+app_pay = 642_000 - round(642_000 * 0.03)
+claims += [
+    [end, "로열티", "", "10월 로열티 (매출의 3%)", roy_hq, round(roy_hq * 0.1), pay2, f"기준 매출 {roy_base_hq:,}원"],
+    [end, "광고분담금", "", "10월 광고분담금", 50_000, 5_000, pay2, ""],
+    [end, "판촉분담금", "", "10월 할인 행사 분담금", 120_000, 12_000, pay2, "가을 할인 행사"],
+    [end, "기프티콘", "", "기프티콘 사용액 지급", -gift_use, 0, pay2, "97건 사용"],
+    [end, "기프티콘", "", "기프티콘 수수료", gift_fee_hq, 0, pay2, "발행사 수수료 8%"],
+    [end, "본사앱", "", "본사앱 주문 지급 (결제수수료 3% 차감)", -app_pay, 0, pay2, "38건"],
+]
+claims.sort(key=lambda c: (c[6], c[0], c[1] != "물품대금"))
+due_sum = {}
+for c in claims:
+    due_sum[c[6]] = due_sum.get(c[6], 0) + c[4] + c[5]
+lines.append((dt.datetime(2026, 10, 20, 10, 0), "자동이체", "본사 정산", due_sum[dt.date(2026, 10, 20)], 0, "자동이체"))
+lines.append((dt.datetime(2026, 11, 5, 10, 0), "자동이체", "본사 정산", due_sum[pay2] + 15_000, 0, "자동이체"))  # 심은 문제: 15,000원 더 빠짐
+lines.sort()
+
+wb = Workbook()
+ws = wb.active; ws.title = "매출집계"
+for r in [["가맹점 월 정산서 (예시 양식 · 지어낸 데이터)"], ["정산월: 2026년 10월 / 매장: 예시 분식 ○○점"], [],
+          ["구분", "건수", "매출액(부가세포함)", "공급가액", "부가세", "고객 배달팁"]] + sales_rows:
+    ws.append(r)
+for i, w in enumerate([14, 7, 18, 13, 11, 12]): ws.column_dimensions[chr(65 + i)].width = w
+ws2 = wb.create_sheet("청구내역")
+ws2.append(["청구일", "구분", "발주번호", "내용", "공급가액", "부가세", "청구금액", "출금예정일", "비고"])
+for c in claims:
+    ws2.append([c[0].isoformat(), c[1], c[2], c[3], c[4], c[5], c[4] + c[5], c[6].isoformat(), c[7]])
+ws2.append(["", "합계", "", "", sum(c[4] for c in claims), sum(c[5] for c in claims), sum(c[4] + c[5] for c in claims), "", ""])
+for i, w in enumerate([11, 10, 11, 30, 11, 9, 11, 11, 18]): ws2.column_dimensions[chr(65 + i)].width = w
+wb.save(OUT / "본사_정산서_2026-10_예시.xlsx")
+
+answer["hq"] = {
+    "contract": CONTRACT,
+    "royalty": {"hq": roy_hq, "ok": roy_ok, "base_hq": roy_base_hq, "base_ok": tot_s},
+    "gift_fee": {"hq": gift_fee_hq, "ok": gift_fee_ok},
+    "dup_po": dup[2], "dup_amount": dup[4] + dup[5],
+    "promo": 132_000,
+    "withdraw": {"2026-10-20": due_sum[dt.date(2026, 10, 20)], "2026-11-05": due_sum[pay2], "extra_11_05": 15_000},
+    "planted": [
+        "로열티를 부가세 포함 매출 + 고객 배달팁으로 계산 (계약: 공급가액의 3%, 배달팁 제외)",
+        f"같은 발주번호 {dup[2]}가 두 번 청구됨",
+        "동의 항목에 없는 '판촉분담금' 132,000원",
+        "기프티콘 수수료를 점주가 100% 냄 (계약: 반반)",
+        "11/5 본사 출금이 청구보다 15,000원 많음",
+    ],
+}
 
 # ------------------------------------------------------------------ 엑셀 쓰기
 def write(name, title_rows, header, rows, widths):
