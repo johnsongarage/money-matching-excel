@@ -206,6 +206,11 @@
   .dcut-bar.plus .v { color: var(--green); }
   .dcut-bar.plus .trk { background: transparent; }
   .dcut-h3 { font-size: 14px; margin: 18px 0 6px; }
+  .cost-in { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; margin: 6px 0; }
+  .cost-in input { font: inherit; width: 5.5em; padding: 4px 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--panel); color: var(--ink); text-align: right; }
+  .cost-in #pack { width: 6.5em; }
+  .cost-in button { font-size: 12px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .cost-hint { font-size: 12px; margin: 0 0 6px; }
   .dcut-tbl td .s { display: block; font-size: 11px; color: var(--sub); font-weight: 400; }
   .dcut-how { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; background: var(--page); }
   .dcut-how ul { margin: 6px 0; padding-left: 1.2em; } .dcut-how li { margin: 3px 0; }
@@ -325,6 +330,14 @@
     <p class="dcut-quote">사장님들 말씀처럼, 배달은 1만 원 팔면 절반 가까이 빠져요.</p>
     <div class="dcut-head" id="dcut-head"></div>
     <div class="dcut-bars" id="dcut-bars"></div>
+    <h3 class="dcut-h3">재료비까지 빼면 얼마 남나 (어림)</h3>
+    <div class="cost-in" role="group" aria-label="원가 넣기">
+      <label>원가율 <input type="number" id="mat-rate" min="0" max="90" step="1" inputmode="numeric"> %</label>
+      <button type="button" id="mat-auto"></button>
+      <label>배달 포장재 1건당 <input type="number" id="pack" min="0" step="50" inputmode="numeric"> 원</label>
+    </div>
+    <p class="muted cost-hint">원가율 = 재료비 ÷ 판 돈. 사장님이 아시는 원가율을 넣거나, 한 달 식자재 구매액 ÷ 한 달 매출로 구해요. 포장재(용기·봉투·컵 홀더 등)는 배달 주문에만 더해요.</p>
+    <div id="dcut-table"></div>
   </section>
 
   <section class="card pad" aria-labelledby="p10-title">
@@ -663,7 +676,9 @@
   render();
 
   // ================================================================ 배달 1만 원당 (정산서 기준, 같은 달 주문으로)
-  var MATERIAL_RATE = 0.35; // 재료비 비율 (예시 · 가게마다 다름)
+  var MAT_AUTO = sum(HQ_EXCEL.bills, function (b) { return b.material; }) / grossTotal; // 본사 재료비 청구 ÷ 포스 매출 (발주 시점과 판 시점이 달라 2~3달 평균이 좋음)
+  var MATERIAL_RATE = Math.round(MAT_AUTO * 100) / 100; // 원가율 (화면에서 고칠 수 있음)
+  var PACK = 300; // 배달 포장재 1건당 (예시)
   function per(x, sale) { return Math.round(x / sale * 10000); }
   var p10rows = apps.map(function (a) {
     var fee = a.broker + a.pay + Math.round((a.broker + a.pay) * 0.1);
@@ -672,7 +687,7 @@
     var parts = { fee: per(fee, a.sale), del: per(del, a.sale), ad: per(a.ad, a.sale), cp: per(a.couponStore, a.sale) };
     var inn = 10000 - parts.fee - parts.del - parts.ad - parts.cp;
     return { id: a.key, name: a.name, sub: a.mode + ' · ' + a.orders + '건 · 평균 ' + won(a.sale / a.orders) + '원', inn: inn, parts: parts, mode: a.mode,
-      month: { sale: a.sale, fee: fee, del: del, delApp: delApp, agency: a.agency, tip: a.tipIn, ad: a.ad, cp: a.couponStore }, perOrder: a.perOrder, agencyPer: a.agencyCfg ? a.agencyCfg.perOrder : 0, tipPer: a.tip, avg: a.sale / a.orders };
+      month: { sale: a.sale, fee: fee, del: del, delApp: delApp, agency: a.agency, tip: a.tipIn, ad: a.ad, cp: a.couponStore }, orders: a.orders, perOrder: a.perOrder, agencyPer: a.agencyCfg ? a.agencyCfg.perOrder : 0, tipPer: a.tip, avg: a.sale / a.orders };
   });
   var cardRow = { id: 'card', name: '매장 카드', sub: '비교용', ref: true, inn: 10000 - per(card.fee, card.sale),
     parts: { fee: per(card.fee, card.sale), del: 0, ad: 0, cp: 0 }, month: { sale: card.sale, fee: card.fee, del: 0, ad: 0, cp: 0 } };
@@ -681,11 +696,12 @@
     var all = [cardRow].concat(p10rows), h = '';
     all.forEach(function (r) {
       var seg = function (cls, v) { return v > 0 ? '<span class="' + cls + '" style="width:' + (v / 100).toFixed(2) + '%"></span>' : ''; };
-      var left = r.inn - Math.round(10000 * MATERIAL_RATE);
+      var packPer = r.ref ? 0 : per(r.orders * PACK, r.month.sale);
+      var left = r.inn - Math.round(10000 * MATERIAL_RATE) - packPer;
       h += '<button type="button" class="p10-row' + (r.ref ? ' ref' : '') + '" data-id="' + r.id + '" aria-expanded="' + !!p10open[r.id] + '" aria-controls="p10d-' + r.id + '">' +
         '<span class="nm">' + r.name + '<small>' + r.sub + '</small></span>' +
         '<span class="stack" aria-hidden="true">' + seg('s-in', r.inn) + seg('s-fee', r.parts.fee) + seg('s-del', r.parts.del) + seg('s-ad', r.parts.ad) + seg('s-cp', r.parts.cp) + '</span>' +
-        '<span class="big">' + won(r.inn) + '원<small>재료비 빼면 ' + won(left) + '원</small></span><span class="chev" aria-hidden="true">›</span></button>' +
+        '<span class="big">' + won(r.inn) + '원<small>원가까지 빼면 ' + won(left) + '원</small></span><span class="chev" aria-hidden="true">›</span></button>' +
         '<div class="detail" id="p10d-' + r.id + '"' + (p10open[r.id] ? '' : ' hidden') + '>' +
         rowsHTML([['판 돈', '10,000', '이 달 ' + won(r.month.sale) + '원'],
           ['수수료·세금', '−' + won(r.parts.fee), r.ref ? '카드 수수료' : '중개·결제 수수료 + 부가세 · 이 달 ' + won(r.month.fee) + '원'],
@@ -695,8 +711,9 @@
           ['광고', r.parts.ad ? '−' + won(r.parts.ad) : '0', r.ref ? '' : '이 달 ' + won(r.month.ad) + '원'],
           ['점주 부담 할인', r.parts.cp ? '−' + won(r.parts.cp) : '0', r.ref ? '' : '이 달 ' + won(r.month.cp) + '원 · 본사 부담분은 뺌'],
           ['= 배달 비용까지 빼고 남는 돈', won(r.inn), r.mode === '가게배달' ? '통장엔 정산금이 더 많이 들어오지만, 대행비는 충전할 때 따로 나감' : ''],
-          ['− 재료비 (예시 ' + Math.round(MATERIAL_RATE * 100) + '%)', '−' + won(Math.round(10000 * MATERIAL_RATE)), '원두·우유·컵 등 · 가게마다 다름'],
-          ['= 재료비까지 빼고 남는 돈', won(left), '인건비·임대료는 아직 안 뺌']]) +
+          ['− 재료비 (원가율 ' + Math.round(MATERIAL_RATE * 100) + '%)', '−' + won(Math.round(10000 * MATERIAL_RATE)), '아래 원가율 칸에서 바꿀 수 있어요'],
+          ['− 포장재', packPer ? '−' + won(packPer) : '0', r.ref ? '매장은 없음' : '1건당 ' + won(PACK) + '원 × ' + r.orders + '건'],
+          ['= 재료비·포장재까지 빼고 남는 돈', won(left), '인건비·임대료는 아직 안 뺌']]) +
         (r.ref ? '' : '<p class="note">배달비는 주문마다 고정이라 <b>주문 금액이 작을수록 1만 원당 더 커져요</b>. 평균 주문 ' + won(r.avg) + '원 기준.</p>') +
         srcHTML(r.ref ? [{ t: '카드사 매출 내역' }] : [{ t: '배달앱 정산서 ' + r.id }].concat(r.mode === '가게배달' ? [{ t: '배달대행 충전·차감 내역' }] : []).concat([{ t: '재료비 비율은 예시', assume: true }])) + '</div>';
     });
@@ -717,10 +734,10 @@
     '<div class="tk"><span class="k">가장 많이 남는 앱</span><span class="n">' + bestApp.name + ' ' + won(bestApp.inn) + '원</span><span class="d">가장 적게 남는 ' + worstApp.name + '보다 1만 원당 ' + won(bestApp.inn - worstApp.inn) + '원 더</span></div>' +
     '<div class="tk"><span class="k">가장 큰 구멍</span><span class="n">배달비 1만 원당 ' + won(per(delAll, saleAll)) + '원</span><span class="d">주문마다 고정이라 작은 주문일수록 커요. 최소 주문 금액·묶음 메뉴로 줄일 수 있는지</span></div>' +
     '<div class="tk"><span class="k">광고가 가장 큰 앱</span><span class="n">' + adApp.name + ' 1만 원당 ' + won(adApp.parts.ad) + '원</span><span class="d">광고를 줄이면 이만큼 더 남지만 주문도 줄 수 있어요. 한 달 끄고 비교해 볼 만한지</span></div>';
-  document.getElementById('p10-note').textContent = '예시 숫자예요. 같은 달 정산서의 주문으로 계산했고(정산 시점과 무관), 재료비 비율 ' + Math.round(MATERIAL_RATE * 100) + '%는 가정입니다. 실제로는 사장님 정산서와 원가로 바꿔 넣어요. 인건비·임대료는 빼지 않았어요.';
+  document.getElementById('p10-note').textContent = '예시 숫자예요. 같은 달 정산서의 주문으로 계산했어요(정산 시점과 무관). 원가율·포장재는 위 칸 값으로 계산해요. 인건비·임대료는 빼지 않았어요.';
 
   // ================================================================ 배달앱이 떼 가는 돈 (한 달 합계, 큰 덩어리 순)
-  (function () {
+  function dcutRender() {
     var tot = { sale: 0, fee: 0, delApp: 0, agency: 0, tip: 0, ad: 0, cp: 0 };
     p10rows.forEach(function (r) { Object.keys(tot).forEach(function (k) { tot[k] += r.month[k]; }); });
     var cut = tot.fee + tot.delApp + tot.agency - tot.tip + tot.ad + tot.cp, inn = tot.sale - cut;
@@ -746,23 +763,38 @@
     // 재료비까지 빼면 (어림) — 앱별
     var mat = function (x) { return Math.round(x * MATERIAL_RATE); };
     var rowsT = p10rows.map(function (r) {
-      var c = r.month.fee + r.month.del + r.month.ad + r.month.cp, left = r.month.sale - c - mat(r.month.sale);
-      return '<tr><td class="l">' + r.name + '<span class="s">' + r.mode + '</span></td><td>' + won(r.month.sale) + '</td><td class="neg">−' + won(c) + '</td><td class="neg">−' + won(mat(r.month.sale)) + '</td><td><b>' + won(left) + '</b><span class="s">판 돈의 ' + Math.round(left / r.month.sale * 100) + '%</span></td></tr>';
+      var c = r.month.fee + r.month.del + r.month.ad + r.month.cp, m = mat(r.month.sale) + r.orders * PACK, left = r.month.sale - c - m;
+      return '<tr><td class="l">' + r.name + '<span class="s">' + r.mode + '</span></td><td>' + won(r.month.sale) + '</td><td class="neg">−' + won(c) + '</td><td class="neg">−' + won(m) + '<span class="s">포장재 ' + won(r.orders * PACK) + ' 포함</span></td><td><b>' + won(left) + '</b><span class="s">판 돈의 ' + Math.round(left / r.month.sale * 100) + '%</span></td></tr>';
     }).join('');
-    var leftAll = tot.sale - cut - mat(tot.sale);
+    var mAll = mat(tot.sale) + orders * PACK, leftAll = tot.sale - cut - mAll;
     var cardLeft = card.sale - card.fee - mat(card.sale);
-    var table = '<h3 class="dcut-h3">재료비까지 빼면 얼마 남나 (어림)</h3>' +
-      '<div class="tbl-scroll"><table class="main dcut-tbl"><thead><tr><th class="l">앱</th><th>판 돈</th><th>배달로 빠진 돈</th><th>재료비 (예시 ' + Math.round(MATERIAL_RATE * 100) + '%)</th><th>남는 돈</th></tr></thead><tbody>' + rowsT +
-      '<tr class="sum"><td class="l">배달 합계</td><td>' + won(tot.sale) + '</td><td>−' + won(cut) + '</td><td>−' + won(mat(tot.sale)) + '</td><td>' + won(leftAll) + '<span class="s">판 돈의 ' + Math.round(leftAll / tot.sale * 100) + '%</span></td></tr>' +
+    var table = '<div class="tbl-scroll"><table class="main dcut-tbl"><thead><tr><th class="l">앱</th><th>판 돈</th><th>배달로 빠진 돈</th><th>재료비 ' + Math.round(MATERIAL_RATE * 100) + '% + 포장재</th><th>남는 돈</th></tr></thead><tbody>' + rowsT +
+      '<tr class="sum"><td class="l">배달 합계</td><td>' + won(tot.sale) + '</td><td>−' + won(cut) + '</td><td>−' + won(mAll) + '</td><td>' + won(leftAll) + '<span class="s">판 돈의 ' + Math.round(leftAll / tot.sale * 100) + '%</span></td></tr>' +
       '<tr><td class="l">비교: 매장 카드</td><td>' + won(card.sale) + '</td><td class="neg">−' + won(card.fee) + '</td><td class="neg">−' + won(mat(card.sale)) + '</td><td>' + won(cardLeft) + '<span class="s">판 돈의 ' + Math.round(cardLeft / card.sale * 100) + '%</span></td></tr></tbody></table></div>' +
-      '<p class="muted">남는 돈 = 판 돈 − 배달로 빠진 돈 − 재료비(판 돈의 ' + Math.round(MATERIAL_RATE * 100) + '%, 예시). 인건비·임대료·로열티는 아직 안 뺐어요. 재료비 비율은 가게 원가로 바꿔 넣어요.</p>';
+      '<p class="muted">남는 돈 = 판 돈 − 배달로 빠진 돈 − 재료비(판 돈 × 원가율) − 포장재(배달 1건당). 인건비·임대료·로열티는 아직 안 뺐어요.</p>';
     var how = '<div class="dcut-how"><b>배달 방식에 따라 돈이 빠지는 길이 달라요</b><ul>' +
       '<li><b>앱배달</b> (앱이 라이더를 붙임): 배달비를 앱이 정산금에서 바로 뗌 → 정산서에 다 보임 (예: A·B앱)</li>' +
       '<li><b>가게배달 + 배달대행</b>: 앱은 중개 수수료만 떼고 손님 배달팁은 가게로. 라이더 비용은 배달대행 <b>선불 충전금</b>(대행사 가상계좌로 충전)에서 건당 차감 → 통장엔 <b>충전할 때 큰 출금</b>만 찍히고, 건별은 대행사 관리 화면에만 (예: C앱)</li>' +
       '<li><b>직접 배달</b> (사장님·직원): 대행비는 없지만 인건비·오토바이 비용으로 나감</li>' +
       '</ul><p class="muted">대행비는 보통 지역 지사와 계약해 지사마다 다르고, 거리·날씨 할증이 붙어요. 후불·월정산으로 하는 곳도 있다는 이야기가 있지만 확인하지 못했어요.</p></div>';
-    document.getElementById('dcut-bars').innerHTML = bars + table + how +
-      '<p class="muted">예시 숫자예요. 수수료율·배달비·대행비는 실제 요율이 아니고, 사장님 정산서로 바꿔 넣어요. 앱별 1만 원당은 바로 아래에.</p>';
+    document.getElementById('dcut-bars').innerHTML = bars;
+    document.getElementById('dcut-table').innerHTML = table + how +
+      '<p class="muted">예시 숫자예요. 수수료율·배달비·대행비·포장재는 실제 요율이 아니고, 사장님 정산서와 원가로 바꿔 넣어요. 앱별 1만 원당은 바로 아래에.</p>';
+  }
+  dcutRender();
+  // 원가율·포장재 칸
+  (function () {
+    var rateEl = document.getElementById('mat-rate'), packEl = document.getElementById('pack'), autoEl = document.getElementById('mat-auto');
+    rateEl.value = Math.round(MATERIAL_RATE * 100); packEl.value = PACK;
+    autoEl.textContent = '본사 재료비 청구로 계산 (' + Math.round(MAT_AUTO * 100) + '%)';
+    function apply() {
+      var r = Number(rateEl.value), k = Number(packEl.value);
+      MATERIAL_RATE = isFinite(r) && r >= 0 && r <= 90 ? r / 100 : MATERIAL_RATE;
+      PACK = isFinite(k) && k >= 0 ? Math.round(k) : PACK;
+      p10render(); dcutRender();
+    }
+    rateEl.addEventListener('input', apply); packEl.addEventListener('input', apply);
+    autoEl.addEventListener('click', function () { rateEl.value = Math.round(MAT_AUTO * 100); apply(); });
   })();
 
   // ================================================================ 길별 표 (판매가 기준)
