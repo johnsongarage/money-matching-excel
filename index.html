@@ -272,7 +272,7 @@
 </header>
 
 <main class="content">
-  <section class="card pad"><p class="lead" id="lead"></p><p class="muted assume-line">출발점은 <b>포스 매출(전체)</b>로, 본사 엑셀은 <b>본사에 낼 돈·상계를 보는 자료</b>로 봤어요. 현장 이야기로는 본사가 정리된 엑셀을 내려주지 않고 바이저가 보여 주는 정도라, 맞출 때는 포스·배달앱 정산서·통장을 기준으로 해요.</p></section>
+  <section class="card pad"><p class="lead" id="lead"></p></section>
 
   <div class="kpis" id="kpis"></div>
 
@@ -284,8 +284,8 @@
         <button type="button" data-view="full" aria-pressed="true">자세히</button>
       </div>
     </div>
-    <p class="muted" id="fall-simple-note" hidden>다섯 덩어리로만 묶었어요. 줄을 누르면 무엇이 들어 있는지 나와요.</p>
-    <p class="muted" id="fall-full-note">포스 매출이 어떤 이유로 줄거나 다른 달로 넘어가서 통장 입금이 되는지 보여 줍니다. <b>막대를 누르면</b> 세부 내역과 어느 자료에서 나온 숫자인지 펼쳐져요.</p>
+    <p class="muted" id="fall-simple-note" hidden>줄을 누르면 자세히 나와요.</p>
+    <p class="muted" id="fall-full-note">막대를 누르면 세부 내역과 근거 자료가 나와요.</p>
     <div class="basis" id="basis" role="group" aria-label="포스 매출 보고서의 부가세 기준">
       <span>포스 매출 보고서 금액은</span>
       <button type="button" data-basis="gross" aria-pressed="true">부가세 포함</button>
@@ -312,7 +312,7 @@
 
   <section class="card pad" aria-labelledby="p10-title">
     <h2 id="p10-title">배달 1만 원 팔면 얼마 남나 · 앱별</h2>
-    <p class="muted">앱마다 1만 원어치 팔았을 때 무엇이 빠지고 통장에 얼마 들어오는지. 매장 카드 결제와 나란히 놓았어요. 줄을 누르면 자세히.</p>
+    <p class="muted">매장 카드와 나란히. 줄을 누르면 자세히.</p>
     <div class="p10-legend" aria-label="막대 색 설명">
       <span><i class="k-in"></i>통장에 들어오는 돈</span>
       <span><i class="k-fee"></i>수수료·세금</span>
@@ -367,7 +367,7 @@
     <p class="muted" id="vat-note"></p>
   </section>
 
-  <p class="foot"><b>예시 데이터입니다.</b> 포스 매출·본사 엑셀·배달앱 정산서·카드사 내역·통장 거래내역 모두 지어낸 숫자이고, 수수료율·배달비·본사 앱 수수료(3%)·기프티콘 점주 부담 수수료(3%)·기프티콘 정산 시기도 실제 조건이 아닙니다. 부가세는 배달앱 수수료·본사 앱 수수료에 10%로 넣었고, 카드 수수료는 면세로 봤으며, 포스 매출과 본사 재료비 청구는 부가세 포함으로 봤습니다(확인 필요). "실제 통장 입금"은 예시 통장 거래내역의 합계로만 계산했습니다. 실제 서비스에서는 은행 원본 거래와 연결된 금액만 실제 입금으로 표시합니다.</p>
+  <p class="foot">판 돈은 포스 매출(전체) 기준이고, 본사 엑셀은 본사에 낼 돈·상계를 보는 자료로 봤어요(현장 이야기로는 본사가 정리된 엑셀을 내려주진 않음). <b>예시 데이터입니다.</b> 포스 매출·본사 엑셀·배달앱 정산서·카드사 내역·통장 거래내역 모두 지어낸 숫자이고, 수수료율·배달비·본사 앱 수수료(3%)·기프티콘 점주 부담 수수료(3%)·기프티콘 정산 시기도 실제 조건이 아닙니다. 부가세는 배달앱 수수료·본사 앱 수수료에 10%로 넣었고, 카드 수수료는 면세로 봤으며, 포스 매출과 본사 재료비 청구는 부가세 포함으로 봤습니다(확인 필요). "실제 통장 입금"은 예시 통장 거래내역의 합계로만 계산했습니다. 실제 서비스에서는 은행 원본 거래와 연결된 금액만 실제 입금으로 표시합니다.</p>
 </main>
 
 <script>
@@ -488,8 +488,8 @@
   // ================================================================ 그리기 (포스 매출 기준에 따라)
   var basis = 'gross'; // gross = 부가세 포함(판매가), net = 공급가액(부가세 뺀)
   var open = { gap: true, 's-gap': true };
-  var view = 'full';
-  try { if (localStorage.getItem('hq-view') === 'simple') view = 'simple'; } catch (e) {}
+  var view = 'simple';
+  try { var sv = localStorage.getItem('hq-view'); if (sv === 'simple' || sv === 'full') view = sv; } catch (e) {}
   if (/simple/.test(location.hash)) view = 'simple';
 
   function render() {
@@ -498,14 +498,12 @@
     var explained = shown - actualTotal - gap;
 
     document.getElementById('lead').innerHTML =
-      MONTH + ' 포스 매출은 <b>' + man(shown) + ' 원</b>, 통장엔 <b>' + man(actualTotal) + ' 원</b>이 들어왔어요. ' +
-      '차이 <b>' + man(shown - actualTotal) + ' 원</b> 중 <b>' + man(explained) + ' 원은 이유를 찾았고</b>, ' +
-      '<b class="bad">' + won(gap) + '원은 아직 설명이 안 돼요.</b>';
+      '<b>판 돈</b>과 <b>통장에 들어온 돈</b>을 맞춰 보고, 빠진 돈은 <b>이유</b>를, 모르는 돈은 <b>어디에 물어볼지</b> 정리해 드려요.';
     document.getElementById('kpis').innerHTML =
-      '<div class="card kpi"><p class="label">포스 매출</p><div class="num">' + won(shown) + '원</div><p class="desc">' + (basis === 'gross' ? '부가세 포함(판매가)으로 본 경우' : '공급가액(부가세 뺀)으로 본 경우') + ' · 확인 필요</p></div>' +
-      '<div class="card kpi"><p class="label">실제 통장 입금</p><div class="num">' + won(actualTotal) + '원</div><p class="desc">통장 거래내역의 매출 대금 입금 ' + sum(Object.keys(BANK.deposits).map(function (k) { return BANK.deposits[k].n; })) + '건 합계</p></div>' +
-      '<div class="card kpi"><p class="label">차이</p><div class="num">' + won(shown - actualTotal) + '원</div>' +
-      '<div class="split"><span class="chip ok">이유 찾음 ' + won(explained) + '</span><span class="chip bad">⚠ 설명 안 됨 ' + won(gap) + '</span></div></div>';
+      '<div class="card kpi"><p class="label">① 판 돈</p><div class="num">' + won(shown) + '원</div><p class="desc">' + MONTH + ' 포스 매출</p></div>' +
+      '<div class="card kpi"><p class="label">② 통장에 들어온 돈</p><div class="num">' + won(actualTotal) + '원</div><p class="desc">통장 입금 ' + sum(Object.keys(BANK.deposits).map(function (k) { return BANK.deposits[k].n; })) + '건</p></div>' +
+      '<div class="card kpi"><p class="label">③ 차이 ' + won(shown - actualTotal) + '원</p>' +
+      '<div class="split"><span class="chip ok">이유 있는 돈 ' + won(explained) + '</span><span class="chip bad">⚠ 모르는 돈 ' + won(gap) + '</span></div><p class="desc">이유 있는 돈 = 수수료·배달비, 다음 달 입금, 본사 상계 등</p></div>';
 
     var perApp = function (f) { return apps.map(function (a) { return a.name + ' ' + won(f(a)); }).join(' · '); };
     var steps = [{ stage: '① 기준 매출' },
@@ -576,7 +574,7 @@
           detail: rowsHTML([['지난달 판 돈이 이번 달에', '+' + won(prevIn)], ['이번 달 판 돈이 다음 달에', '−' + won(nextOut), '기프티콘은 정산이 늦어 몇 달 걸리기도']]) + '<p class="note">사라진 돈이 아니에요.</p>' },
         { id: 's-off', kind: 'off', name: '통장 대신 본사 대금·금고로', v: -offRoute,
           detail: rowsHTML([['본사 앱·기프티콘 가게 몫', '−' + won(hq.net + gift.net), '본사 대금에서 빼고 줌 (확인 필요)'], ['통장에 안 넣은 현금', '−' + won(cash.kept)]]) + '<p class="note">사라진 돈이 아니에요.</p>' },
-        { id: 's-gap', kind: 'gap', name: '⚠ 설명 안 된 돈', v: -gap,
+        { id: 's-gap', kind: 'gap', name: '⚠ 모르는 돈', v: -gap,
           detail: rowsHTML([['카드 입금보류', '−' + won(sum(CARD.holds, function (h) { return h.amount; })), '카드사에 문의'], ['B앱 기타 차감', '−' + won(APP_NOTES.B.amount), 'B앱 고객센터에 문의']]) },
         { id: 's-act', kind: 'total', name: '실제 통장 입금', v: actualTotal,
           detail: '<p class="note">통장 거래내역 기준 합계예요.</p>' });
