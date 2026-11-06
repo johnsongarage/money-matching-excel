@@ -93,6 +93,15 @@
   .viewsw button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
   .viewsw button:focus-visible { outline: 2px solid var(--total); outline-offset: 2px; }
   .fall.simple { gap: 6px; margin-top: 8px; }
+  details.nest { border-bottom: 1px dashed var(--line); padding: 4px 0; }
+  details.nest:last-of-type { border-bottom: 0; }
+  details.nest summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; cursor: pointer; list-style: none; font-size: 13px; padding: 2px 0; }
+  details.nest summary::-webkit-details-marker { display: none; }
+  details.nest summary .t::before { content: '›'; display: inline-block; width: 1em; color: var(--sub); transition: transform .15s; }
+  details.nest[open] summary .t::before { transform: rotate(90deg); }
+  details.nest summary .t small { display: block; font-size: 11px; color: var(--sub); margin-left: 1em; }
+  details.nest summary .v { font-weight: 700; white-space: nowrap; }
+  details.nest table { margin: 4px 0 4px 1em; width: calc(100% - 1em); }
   .fall.simple .step { padding: 8px 6px; }
   .fall.simple .step .name { font-size: 14px; }
   .fall.simple .step .amt { font-size: 14px; }
@@ -187,18 +196,26 @@
   .dcut-head .t.cut .n { color: var(--red); }
   .dcut-head .t.in .n { color: var(--green); }
   .dcut-bars { display: grid; gap: 8px; margin-top: 14px; }
-  .dcut-bar { display: grid; grid-template-columns: 11em minmax(0, 1fr) 8.5em; gap: 10px; align-items: center; }
+  .dcut-bar { display: grid; grid-template-columns: 15em minmax(0, 1fr) 8.5em; gap: 10px; align-items: center; }
   .dcut-bar .nm { font-weight: 700; font-size: 14px; line-height: 1.3; }
   .dcut-bar .nm small { display: block; font-weight: 400; color: var(--sub); font-size: 11px; }
   .dcut-bar .trk { height: 18px; background: var(--track); border-radius: 4px; overflow: hidden; }
   .dcut-bar .trk span { display: block; height: 100%; background: var(--red); opacity: .75; border-radius: 4px; }
   .dcut-bar .v { text-align: right; font-weight: 800; white-space: nowrap; }
   .dcut-bar .v small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
+  .dcut-bar.plus .v { color: var(--green); }
+  .dcut-bar.plus .trk { background: transparent; }
+  .dcut-h3 { font-size: 14px; margin: 18px 0 6px; }
+  .dcut-tbl td .s { display: block; font-size: 11px; color: var(--sub); font-weight: 400; }
+  .dcut-how { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; background: var(--page); }
+  .dcut-how ul { margin: 6px 0; padding-left: 1.2em; } .dcut-how li { margin: 3px 0; }
   @media (max-width: 760px) {
     .dcut-head { grid-template-columns: 1fr; gap: 8px; }
     .dcut-head .t .n { font-size: 22px; }
     .dcut-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
     .dcut-bar .trk { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+    .dcut-tbl th:nth-child(2), .dcut-tbl td:nth-child(2), .dcut-tbl th:nth-child(4), .dcut-tbl td:nth-child(4) { display: none; }
+    .dcut-tbl th, .dcut-tbl td { padding: 7px 8px; }
   }
 
   /* 배달 1만 원당 */
@@ -314,7 +331,7 @@
     <h2 id="p10-title">배달 1만 원 팔면 얼마 남나 · 앱별</h2>
     <p class="muted">매장 카드와 나란히. 줄을 누르면 자세히.</p>
     <div class="p10-legend" aria-label="막대 색 설명">
-      <span><i class="k-in"></i>통장에 들어오는 돈</span>
+      <span><i class="k-in"></i>남는 돈</span>
       <span><i class="k-fee"></i>수수료·세금</span>
       <span><i class="k-del"></i>배달비</span>
       <span><i class="k-ad"></i>광고</span>
@@ -390,13 +407,14 @@
   var SETTLE = {
     A: { orders: 402, brokerRate: 0.078, payRate: 0.030, perOrder: 3100, ad: 150000, couponHQ: 90000, couponStore: 160000, prevIn: 410000, nextOut: 690000 },
     B: { orders: 131, brokerRate: 0.078, payRate: 0.030, perOrder: 3400, ad: 60000, couponHQ: 30000, couponStore: 80000, prevIn: 120000, nextOut: 210000 },
-    C: { orders: 68, brokerRate: 0.068, payRate: 0.025, perOrder: 2900, ad: 0, couponHQ: 0, couponStore: 30000, prevIn: 60000, nextOut: 120000 }
+    // C앱은 '가게배달': 앱은 배달비를 안 떼고 손님 배달팁을 정산에 더해 줌. 라이더 비용은 배달대행 선불 충전금에서 건당 차감 (예시)
+    C: { orders: 68, brokerRate: 0.068, payRate: 0.025, perOrder: 0, tip: 2000, agency: { perOrder: 4000, charges: [{ date: '10/01', amount: 150000 }, { date: '10/15', amount: 150000 }] }, ad: 0, couponHQ: 0, couponStore: 30000, prevIn: 60000, nextOut: 120000 }
   };
   // 카드사 매출 내역 (카드 수수료는 보통 부가세 면세로 알려져 있음 · 확인 필요)
   var CARD = { feeRate: 0.011, prevIn: 312000, nextOut: 455000, holds: [{ date: '10/27', amount: 52000 }] };
   // 통장 거래내역 (예시 숫자를 따로 적은 것 · 위 자료에서 계산하지 않음)
   var BANK = {
-    deposits: { card: { n: 31, sum: 9556540 }, A: { n: 5, sum: 2401120 }, B: { n: 5, sum: 721976 }, C: { n: 5, sum: 438171 }, cash: { n: 3, sum: 300000 } },
+    deposits: { card: { n: 31, sum: 9556540 }, A: { n: 5, sum: 2401120 }, B: { n: 5, sum: 721976 }, C: { n: 5, sum: 791091 }, cash: { n: 3, sum: 300000 } },
     hqWithdrawals: [1655610, 1483346, 1275648, 1603676]
   };
   var APP_NOTES = { B: { date: '10/21', label: '기타 차감', what: '10/21 정산 "기타 차감"', amount: 38500, how: 'B앱 사장님 고객센터에 차감 사유 문의' } };
@@ -433,9 +451,10 @@
     var a = SETTLE[k], sale = S[k];
     var broker = Math.round(sale * a.brokerRate), pay = Math.round(sale * a.payRate), deliv = a.orders * a.perOrder;
     var vat = Math.round((broker + pay + deliv) * 0.1);
-    var cost = broker + pay + vat + deliv + a.ad + a.couponStore;
+    var tipIn = a.orders * (a.tip || 0), agency = a.agency ? a.orders * a.agency.perOrder : 0;
+    var cost = broker + pay + vat + deliv + a.ad + a.couponStore - tipIn;
     var timing = a.prevIn - a.nextOut;
-    return { key: k, name: k + '앱', sale: sale, broker: broker, pay: pay, vat: vat, deliv: deliv, ad: a.ad,
+    return { key: k, name: k + '앱', sale: sale, broker: broker, pay: pay, vat: vat, deliv: deliv, ad: a.ad, tipIn: tipIn, agency: agency, agencyCfg: a.agency, tip: a.tip || 0, mode: a.agency ? '가게배달' : '앱배달',
       couponHQ: a.couponHQ, couponStore: a.couponStore, orders: a.orders, perOrder: a.perOrder,
       prevIn: a.prevIn, nextOut: a.nextOut, cost: cost, timing: timing, expected: sale - cost + timing,
       actual: BANK.deposits[k].sum, n: BANK.deposits[k].n };
@@ -463,7 +482,7 @@
   var delivVat = A('vat') - brokerVat - payVat;
   var adSupply = sum(apps, function (a) { return Math.round(a.ad / 1.1); }), adVat = A('ad') - adSupply; // 광고비는 부가세 포함 금액으로 봄
   var feesTax = A('broker') + brokerVat + A('pay') + payVat + card.fee + hq.fee + hq.feeVat + gift.fee + gift.feeVat;
-  var delivMkt = A('deliv') + delivVat + A('ad') + A('couponStore');
+  var delivMkt = A('deliv') + delivVat + A('ad') + A('couponStore') - A('tipIn');
   var costTotal = feesTax + delivMkt;
   var prevIn = A('prevIn') + CARD.prevIn + gift.prev, nextOut = A('nextOut') + CARD.nextOut + gift.sale;
   var offRoute = cash.kept + hq.net + gift.net;
@@ -526,10 +545,10 @@
         ]) + '<p class="note">부가세 칸은 아래 <b>"이번 달 부가세 한눈에"</b>의 매입 부가세에 들어가요.</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }, { t: '카드사 매출 내역' }, { t: '본사 엑셀 · 본사 앱·기프티콘 정산' }, { t: '포스 매출 보고서' }, { t: '본사 앱·기프티콘 수수료·부가세는 확인 필요', assume: true }]) },
       { id: 'deliv', kind: 'cost', name: '배달비·광고·점주 부담 할인', note: '주문마다 고정 배달비 포함', v: -delivMkt,
         detail: vatTable([
-          ['배달비 (가게 부담)', A('deliv'), delivVat, apps.map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' (정산서 주문 건수)'],
+          ['배달비 (앱이 정산에서 뗌)', A('deliv'), delivVat, apps.filter(function (a) { return a.deliv; }).map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' (정산서 주문 건수)'],
           ['광고비', adSupply, adVat, perApp(function (a) { return a.ad; }) + ' · 부가세 포함 금액으로 봄'],
           ['점주 부담 할인·쿠폰', A('couponStore'), null, perApp(function (a) { return a.couponStore; }) + ' · 매출에서 깎인 돈이라 따로 나누지 않음']
-        ]) + '<p class="note">할인 총 ' + won(A('couponHQ') + A('couponStore')) + '원 중 <b>본사 부담 ' + won(A('couponHQ')) + '원은 빼지 않았어요</b> (가게 손해가 아님).</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }]) },
+        ]) + rowsHTML(apps.filter(function (a) { return a.tipIn; }).map(function (a) { return ['+ 손님 배달팁 (' + a.name + ' 가게배달)', '+' + won(a.tipIn), a.orders + '건 × ' + won(a.tip) + ' · 정산금에 더해짐 · 라이더 비용은 배달대행 충전금에서 따로 나감']; })) + '<p class="note">할인 총 ' + won(A('couponHQ') + A('couponStore')) + '원 중 <b>본사 부담 ' + won(A('couponHQ')) + '원은 빼지 않았어요</b> (가게 손해가 아님).</p>' + srcHTML([{ t: '배달앱 정산서 A·B·C' }]) },
       { stage: '③ 정산 시점 조정 (비용 아님)' },
       { id: 'prev', kind: 'timing', name: '지난달 매출이 ' + MONTH + '에 입금', note: '9월에 판 돈 · 기프티콘은 9월 사용분이 이번 달 본사 정산에', v: prevIn, notcost: true,
         detail: rowsHTML([['카드', '+' + won(CARD.prevIn)]].concat(apps.map(function (a) { return [a.name, '+' + won(a.prevIn)]; })).concat([['기프티콘 (' + G.prevLabel + ')', '+' + won(gift.prev), '통장이 아니라 ④ 본사 상계로 들어옴']])) + srcHTML([{ t: '정산서·카드 내역 입금 예정일' }]) },
@@ -569,7 +588,18 @@
           detail: '<p class="note">포스 보고서가 부가세 뺀 금액이라 통장(판매가)과 기준을 맞춘 것. 돈이 생긴 게 아니에요.</p>' });
       simple.push(
         { id: 's-cost', kind: 'cost', name: '수수료·배달비로 빠진 돈', v: -costTotal,
-          detail: rowsHTML([['수수료·세금', '−' + won(feesTax), '배달앱·카드·본사 앱·기프티콘'], ['배달비·광고·점주 할인', '−' + won(delivMkt), '배달앱']]) },
+          detail: nest('수수료·세금', feesTax, '배달앱·카드·본사 앱·기프티콘', [
+              ['배달앱 중개 수수료', A('broker') + brokerVat, perApp(function (a) { return a.broker; }) + ' + 부가세'],
+              ['배달앱 결제 수수료', A('pay') + payVat, perApp(function (a) { return a.pay; }) + ' + 부가세'],
+              ['카드 수수료', card.fee, '매장 카드 매출의 ' + (CARD.feeRate * 100).toFixed(1) + '% (예시)'],
+              ['본사 앱 수수료', hq.fee + hq.feeVat, '본사 앱 매출의 ' + (HQ_EXCEL.hqappFeeRate * 100) + '% + 부가세 (확인 필요)'],
+              ['기프티콘 수수료 (점주 몫)', gift.fee + gift.feeVat, G.prevLabel + ' 정산분의 ' + (G.feeRate * 100) + '% + 부가세']]) +
+            nest('배달비·광고·점주 할인', delivMkt, '배달앱', [
+              ['배달비 (앱이 정산에서 뗌)', A('deliv') + delivVat, apps.filter(function (a) { return a.deliv; }).map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.perOrder); }).join(' · ') + ' + 부가세'],
+              ['손님 배달팁 (가게배달)', -A('tipIn'), apps.filter(function (a) { return a.tipIn; }).map(function (a) { return a.name + ' ' + a.orders + '건 × ' + won(a.tip); }).join(' · ') + ' · 정산금에 더해짐'],
+              ['광고', A('ad'), perApp(function (a) { return a.ad; })],
+              ['점주 부담 할인', A('couponStore'), perApp(function (a) { return a.couponStore; })]]) +
+            '<p class="note">이름을 누르면 한 번 더 펼쳐져요. 가게배달 앱의 <b>배달대행비</b>는 정산금이 아니라 충전금에서 나가서 여기엔 없어요 → 아래 "배달앱이 떼 가는 돈".</p>' },
         { id: 's-timing', kind: 'timing', name: '다른 달로 넘어간 돈', v: prevIn - nextOut,
           detail: rowsHTML([['지난달 판 돈이 이번 달에', '+' + won(prevIn)], ['이번 달 판 돈이 다음 달에', '−' + won(nextOut), '기프티콘은 정산이 늦어 몇 달 걸리기도']]) + '<p class="note">사라진 돈이 아니에요.</p>' },
         { id: 's-off', kind: 'off', name: '통장 대신 본사 대금·금고로', v: -offRoute,
@@ -611,6 +641,10 @@
     try { localStorage.setItem('hq-view', view); } catch (err) {}
     render();
   });
+  function nest(title, total, sub, items) {
+    return '<details class="nest"><summary><span class="t">' + title + '<small>' + sub + '</small></span><span class="v">−' + won(total) + '</span></summary>' +
+      rowsHTML(items.map(function (it) { return [it[0], (it[1] < 0 ? '+' + won(-it[1]) : '−' + won(it[1])), it[2]]; })) + '</details>';
+  }
   function num(s) { return Number(String(s).replace(/[^0-9-]/g, '')); }
 
   document.getElementById('fall').addEventListener('click', function (e) {
@@ -633,11 +667,12 @@
   function per(x, sale) { return Math.round(x / sale * 10000); }
   var p10rows = apps.map(function (a) {
     var fee = a.broker + a.pay + Math.round((a.broker + a.pay) * 0.1);
-    var del = a.deliv + (a.vat - Math.round((a.broker + a.pay) * 0.1));
+    var delApp = a.deliv + (a.vat - Math.round((a.broker + a.pay) * 0.1));
+    var del = delApp + a.agency - a.tipIn; // 배달에 실제로 든 돈 (앱 배달비 또는 대행비 − 손님 배달팁)
     var parts = { fee: per(fee, a.sale), del: per(del, a.sale), ad: per(a.ad, a.sale), cp: per(a.couponStore, a.sale) };
     var inn = 10000 - parts.fee - parts.del - parts.ad - parts.cp;
-    return { id: a.key, name: a.name, sub: a.orders + '건 · 평균 ' + won(a.sale / a.orders) + '원', inn: inn, parts: parts,
-      month: { sale: a.sale, fee: fee, del: del, ad: a.ad, cp: a.couponStore }, perOrder: a.perOrder, avg: a.sale / a.orders };
+    return { id: a.key, name: a.name, sub: a.mode + ' · ' + a.orders + '건 · 평균 ' + won(a.sale / a.orders) + '원', inn: inn, parts: parts, mode: a.mode,
+      month: { sale: a.sale, fee: fee, del: del, delApp: delApp, agency: a.agency, tip: a.tipIn, ad: a.ad, cp: a.couponStore }, perOrder: a.perOrder, agencyPer: a.agencyCfg ? a.agencyCfg.perOrder : 0, tipPer: a.tip, avg: a.sale / a.orders };
   });
   var cardRow = { id: 'card', name: '매장 카드', sub: '비교용', ref: true, inn: 10000 - per(card.fee, card.sale),
     parts: { fee: per(card.fee, card.sale), del: 0, ad: 0, cp: 0 }, month: { sale: card.sale, fee: card.fee, del: 0, ad: 0, cp: 0 } };
@@ -654,14 +689,16 @@
         '<div class="detail" id="p10d-' + r.id + '"' + (p10open[r.id] ? '' : ' hidden') + '>' +
         rowsHTML([['판 돈', '10,000', '이 달 ' + won(r.month.sale) + '원'],
           ['수수료·세금', '−' + won(r.parts.fee), r.ref ? '카드 수수료' : '중개·결제 수수료 + 부가세 · 이 달 ' + won(r.month.fee) + '원'],
-          ['배달비 (가게 부담)', r.parts.del ? '−' + won(r.parts.del) : '0', r.ref ? '' : '주문마다 ' + won(r.perOrder) + '원 고정 + 부가세 · 이 달 ' + won(r.month.del) + '원'],
+          ['배달비 (가게 부담)', r.parts.del ? '−' + won(r.parts.del) : '0', r.ref ? '' : r.mode === '가게배달'
+            ? '배달대행 충전금에서 건당 ' + won(r.agencyPer) + '원 − 손님 배달팁 ' + won(r.tipPer) + '원 · 이 달 대행비 ' + won(r.month.agency) + ' − 배달팁 ' + won(r.month.tip) + '원'
+            : '앱이 주문마다 ' + won(r.perOrder) + '원 + 부가세를 정산에서 뗌 · 이 달 ' + won(r.month.del) + '원'],
           ['광고', r.parts.ad ? '−' + won(r.parts.ad) : '0', r.ref ? '' : '이 달 ' + won(r.month.ad) + '원'],
           ['점주 부담 할인', r.parts.cp ? '−' + won(r.parts.cp) : '0', r.ref ? '' : '이 달 ' + won(r.month.cp) + '원 · 본사 부담분은 뺌'],
-          ['= 통장에 들어오는 돈', won(r.inn)],
+          ['= 배달 비용까지 빼고 남는 돈', won(r.inn), r.mode === '가게배달' ? '통장엔 정산금이 더 많이 들어오지만, 대행비는 충전할 때 따로 나감' : ''],
           ['− 재료비 (예시 ' + Math.round(MATERIAL_RATE * 100) + '%)', '−' + won(Math.round(10000 * MATERIAL_RATE)), '원두·우유·컵 등 · 가게마다 다름'],
           ['= 재료비까지 빼고 남는 돈', won(left), '인건비·임대료는 아직 안 뺌']]) +
-        (r.ref ? '' : '<p class="note">배달비는 주문마다 고정이라 <b>주문 금액이 작을수록 1만 원당 더 커져요</b>. 평균 주문 ' + won(r.avg) + '원 기준, 1만 원짜리 주문이면 배달비만 ' + won(r.perOrder * 1.1) + '원.</p>') +
-        srcHTML(r.ref ? [{ t: '카드사 매출 내역' }] : [{ t: '배달앱 정산서 ' + r.id }, { t: '재료비 비율은 예시', assume: true }]) + '</div>';
+        (r.ref ? '' : '<p class="note">배달비는 주문마다 고정이라 <b>주문 금액이 작을수록 1만 원당 더 커져요</b>. 평균 주문 ' + won(r.avg) + '원 기준.</p>') +
+        srcHTML(r.ref ? [{ t: '카드사 매출 내역' }] : [{ t: '배달앱 정산서 ' + r.id }].concat(r.mode === '가게배달' ? [{ t: '배달대행 충전·차감 내역' }] : []).concat([{ t: '재료비 비율은 예시', assume: true }])) + '</div>';
     });
     document.getElementById('p10').innerHTML = h;
   }
@@ -684,32 +721,54 @@
 
   // ================================================================ 배달앱이 떼 가는 돈 (한 달 합계, 큰 덩어리 순)
   (function () {
-    var tot = { sale: 0, fee: 0, del: 0, ad: 0, cp: 0 };
-    p10rows.forEach(function (r) { ['sale', 'fee', 'del', 'ad', 'cp'].forEach(function (k) { tot[k] += r.month[k]; }); });
-    var cut = tot.fee + tot.del + tot.ad + tot.cp, inn = tot.sale - cut;
+    var tot = { sale: 0, fee: 0, delApp: 0, agency: 0, tip: 0, ad: 0, cp: 0 };
+    p10rows.forEach(function (r) { Object.keys(tot).forEach(function (k) { tot[k] += r.month[k]; }); });
+    var cut = tot.fee + tot.delApp + tot.agency - tot.tip + tot.ad + tot.cp, inn = tot.sale - cut;
     var orders = A('orders');
     document.getElementById('dcut-head').innerHTML =
       '<div class="t"><span class="k">이번 달 배달로 판 돈</span><div class="n">' + man(tot.sale) + ' 원</div><span class="d">A·B·C앱 ' + orders + '건</span></div>' +
-      '<div class="t cut"><span class="k">배달앱 쪽으로 빠진 돈</span><div class="n">' + man(cut) + ' 원</div><span class="d">판 돈의 ' + Math.round(cut / tot.sale * 100) + '% · 주문 1건당 약 ' + won(cut / orders) + '원</span></div>' +
-      '<div class="t in"><span class="k">가게 몫으로 정산된 돈</span><div class="n">' + man(inn) + ' 원</div><span class="d">1만 원 팔면 ' + won(inn / tot.sale * 10000) + '원</span></div>';
+      '<div class="t cut"><span class="k">배달로 빠진 돈 (앱·대행)</span><div class="n">' + man(cut) + ' 원</div><span class="d">판 돈의 ' + Math.round(cut / tot.sale * 100) + '% · 주문 1건당 약 ' + won(cut / orders) + '원</span></div>' +
+      '<div class="t in"><span class="k">배달로 남은 돈</span><div class="n">' + man(inn) + ' 원</div><span class="d">1만 원 팔면 ' + won(inn / tot.sale * 10000) + '원 · 재료비 빼기 전</span></div>';
     var items = [
-      { nm: '배달비 (가게 부담)', sub: '주문마다 고정 · 작은 주문일수록 아픔', v: tot.del },
+      { nm: '배달비 (앱이 정산에서 뗌)', sub: '앱배달 · 주문마다 고정', v: tot.delApp },
+      { nm: '배달대행비 (충전금 차감)', sub: '가게배달 · 통장엔 충전할 때 큰 출금만', v: tot.agency },
       { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee },
       { nm: '점주 부담 할인', sub: '가게가 건 쿠폰 + 브랜드 행사 가게 몫', v: tot.cp },
       { nm: '광고', sub: '가게가 직접 건 노출 광고', v: tot.ad }
-    ].sort(function (x, y) { return y.v - x.v; });
+    ].filter(function (it) { return it.v > 0; }).sort(function (x, y) { return y.v - x.v; });
     var mx = items[0].v;
-    document.getElementById('dcut-bars').innerHTML = items.map(function (it) {
+    var bars = items.map(function (it) {
       return '<div class="dcut-bar"><span class="nm">' + it.nm + '<small>' + it.sub + '</small></span>' +
         '<span class="trk" aria-hidden="true"><span style="width:' + (it.v / mx * 100).toFixed(1) + '%"></span></span>' +
         '<span class="v">−' + won(it.v) + '원<small>1만 원당 ' + won(it.v / tot.sale * 10000) + '원</small></span></div>';
-    }).join('') + '<p class="muted">예시 숫자예요. 수수료율·배달비는 실제 앱 요율이 아니고, 사장님 정산서로 바꿔 넣어요. 앱별로는 바로 아래에.</p>';
+    }).join('');
+    if (tot.tip) bars += '<div class="dcut-bar plus"><span class="nm">손님 배달팁 (가게배달)<small>손님이 낸 배달비 · 정산금에 더해짐</small></span><span class="trk" aria-hidden="true"></span><span class="v">+' + won(tot.tip) + '원<small>1만 원당 ' + won(tot.tip / tot.sale * 10000) + '원</small></span></div>';
+    // 재료비까지 빼면 (어림) — 앱별
+    var mat = function (x) { return Math.round(x * MATERIAL_RATE); };
+    var rowsT = p10rows.map(function (r) {
+      var c = r.month.fee + r.month.del + r.month.ad + r.month.cp, left = r.month.sale - c - mat(r.month.sale);
+      return '<tr><td class="l">' + r.name + '<span class="s">' + r.mode + '</span></td><td>' + won(r.month.sale) + '</td><td class="neg">−' + won(c) + '</td><td class="neg">−' + won(mat(r.month.sale)) + '</td><td><b>' + won(left) + '</b><span class="s">판 돈의 ' + Math.round(left / r.month.sale * 100) + '%</span></td></tr>';
+    }).join('');
+    var leftAll = tot.sale - cut - mat(tot.sale);
+    var cardLeft = card.sale - card.fee - mat(card.sale);
+    var table = '<h3 class="dcut-h3">재료비까지 빼면 얼마 남나 (어림)</h3>' +
+      '<div class="tbl-scroll"><table class="main dcut-tbl"><thead><tr><th class="l">앱</th><th>판 돈</th><th>배달로 빠진 돈</th><th>재료비 (예시 ' + Math.round(MATERIAL_RATE * 100) + '%)</th><th>남는 돈</th></tr></thead><tbody>' + rowsT +
+      '<tr class="sum"><td class="l">배달 합계</td><td>' + won(tot.sale) + '</td><td>−' + won(cut) + '</td><td>−' + won(mat(tot.sale)) + '</td><td>' + won(leftAll) + '<span class="s">판 돈의 ' + Math.round(leftAll / tot.sale * 100) + '%</span></td></tr>' +
+      '<tr><td class="l">비교: 매장 카드</td><td>' + won(card.sale) + '</td><td class="neg">−' + won(card.fee) + '</td><td class="neg">−' + won(mat(card.sale)) + '</td><td>' + won(cardLeft) + '<span class="s">판 돈의 ' + Math.round(cardLeft / card.sale * 100) + '%</span></td></tr></tbody></table></div>' +
+      '<p class="muted">남는 돈 = 판 돈 − 배달로 빠진 돈 − 재료비(판 돈의 ' + Math.round(MATERIAL_RATE * 100) + '%, 예시). 인건비·임대료·로열티는 아직 안 뺐어요. 재료비 비율은 가게 원가로 바꿔 넣어요.</p>';
+    var how = '<div class="dcut-how"><b>배달 방식에 따라 돈이 빠지는 길이 달라요</b><ul>' +
+      '<li><b>앱배달</b> (앱이 라이더를 붙임): 배달비를 앱이 정산금에서 바로 뗌 → 정산서에 다 보임 (예: A·B앱)</li>' +
+      '<li><b>가게배달 + 배달대행</b>: 앱은 중개 수수료만 떼고 손님 배달팁은 가게로. 라이더 비용은 배달대행 <b>선불 충전금</b>(대행사 가상계좌로 충전)에서 건당 차감 → 통장엔 <b>충전할 때 큰 출금</b>만 찍히고, 건별은 대행사 관리 화면에만 (예: C앱)</li>' +
+      '<li><b>직접 배달</b> (사장님·직원): 대행비는 없지만 인건비·오토바이 비용으로 나감</li>' +
+      '</ul><p class="muted">대행비는 보통 지역 지사와 계약해 지사마다 다르고, 거리·날씨 할증이 붙어요. 후불·월정산으로 하는 곳도 있다는 이야기가 있지만 확인하지 못했어요.</p></div>';
+    document.getElementById('dcut-bars').innerHTML = bars + table + how +
+      '<p class="muted">예시 숫자예요. 수수료율·배달비·대행비는 실제 요율이 아니고, 사장님 정산서로 바꿔 넣어요. 앱별 1만 원당은 바로 아래에.</p>';
   })();
 
   // ================================================================ 길별 표 (판매가 기준)
   function chRow(name, sale, cost, timing, off, exp, act, status, cls) {
     var d = act - exp;
-    return '<tr><td class="l">' + name + '</td><td>' + won(sale) + '</td><td class="neg">' + (cost ? '−' + won(cost) : '0') + '</td>' +
+    return '<tr><td class="l">' + name + '</td><td>' + won(sale) + '</td><td class="neg">' + (cost > 0 ? '−' + won(cost) : cost < 0 ? '+' + won(-cost) : '0') + '</td>' +
       '<td class="neg">' + (timing ? signed(timing) : '0') + '</td><td class="neg">' + (off ? '−' + won(off) : '0') + '</td>' +
       '<td>' + won(exp) + '</td><td><b>' + won(act) + '</b></td><td class="' + (d ? 'bad' : '') + '">' + (d ? signed(d) : '0') + '</td>' +
       '<td class="st ' + (cls || '') + '">' + status + '</td></tr>';
@@ -721,7 +780,7 @@
     var d = a.actual - a.expected;
     rows.push(chRow(a.name + ' (배달)', a.sale, a.cost, a.timing, 0, a.expected, a.actual,
       d ? '⚠ ' + (APP_NOTES[a.key] ? APP_NOTES[a.key].label + ' ' : '덜 들어옴 ') + won(-d) + '원<span class="s">' + (APP_NOTES[a.key] ? APP_NOTES[a.key].date + ' 정산 — 사유 안 적힘' : '정산서 확인 필요') + '</span>'
-        : '✓ 맞음<span class="s">빠진 돈은 정산서에 다 있음 (판매의 ' + Math.round(a.cost / a.sale * 100) + '%)</span>', d ? 'bad' : 'ok'));
+        : (a.mode === '가게배달' ? '✓ 맞음<span class="s">가게배달: 손님 배달팁이 더해져 들어옴 · 배달대행비 ' + won(a.agency) + '원은 충전금에서 따로</span>' : '✓ 맞음<span class="s">빠진 돈은 정산서에 다 있음 (판매의 ' + Math.round(a.cost / a.sale * 100) + '%)</span>'), d ? 'bad' : 'ok'));
   });
   rows.push(chRow('본사 앱 주문', hq.sale, hq.fee + hq.feeVat, 0, hq.net, 0, 0, '통장 입금 없음 · <span class="warn">본사 대금과 상계 (확인 필요)</span><span class="s">아래 "본사 상계 확인"</span>', ''));
   rows.push(chRow('기프티콘', gift.sale, gift.fee + gift.feeVat, gift.prev - gift.sale, gift.net, 0, 0, '통장 입금 없음 · <span class="warn">본사 정산에서 상계 (확인 필요)</span><span class="s">정산이 늦어 ' + G.prevLabel + '가 이번 달에, 10월분은 다음 정산에</span>', ''));
