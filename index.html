@@ -97,16 +97,16 @@
   details.nest:last-of-type { border-bottom: 0; }
   details.nest summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; cursor: pointer; list-style: none; font-size: 13px; padding: 2px 0; }
   details.nest summary::-webkit-details-marker { display: none; }
-  details.nest summary .t::before { content: '›'; display: inline-block; width: 1em; color: var(--sub); transition: transform .15s; }
-  details.nest[open] summary .t::before { transform: rotate(90deg); }
-  details.nest summary .t small { display: block; font-size: 11px; color: var(--sub); margin-left: 1em; }
+  details.nest summary .t::before { content: '▾'; display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: var(--total-soft); color: var(--total); font-size: 10px; font-weight: 800; vertical-align: 1px; transition: transform .15s; }
+  details.nest[open] summary .t::before { transform: rotate(180deg); }
+  details.nest summary .t small { display: block; font-size: 11px; color: var(--sub); margin-left: 24px; }
   details.nest summary .v { font-weight: 700; white-space: nowrap; }
-  details.nest table { margin: 4px 0 4px 1em; width: calc(100% - 1em); }
+  details.nest table { margin: 4px 0 4px 24px; width: calc(100% - 24px); }
   .fall.simple .step { padding: 8px 6px; }
   .fall.simple .step .name { font-size: 14px; }
   .fall.simple .step .amt { font-size: 14px; }
   .stage { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--sub); margin: 10px 4px 2px; }
-  .step { display: grid; grid-template-columns: minmax(12em, 16em) minmax(0, 1fr) 7.5em 1.4em; gap: 10px; align-items: center;
+  .step { display: grid; grid-template-columns: minmax(12em, 16em) minmax(0, 1fr) 7.5em 24px; gap: 10px; align-items: center;
     width: 100%; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 5px 6px; cursor: pointer; }
   .step:hover { background: var(--hover); }
   .step:focus-visible { outline: 2px solid var(--total); outline-offset: 1px; }
@@ -122,9 +122,30 @@
   .step.total .name, .step.total .amt { font-weight: 800; }
   .step.gap .name, .step.gap .amt { color: var(--red); font-weight: 800; }
   .step .amt { text-align: right; font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .step .chev { color: var(--sub); font-size: 12px; text-align: center; transition: transform .15s; }
-  .step[aria-expanded="true"] .chev { transform: rotate(90deg); }
-  @media (prefers-reduced-motion: reduce) { .step .chev { transition: none; } }
+  .chev { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--total-soft); color: var(--total); font-size: 11px; font-weight: 800; line-height: 1; transition: transform .15s; justify-self: center; }
+  .step[aria-expanded="true"] .chev, .p10-row[aria-expanded="true"] .chev, details[open] > summary .chev { transform: rotate(180deg); }
+  .tap-hint { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: var(--total-soft); color: var(--total); font-size: 12px; font-weight: 700; }
+  .tap-hint i { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--total); color: #fff; font-style: normal; font-size: 10px; }
+  details.more { margin: 4px 0 12px; }
+  details.more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--total); border-radius: 8px; background: var(--total-soft); color: var(--total); font-weight: 700; font-size: 14px; }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary .chev { background: var(--total); color: #fff; margin-left: auto; flex: none; }
+  details.more > summary .when-open { display: none; } details.more[open] > summary .when-open { display: inline; } details.more[open] > summary .when-closed { display: none; }
+  .r10 { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .r10 td { padding: 6px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
+  .r10 td.v { text-align: right; font-weight: 800; white-space: nowrap; padding-left: 10px; }
+  .r10 td .s { display: block; font-size: 11px; color: var(--sub); font-weight: 400; }
+  .r10 td code { font-size: 11px; background: var(--track); padding: 0 4px; border-radius: 3px; }
+  .r10 tr.neg td.v { color: var(--red); } .r10 tr.pos td.v { color: var(--green); }
+  .r10 tr.choice td:first-child { border-left: 3px solid var(--amber); padding-left: 6px; }
+  .r10 tr.sum td { border-bottom: 2px solid var(--ink, #111); font-weight: 800; }
+  .r10 tr.grp td { padding-top: 12px; font-size: 12px; font-weight: 700; color: var(--sub); border-bottom: 0; }
+  .r10-take { margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: var(--page); border: 1px solid var(--line); font-size: 13px; }
+  details.dbar > summary { list-style: none; cursor: pointer; border-radius: 6px; padding: 4px; margin: -4px; }
+  details.dbar > summary::-webkit-details-marker { display: none; }
+  details.dbar > summary:hover { background: var(--hover); }
+  details.dbar > .detail { margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
   .tag-s { font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 5px; margin-left: 4px; white-space: nowrap; }
   .tag-s.check { color: var(--amber); background: var(--amber-bg); }
   .tag-s.notcost { color: var(--sub); background: var(--head); }
@@ -196,7 +217,7 @@
   .dcut-head .t.cut .n { color: var(--red); }
   .dcut-head .t.in .n { color: var(--green); }
   .dcut-bars { display: grid; gap: 8px; margin-top: 14px; }
-  .dcut-bar { display: grid; grid-template-columns: 15em minmax(0, 1fr) 8.5em; gap: 10px; align-items: center; }
+  .dcut-bar { display: grid; grid-template-columns: 15em minmax(0, 1fr) 8.5em 24px; gap: 10px; align-items: center; }
   .dcut-bar .nm { font-weight: 700; font-size: 14px; line-height: 1.3; }
   .dcut-bar .nm small { display: block; font-weight: 400; color: var(--sub); font-size: 11px; }
   .dcut-bar .trk { height: 18px; background: var(--track); border-radius: 4px; overflow: hidden; }
@@ -205,7 +226,9 @@
   .dcut-bar .v small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
   .dcut-bar.plus .v { color: var(--green); }
   details.formula { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
-  details.formula summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+  details.formula > summary { cursor: pointer; font-weight: 700; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 8px; color: var(--total); }
+  details.formula > summary::-webkit-details-marker { display: none; }
+  details.formula > summary .chev { margin-left: auto; flex: none; }
   .f-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 8px; }
   .f-tabs button { font-size: 13px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
   .f-tabs button[aria-pressed="true"] { background: var(--total); border-color: var(--total); color: #fff; font-weight: 700; }
@@ -234,7 +257,8 @@
   @media (max-width: 760px) {
     .dcut-head { grid-template-columns: 1fr; gap: 8px; }
     .dcut-head .t .n { font-size: 22px; }
-    .dcut-bar { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
+    .dcut-bar { grid-template-columns: minmax(0, 1fr) auto 24px; gap: 4px 8px; }
+    .dcut-bar .chev { grid-column: 3; grid-row: 1; }
     .dcut-bar .trk { grid-column: 1 / -1; grid-row: 2; height: 12px; }
     .dcut-tbl th:nth-child(2), .dcut-tbl td:nth-child(2), .dcut-tbl th:nth-child(4), .dcut-tbl td:nth-child(4) { display: none; }
     .dcut-tbl th, .dcut-tbl td { padding: 7px 8px; }
@@ -246,7 +270,7 @@
   .k-in { background: var(--green); } .k-fee { background: var(--cost); } .k-del { background: var(--timing); }
   .k-ad { background: var(--off); border: 1px dashed var(--sub); } .k-cp { background: var(--amber); }
   .p10 { display: grid; gap: 4px; }
-  .p10-row { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 6.5em 1.2em; gap: 10px; align-items: center; width: 100%; text-align: left;
+  .p10-row { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 6.5em 24px; gap: 10px; align-items: center; width: 100%; text-align: left;
     background: transparent; border: 0; border-radius: 6px; padding: 7px 6px; cursor: pointer; }
   .p10-row:hover { background: var(--hover); }
   .p10-row:focus-visible { outline: 2px solid var(--total); outline-offset: 1px; }
@@ -260,15 +284,13 @@
   .p10-row .big { text-align: right; font-size: 16px; font-weight: 800; white-space: nowrap; }
   .p10-row .big small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
   .p10-row.ref .nm, .p10-row.ref .big { color: var(--sub); }
-  .p10-row .chev { color: var(--sub); font-size: 12px; text-align: center; transition: transform .15s; }
-  .p10-row[aria-expanded="true"] .chev { transform: rotate(90deg); }
   .p10-take { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 10px; }
   .p10-take .tk { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
   .p10-take .tk .k { font-size: 12px; font-weight: 600; color: var(--sub); }
   .p10-take .tk .n { font-size: 18px; font-weight: 800; }
   .p10-take .tk .d { font-size: 12px; color: var(--sub); }
   @media (max-width: 760px) {
-    .p10-row { grid-template-columns: minmax(0, 1fr) auto 1.2em; gap: 4px 8px; }
+    .p10-row { grid-template-columns: minmax(0, 1fr) auto 24px; gap: 4px 8px; }
     .p10-row .nm { grid-column: 1; grid-row: 1; }
     .p10-row .big { grid-column: 2; grid-row: 1; }
     .p10-row .chev { grid-column: 3; grid-row: 1; }
@@ -288,7 +310,7 @@
     .detail table.vt td.v, .detail table.vt th { padding-left: 8px; font-size: 12px; }
     .kpi .num { font-size: 22px; }
     .lead { font-size: 15px; }
-    .step { grid-template-columns: minmax(0, 1fr) auto 1.2em; gap: 3px 8px; }
+    .step { grid-template-columns: minmax(0, 1fr) auto 24px; gap: 3px 8px; }
     .step .name { grid-column: 1; grid-row: 1; }
     .step .amt { grid-column: 2; grid-row: 1; }
     .step .chev { grid-column: 3; grid-row: 1; }
@@ -323,8 +345,8 @@
         <button type="button" data-view="full" aria-pressed="true">자세히</button>
       </div>
     </div>
-    <p class="muted" id="fall-simple-note" hidden>줄을 누르면 자세히 나와요.</p>
-    <p class="muted" id="fall-full-note">막대를 누르면 세부 내역과 근거 자료가 나와요.</p>
+    <p id="fall-simple-note" hidden><span class="tap-hint"><i>▾</i>줄을 누르면 자세히 나와요</span></p>
+    <p id="fall-full-note"><span class="tap-hint"><i>▾</i>막대를 누르면 세부 내역과 근거 자료가 나와요</span></p>
     <div class="basis" id="basis" role="group" aria-label="포스 매출 보고서의 부가세 기준">
       <span>포스 매출 보고서 금액은</span>
       <button type="button" data-basis="gross" aria-pressed="true">부가세 포함</button>
@@ -345,10 +367,15 @@
   <section class="card pad" id="delivery" aria-labelledby="dcut-title">
     <h2 id="dcut-title">배달앱이 떼 가는 돈</h2>
     <p class="dcut-quote">사장님들 말씀처럼, 배달은 1만 원 팔면 절반 가까이 빠져요.</p>
+    <details class="more" id="r10-box">
+      <summary><span class="when-closed">1만 원이 어디로 가는지 하나씩 보기</span><span class="when-open">1만 원이 어디로 가나 · 접기</span><span class="chev" aria-hidden="true">▾</span></summary>
+      <div id="r10"></div>
+    </details>
     <div class="dcut-head" id="dcut-head"></div>
+    <span class="tap-hint" style="margin-top:12px"><i>▾</i>막대를 누르면 앱별로 얼마 × 몇 %인지 나와요</span>
     <div class="dcut-bars" id="dcut-bars"></div>
     <details class="formula" id="formula">
-      <summary>수식으로 보기 — 얼마에서 어떻게 계산된 값인지</summary>
+      <summary><span>수식으로 보기 — 얼마에서 어떻게 계산된 값인지</span><span class="chev" aria-hidden="true">▾</span></summary>
       <div class="f-tabs" id="f-tabs" role="group" aria-label="앱 고르기"></div>
       <div class="f-body" id="f-body"></div>
     </details>
@@ -369,7 +396,8 @@
 
   <section class="card pad" aria-labelledby="p10-title">
     <h2 id="p10-title">배달 1만 원 팔면 얼마 남나 · 앱별</h2>
-    <p class="muted">매장 카드와 나란히. 줄을 누르면 자세히.</p>
+    <p class="muted">매장 카드와 나란히.</p>
+    <span class="tap-hint"><i>▾</i>줄을 누르면 자세히 나와요</span>
     <div class="p10-legend" aria-label="막대 색 설명">
       <span><i class="k-in"></i>남는 돈</span>
       <span><i class="k-fee"></i>수수료·세금</span>
@@ -662,7 +690,7 @@
       h += '<button type="button" class="step ' + s.kind + '" data-id="' + s.id + '" aria-expanded="' + !!open[s.id] + '" aria-controls="d-' + s.id + '">' +
         '<span class="name">' + s.name + (s.check ? '<span class="tag-s check">확인 필요</span>' : '') + (s.notcost ? '<span class="tag-s notcost">비용 아님</span>' : '') + (s.note ? '<small>' + s.note + '</small>' : '') + '</span>' +
         '<span class="track" aria-hidden="true"><span class="bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span></span>' +
-        '<span class="amt">' + amt + '</span><span class="chev" aria-hidden="true">›</span></button>' +
+        '<span class="amt">' + amt + '</span><span class="chev" aria-hidden="true">▾</span></button>' +
         '<div class="detail" id="d-' + s.id + '"' + (open[s.id] ? '' : ' hidden') + '>' + s.detail + '</div>';
     });
     var fall = document.getElementById('fall');
@@ -731,7 +759,7 @@
       h += '<button type="button" class="p10-row' + (r.ref ? ' ref' : '') + '" data-id="' + r.id + '" aria-expanded="' + !!p10open[r.id] + '" aria-controls="p10d-' + r.id + '">' +
         '<span class="nm">' + r.name + '<small>' + r.sub + '</small></span>' +
         '<span class="stack" aria-hidden="true">' + seg('s-in', r.inn) + seg('s-fee', r.parts.fee) + seg('s-del', r.parts.del) + seg('s-ad', r.parts.ad) + seg('s-cp', r.parts.cp) + '</span>' +
-        '<span class="big">' + won(r.inn) + '원<small>원가까지 빼면 ' + won(left) + '원</small></span><span class="chev" aria-hidden="true">›</span></button>' +
+        '<span class="big">' + won(r.inn) + '원<small>원가까지 빼면 ' + won(left) + '원</small></span><span class="chev" aria-hidden="true">▾</span></button>' +
         '<div class="detail" id="p10d-' + r.id + '"' + (p10open[r.id] ? '' : ' hidden') + '>' +
         rowsHTML([['판 돈', '10,000', '이 달 ' + won(r.month.sale) + '원'],
           ['수수료·세금', '−' + won(r.parts.fee), r.ref ? '카드 수수료' : '중개·결제 수수료 + 부가세 · 이 달 ' + won(r.month.fee) + '원'],
@@ -776,20 +804,36 @@
       '<div class="t"><span class="k">이번 달 배달로 판 돈</span><div class="n">' + man(tot.sale) + ' 원</div><span class="d">A·B·C앱 ' + orders + '건</span></div>' +
       '<div class="t cut"><span class="k">배달로 빠진 돈 (앱·대행)</span><div class="n">' + man(cut) + ' 원</div><span class="d">판 돈의 ' + Math.round(cut / tot.sale * 100) + '% · 주문 1건당 약 ' + won(cut / orders) + '원</span></div>' +
       '<div class="t in"><span class="k">배달로 남은 돈</span><div class="n">' + man(inn) + ' 원</div><span class="d">1만 원 팔면 ' + won(inn / tot.sale * 10000) + '원 · 재료비 빼기 전</span></div>';
+    function rowsBy(f) { return apps.map(function (a) { var x = f(a); return [a.name + ' <span class="muted">' + a.mode + '</span>', x[0], x[1]]; }); }
+    function fv(a) { return Math.round((a.broker + a.pay) * 0.1); }
     var fixedItems = [
-      { nm: '배달비 (앱이 정산에서 뗌)', sub: '앱배달 · 주문마다 고정', v: tot.delApp },
-      { nm: '배달대행비 (충전금 차감)', sub: '가게배달 · 통장엔 충전할 때 큰 출금만', v: tot.agency },
-      { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee }
+      { nm: '배달비 (앱이 정산에서 뗌)', sub: '앱배달 · 주문마다 고정', v: tot.delApp,
+        rows: rowsBy(function (a) { return [a.deliv + a.vat - fv(a), '<code>' + a.orders + '건 × ' + won(a.perOrder) + '원</code> + 부가세 10%'];}),
+        note: '주문 금액과 상관없이 <b>건마다 고정</b>이라, 1만 원짜리 주문이면 1만 원 중 큰 몫이 돼요. 공개 보도 기준 가게 부담 1,900~3,400원 (예시).' },
+      { nm: '배달대행비 (충전금 차감)', sub: '가게배달 · 통장엔 충전할 때 큰 출금만', v: tot.agency,
+        rows: rowsBy(function (a) { return [a.agency, a.agency ? '<code>' + a.orders + '건 × ' + won(a.agencyCfg.perOrder) + '원</code> · 대행사 충전금에서' : '']; }),
+        note: '정산서엔 안 나오고 대행사 관리 화면에만 건별로 있어요. 손님 배달팁(+' + won(tot.tip) + '원)이 일부를 메워요.' },
+      { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee,
+        rows: [].concat.apply([], apps.map(function (a) { var R = SETTLE[a.key]; return [
+          [a.name + ' 중개 수수료', a.broker, '<code>' + won(a.sale) + ' × ' + (R.brokerRate * 100).toFixed(1) + '%</code> · 어느 금액(할인 전/후)에 매기는지가 앱마다 달라요'],
+          [a.name + ' 결제 수수료', a.pay, '<code>' + won(a.sale) + ' × ' + (R.payRate * 100).toFixed(1) + '%</code>'],
+          [a.name + ' 수수료 부가세', fv(a), '<code>(' + won(a.broker) + ' + ' + won(a.pay) + ') × 10%</code>']]; })),
+        note: '요율은 예시예요 (중개 2.0~7.8%, 결제 약 3% · 공개 보도·정산서 사례 기준). <b>무엇에 몇 %를 매겼는지</b>가 실제 다툼이 된 부분이라, 사장님 정산서로 맞춰 보는 게 핵심이에요.' }
     ], choiceItems = [
-      { nm: '점주 부담 할인', sub: '가게가 건 쿠폰 + 브랜드 행사 가게 몫', v: tot.cp },
-      { nm: '광고', sub: '정산금에서 바로 빠져서 통장엔 안 보여요', v: tot.ad }
+      { nm: '점주 부담 할인', sub: '가게가 건 쿠폰 + 브랜드 행사 가게 몫', v: tot.cp,
+        rows: rowsBy(function (a) { return [a.couponStore, '가게 몫 ' + won(a.couponStore) + '원' + (a.couponHQ ? ' · 본사 부담 ' + won(a.couponHQ) + '원은 안 뺌' : '')]; }),
+        note: '할인을 줄이면 이만큼 더 남지만 주문이 줄 수 있어요. 할인 전 금액에 수수료를 매기는 앱이면, 할인한 돈에도 수수료가 붙어요.' },
+      { nm: '광고', sub: '정산금에서 바로 빠져서 통장엔 안 보여요', v: tot.ad,
+        rows: rowsBy(function (a) { return [a.ad, '클릭 광고 · 정산금에서 바로 빠짐']; }),
+        note: '한 달 끄거나 줄여 보고 주문 수와 같이 비교해 볼 만한 돈이에요.' }
     ];
     var all = fixedItems.concat(choiceItems).filter(function (it) { return it.v > 0; });
     var mx = Math.max.apply(null, all.map(function (it) { return it.v; }));
     function bar(it) {
-      return '<div class="dcut-bar"><span class="nm">' + it.nm + '<small>' + it.sub + '</small></span>' +
+      return '<details class="dbar"><summary class="dcut-bar"><span class="nm">' + it.nm + '<small>' + it.sub + '</small></span>' +
         '<span class="trk" aria-hidden="true"><span style="width:' + (it.v / mx * 100).toFixed(1) + '%"></span></span>' +
-        '<span class="v">−' + won(it.v) + '원<small>1만 원당 ' + won(it.v / tot.sale * 10000) + '원</small></span></div>';
+        '<span class="v">−' + won(it.v) + '원<small>1만 원당 ' + won(it.v / tot.sale * 10000) + '원</small></span><span class="chev" aria-hidden="true">▾</span></summary>' +
+        '<div class="detail">' + rowsHTML(it.rows.filter(function (x) { return x[1]; }).map(function (x) { return [x[0], '−' + won(x[1]), x[2]]; })) + (it.note ? '<p class="note">' + it.note + '</p>' : '') + '</div></details>';
     }
     function group(title, sub, items, extra, cls) {
       var list = items.filter(function (it) { return it.v > 0; }).sort(function (x, y) { return y.v - x.v; });
@@ -818,6 +862,38 @@
       '<li><b>직접 배달</b> (사장님·직원): 대행비는 없지만 인건비·오토바이 비용으로 나감</li>' +
       '</ul><p class="muted">대행비는 보통 지역 지사와 계약해 지사마다 다르고, 거리·날씨 할증이 붙어요. 후불·월정산으로 하는 곳도 있다는 이야기가 있지만 확인하지 못했어요.</p></div>';
     document.getElementById('dcut-bars').innerHTML = bars;
+    // 1만 원이 어디로 가나 (하나씩)
+    var P = function (x) { return Math.round(x / tot.sale * 10000); };
+    var feeVatT = sum(apps, fv), brokerT = A('broker'), payT = A('pay');
+    var it10 = [
+      { g: '정해진 돈 (앱·배달 구조)' },
+      { nm: '배달비 (앱배달)', v: P(tot.delApp), how: '주문마다 고정 금액 × 건수 + 부가세 · 작은 주문일수록 비중이 커요' },
+      { nm: '중개 수수료', v: P(brokerT), how: '<code>주문금액 × 요율</code> · 예시 ' + apps.map(function (a) { return a.name + ' ' + (SETTLE[a.key].brokerRate * 100).toFixed(1) + '%'; }).join(', ') + ' · <b>할인 전/후 어느 금액에 매기는지 앱마다 다름</b>' },
+      { nm: '결제 수수료', v: P(payT), how: '<code>주문금액 × 약 3%</code> · 정산서 사례에선 할인 뺀 금액에 붙음' },
+      { nm: '수수료 부가세', v: P(feeVatT), how: '<code>(중개 + 결제) × 10%</code> · 일반과세면 부가세 신고 때 공제받는 몫이에요 (세무사 확인)' },
+      { nm: '배달대행비 (가게배달)', v: P(tot.agency), how: '건당 대행비 × 건수 · 정산서 밖, 충전금에서 빠짐' },
+      { nm: '손님 배달팁', v: -P(tot.tip), how: '가게배달일 때 손님이 낸 배달비 · 정산금에 더해짐' },
+      { g: '가게가 고르는 돈' },
+      { nm: '점주 부담 할인', v: P(tot.cp), how: '가게가 건 쿠폰·행사 가게 몫', choice: true },
+      { nm: '광고', v: P(tot.ad), how: '클릭 광고 · 정산금에서 바로 빠짐', choice: true }
+    ];
+    var cut10 = 0, fixed10 = 0, choice10 = 0;
+    var rr = '<tr class="sum"><td>배달로 판 돈<span class="s">이 달 배달 주문 ' + won(tot.sale) + '원을 1만 원으로 줄여 본 값</span></td><td class="v">10,000원</td></tr>';
+    it10.forEach(function (x) {
+      if (x.g) { rr += '<tr class="grp"><td colspan="2">' + x.g + '</td></tr>'; return; }
+      if (!x.v) return;
+      cut10 += x.v; if (x.choice) choice10 += x.v; else fixed10 += x.v;
+      rr += '<tr class="' + (x.v < 0 ? 'pos' : 'neg') + (x.choice ? ' choice' : '') + '"><td>' + x.nm + '<span class="s">' + x.how + '</span></td><td class="v">' + (x.v < 0 ? '+' + won(-x.v) : '−' + won(x.v)) + '원</td></tr>';
+    });
+    var after = 10000 - cut10, mat10 = Math.round(10000 * delivRate()), pack10 = P(orders * PACK), left10 = after - mat10 - pack10;
+    rr += '<tr class="sum"><td>= 앱·배달 몫 빼고 남는 돈<span class="s">빠진 돈 ' + won(cut10) + '원 (' + Math.round(cut10 / 100) + '%)</span></td><td class="v">' + won(after) + '원</td></tr>' +
+      '<tr class="grp"><td colspan="2">가게 원가</td></tr>' +
+      '<tr class="neg"><td>재료비<span class="s"><code>10,000 × 배달 원가율 ' + (delivRate() * 100).toFixed(1) + '%</code> · 아래 원가율 칸에서 바꿔요</span></td><td class="v">−' + won(mat10) + '원</td></tr>' +
+      '<tr class="neg"><td>포장재<span class="s"><code>1건당 ' + won(PACK) + '원 × ' + orders + '건</code>을 1만 원 기준으로</span></td><td class="v">−' + won(pack10) + '원</td></tr>' +
+      '<tr class="sum"><td>= 재료비·포장재까지 빼고 남는 돈<span class="s">인건비·임대료·로열티는 아직 안 뺌</span></td><td class="v">' + won(left10) + '원</td></tr>';
+    document.getElementById('r10').innerHTML = '<table class="r10">' + rr + '</table>' +
+      '<div class="r10-take"><b>"절반 가까이"를 나눠 보면</b><br>앱·배달 몫이 1만 원 중 <b>' + won(cut10) + '원</b>이에요. 그중 <b>' + won(fixed10) + '원</b>은 구조로 정해진 돈(배달비·수수료)이고, <b>' + won(choice10) + '원</b>은 가게가 고른 돈(할인·광고)이에요. 재료비·포장재까지 빼면 <b>' + won(left10) + '원</b>이 남아요.</div>' +
+      '<p class="muted">예시 숫자예요. 요율·배달비는 실제 앱 요율이 아니고, 사장님 정산서로 바꿔 넣으면 그 가게 숫자가 돼요.</p>';
     document.getElementById('dcut-table').innerHTML = table + how +
       '<p class="muted">예시 숫자예요. 수수료율·배달비·대행비·포장재는 실제 요율이 아니고, 사장님 정산서와 원가로 바꿔 넣어요. 앱별 1만 원당은 바로 아래에.</p>';
   }
