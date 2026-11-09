@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <title>배달 1건 계산기</title>
-<meta name="description" content="배달 1건 팔면 얼마 남는지, 수수료·배달비·원가까지 줄마다 수식으로 (예시 요율)">
+<meta name="description" content="배달, 어디로 팔면 얼마 남나 — 앱배달·가게배달·본사 앱·포장을 나란히 놓고 손해 안 보는 최소 주문까지 줄마다 수식으로 (예시 요율)">
 <style>
   :root {
     --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6;
-    --total: #2563eb; --red: #dc2626; --red-bg: #fee2e2; --green: #15803d; --green-bg: #dcfce7; --amber: #b45309; --amber-bg: #fef3c7;
+    --total: #2563eb; --total-soft: #dbeafe; --red: #dc2626; --red-bg: #fee2e2; --green: #15803d; --green-bg: #dcfce7; --amber: #b45309; --amber-bg: #fef3c7;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
@@ -24,10 +24,11 @@
   .content { max-width: 960px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 14px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
   h2 { font-size: 15px; margin: 0 0 6px; }
+  h3 { font-size: 14px; margin: 0 0 8px; }
   .muted { color: var(--sub); font-size: 13px; margin: 0; }
   .lead { font-size: 15px; margin: 0; }
   .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
-  label.f { display: grid; gap: 3px; font-size: 13px; font-weight: 600; }
+  label.f { display: grid; gap: 3px; font-size: 13px; font-weight: 600; align-content: start; }
   label.f small { font-weight: 400; color: var(--sub); font-size: 11.5px; }
   label.f input, label.f select { width: 100%; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel); text-align: right; }
   label.f select { text-align: left; }
@@ -36,6 +37,44 @@
   .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
   .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 10px; }
   .row .lab { font-size: 13px; font-weight: 600; }
+  /* 숫자 몇 개 */
+  .qhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
+  .qhead h2 { margin: 0; }
+  .qgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+  .qgrid label.f input, .qgrid label.f select { font-size: 16px; padding: 8px 10px; }
+  .answer { margin: 14px 0 4px; padding: 10px 12px; border-left: 4px solid var(--total); background: #eff6ff; border-radius: 0 8px 8px 0; font-size: 14.5px; }
+  .answer p { margin: 0; }
+  .answer p + p { margin-top: 5px; font-size: 13px; }
+  .answer .neg { color: var(--red); font-weight: 700; }
+  /* 길별 비교 */
+  .chs { display: grid; gap: 2px; margin-top: 6px; }
+  .chs .gh { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700; color: var(--sub); margin: 10px 6px 2px; }
+  .chs .gh span:last-child { font-weight: 400; text-align: right; }
+  details.ch > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto 24px; gap: 4px 10px; align-items: center; padding: 8px 6px; border-radius: 8px; }
+  details.ch > summary::-webkit-details-marker { display: none; }
+  details.ch > summary:hover { background: var(--head); }
+  details.ch > summary:focus-visible { outline: 2px solid var(--total); outline-offset: 1px; }
+  details.ch .nm { font-weight: 700; font-size: 14px; line-height: 1.3; }
+  details.ch .nm small { display: block; font-weight: 400; color: var(--sub); font-size: 11.5px; }
+  details.ch .v { text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
+  details.ch .v small { display: block; font-weight: 600; font-size: 11.5px; color: var(--sub); }
+  details.ch .bar { grid-column: 1 / 3; height: 8px; background: var(--head); border-radius: 4px; overflow: hidden; }
+  details.ch .bar span { display: block; height: 100%; background: var(--total); border-radius: 4px; }
+  details.ch.cmp .nm, details.ch.cmp .v { color: var(--sub); }
+  details.ch.cmp .bar span { background: var(--line-strong); }
+  details.ch.best .v { color: var(--green); }
+  details.ch.loss .v { color: var(--red); }
+  details.ch > .detail { margin: 2px 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--page); padding: 10px 12px; }
+  .chev { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--total-soft); color: var(--total); font-size: 11px; font-weight: 800; line-height: 1; transition: transform .15s; justify-self: center; }
+  details[open] > summary .chev { transform: rotate(180deg); }
+  @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+  /* 더 자세히 */
+  details.more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); font-weight: 700; font-size: 15px; }
+  details.more > summary small { display: block; font-weight: 400; color: var(--sub); font-size: 12.5px; }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary .chev { margin-left: auto; flex: none; }
+  details.more[open] > summary { border-radius: 10px 10px 0 0; }
+  details.more > .inner { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; background: var(--panel); padding: 14px 16px; display: grid; gap: 18px; }
   .big { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .big .t { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
   .big .t .k { font-size: 12px; color: var(--sub); font-weight: 600; }
@@ -47,7 +86,7 @@
   .eq .op { color: var(--sub); text-align: center; font-weight: 700; }
   .eq .amt { text-align: right; font-weight: 700; white-space: nowrap; }
   .eq .how { grid-column: 2 / -1; font-size: 12px; color: var(--sub); margin: -1px 0 5px; }
-  .eq .how code { font-family: inherit; background: var(--head); border-radius: 4px; padding: 0 4px; color: var(--ink); }
+  .eq .how code, .note code { font-family: inherit; background: var(--head); border-radius: 4px; padding: 0 4px; color: var(--ink); }
   .eq .rng { color: var(--amber); }
   .eq .sum { border-top: 1px solid var(--line-strong); padding-top: 4px; font-weight: 800; }
   .eq .choice { color: var(--amber); }
@@ -55,12 +94,6 @@
   .groups .g { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
   .groups .g.c { border-color: var(--amber); background: var(--amber-bg); }
   .groups .g b { display: block; } .groups .g .n { font-size: 20px; font-weight: 800; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-  th { background: var(--head); font-size: 12px; font-weight: 600; }
-  td.l, th.l { text-align: left; white-space: normal; }
-  td .s { display: block; font-size: 11px; color: var(--sub); white-space: normal; }
-  tr.me td { background: #eff6ff; font-weight: 700; }
   .pos { color: var(--green); font-weight: 700; } .neg { color: var(--red); font-weight: 700; }
   .note { font-size: 12.5px; color: var(--sub); margin: 8px 0 0; }
   .note b { color: var(--ink); }
@@ -76,9 +109,10 @@
     .top { padding: 10px 16px; } .top h1 { font-size: 16px; }
     .content { padding: 12px 16px 28px; }
     .grid2, .big, .groups { grid-template-columns: 1fr; }
+    .qgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    label.f input, label.f select { font-size: 16px; }
     .big .t .n { font-size: 22px; }
-    th, td { padding: 7px 6px; }
-    .hide-m { display: none; }
+    details.more > .inner { padding: 12px; }
   }
 </style>
 </head>
@@ -90,73 +124,99 @@
 
 <main class="content">
   <section class="card">
-    <p class="lead"><b>배달 1건 팔면 얼마 남을까요?</b> 메뉴 가격과 원가만 넣으면 수수료·배달비·원가까지 빼고 남는 돈을 <b>줄마다 수식</b>으로 보여 드려요. 같은 메뉴를 매장·포장으로 팔 때와도 나란히 놓아요.</p>
+    <p class="lead"><b>배달, 어디로 팔면 얼마 남을까요?</b> 숫자 몇 개만 바꾸면 앱배달·가게배달·본사 앱·포장을 나란히 놓고, <b>손해 안 보는 최소 주문</b>까지 보여 드려요. 줄을 누르면 수식이 나와요.</p>
     <p class="muted" style="margin-top:6px">입력한 숫자는 이 화면에서만 계산되고 어디에도 저장되지 않아요.</p>
   </section>
 
-  <section class="card" aria-labelledby="in-title">
-    <h2 id="in-title">넣을 것</h2>
-    <div class="row"><span class="lab">배달 방식</span>
-      <div class="seg" id="mode" role="group" aria-label="배달 방식">
-        <button type="button" data-v="app" aria-pressed="true">앱배달 (앱이 라이더)</button>
-        <button type="button" data-v="agency" aria-pressed="false">가게배달 + 배달대행</button>
-        <button type="button" data-v="self" aria-pressed="false">직접 배달</button>
+  <section class="card" aria-labelledby="q-title">
+    <div class="qhead">
+      <h2 id="q-title">숫자 몇 개만 바꿔 보세요</h2>
+      <div class="seg" id="preset" role="group" aria-label="예시 바꾸기">
+        <button type="button" data-v="food" aria-pressed="true">식당 예시</button>
+        <button type="button" data-v="cafe" aria-pressed="false">카페 예시</button>
       </div>
     </div>
-    <div class="grid2">
-      <label class="f">배달 주문금액 (원)<small>손님이 시킨 메뉴 값 합계</small><input type="number" id="price" min="0" step="500" inputmode="numeric"></label>
-      <label class="f">배달가 인상 (원)<small>같은 메뉴를 매장보다 얼마 비싸게 받나 · 같으면 0</small><input type="number" id="up" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">원가율 (%)<small>재료비 ÷ 매장 판매가 · 보통 식당 30% 안팎</small><input type="number" id="rate" min="0" max="90" step="1" inputmode="numeric"></label>
-      <label class="f">포장재 1건당 (원)<small>용기·봉투·컵 홀더 등</small><input type="number" id="pack" min="0" step="50" inputmode="numeric"></label>
-      <label class="f">중개 수수료 구간<small class="rng-s">상생요금제 2.0~7.8% (부가세 별도) · 매출 구간마다</small>
-        <select id="broker"><option value="7.8">7.8% (매출 상위 구간)</option><option value="6.8">6.8% (중간 구간)</option><option value="2">2.0% (하위 구간)</option></select></label>
-      <label class="f">결제 수수료 (%)<small>주문금액의 3% (부가세 별도) · 쿠팡이츠 약관·배민 정산서 사례</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
-      <label class="f" data-show="app">가게 부담 배달비 (원)<small>상생요금제 1,900~3,400원 · 구간·거리마다</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
-      <label class="f" data-show="agency">배달대행비 1건당 (원)<small>배달료 + 콜비 · 지사마다 다름</small><input type="number" id="agency" min="0" step="100" inputmode="numeric"></label>
-      <label class="f" data-show="self">직접 배달 1건당 드는 돈 (원)<small>시간 인건비 + 기름값 어림</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
-      <label class="f" data-show="agency self">손님 배달팁 (원)<small>손님이 낸 배달비 · 정산금에 더해짐</small><input type="number" id="tip" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 없으면 0</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">가게 단독 할인 (원)<small>사장님이 직접 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">본사 행사 중 가게가 내는 몫 (원)<small>브랜드 행사 할인을 가맹점이 나눠 낼 때 · 가게 돈에서 빠짐</small><input type="number" id="hqshare" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">본사 행사 중 본사가 내는 몫 (원)<small>본사가 채워 줌 · 가게 돈에선 안 빠짐</small><input type="number" id="hqdisc" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">앱 부담 할인 (원)<small>앱이 자기 돈으로 준 쿠폰 · 가게 돈에선 안 빠짐</small><input type="number" id="appdisc" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">쓰는 앱 (가게 할인에 수수료 붙는 방식)<small>공정위 자료 기준 · 아래 설명</small>
-        <select id="feebase"><option value="bm">배민·요기요·땡겨요 등 — 가게 할인 뺀 금액에</option><option value="cp">쿠팡이츠 (2026-04~) — 중개는 할인 전, 결제는 단독 할인만 뺌</option><option value="cpold">쿠팡이츠 (2026-03까지) — 중개·결제 모두 할인 전</option></select></label>
-      <label class="f" data-show="agency self">한 달 배달 건수<small>고정비를 1건당으로 나눌 때 씀</small><input type="number" id="count" min="1" step="1" inputmode="numeric"></label>
-      <label class="f" data-show="agency self">배달 월 고정비 (원)<small>배달대행 월 관리비 + 충전 수수료, 오토바이 리스 등 · 없으면 0</small><input type="number" id="fixed" min="0" step="1000" inputmode="numeric"></label>
-      <label class="f">매장 카드 수수료 (%)<small>매출 규모마다 다름 · 비교용</small><input type="number" id="card" min="0" max="5" step="0.1" inputmode="decimal"></label>
-      <label class="f">앱 포장 주문 수수료 (%)<small>공개 글 기준 예시 6.8% · 비교용</small><input type="number" id="takeout" min="0" max="15" step="0.1" inputmode="decimal"></label>
+    <div class="qgrid">
+      <label class="f">메뉴 1개 값 (원)<small>매장 가격 · 평균</small><input type="number" id="item" min="0" step="100" inputmode="numeric"></label>
+      <label class="f"><span id="items-lab">배달 1건에 몇 개</span><small>보통 한 번에 시키는 양</small><input type="number" id="items" min="1" step="1" inputmode="numeric"></label>
+      <label class="f">원가율 (%)<small>재료비 ÷ 판매가</small><input type="number" id="rate" min="0" max="90" step="1" inputmode="numeric"></label>
+      <label class="f">배달대행비 (원)<small>가게배달·본사 앱 1건</small><input type="number" id="agency" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">손님 배달팁 (원)<small>가게배달·본사 앱에서 받는 돈</small><input type="number" id="tip" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">앱 매출 구간<small>모르면 그대로 두세요</small>
+        <select id="tier">
+          <option value="t1">상위 35%</option>
+          <option value="t2">35~50%</option>
+          <option value="t3">50~80%</option>
+          <option value="t4">하위 20%</option>
+        </select></label>
     </div>
-    <details class="note" style="margin-top:10px"><summary><b>앱마다 수수료 계산 방식이 달라요</b> (지금까지 확인한 것)</summary>
-      <ul style="margin:6px 0 0;padding-left:1.2em">
-        <li><b>문제가 되는 건 가게 돈으로 한 할인뿐이에요.</b> 사장님이 직접 건 할인, 본사 행사 중 가맹점이 나눠 낸 몫. 본사나 앱이 다 낸 할인은 가게 매출이 줄지 않아서 이번 쟁점이 아니에요.</li>
-        <li><b>배민·요기요·땡겨요·먹깨비</b>: 가게가 부담한 할인은 빼고 중개·결제 수수료를 매겨요 (공정위 자료). 배민 실제 정산서 사례에서도 결제 수수료가 가게 할인 뺀 금액의 정확히 3%로 맞았어요.</li>
-        <li><b>쿠팡이츠</b>: 약관에 "주문금액은 할인 전 판매가 기준"이라 가게가 할인한 돈에도 <b>중개 수수료</b>가 붙어요. 결제 수수료는 2026-04-01부터 가게 단독 할인만 빼 주고, 본사와 따로 계약한 행사는 가맹점 몫이 있어도 그대로 붙어요. 공정위가 이 약관을 60일 안에 고치라고 명령했어요 (2026-11, 업체는 반발). 실제 정산서 사례는 아직 못 구했어요.</li>
-        <li>공정위 조사에서 쿠팡이츠 가게 <b>과반이 이 기준 금액을 모르거나 "할인 후"로 잘못 알고 있었어요.</b> 내 정산서로 확인하려면 "중개 수수료 ÷ 주문금액"과 "중개 수수료 ÷ (주문금액 − 가게 할인)" 중 어느 쪽이 요율과 맞는지 보면 돼요.</li>
-        <li>요율을 언제 누가 공개했는지, 소송·공정위 쟁점까지 날짜별로: <a href="fees.html">요율 근거표 →</a></li>
-      </ul></details>
-    <div class="row" style="margin-top:12px"><span class="lab">과세 유형</span>
-      <div class="seg" id="tax" role="group" aria-label="과세 유형">
-        <button type="button" data-v="general" aria-pressed="true">일반과세</button>
-        <button type="button" data-v="simple" aria-pressed="false">간이과세</button>
+    <div class="answer" id="answer" aria-live="polite"></div>
+    <div class="chs" id="chs"></div>
+    <p class="note">할인·광고는 빼고 비교했어요 (할인은 아래 <b>더 자세히</b>에서). 요율은 상생요금제·공정위 자료 기준 예시라 사장님 정산서와 다를 수 있어요. <a href="fees.html">요율 근거표 →</a></p>
+    <p class="note"><b>이제 앱마다 메뉴 가격·최소주문금액을 따로 정해도 돼요.</b> 공정위가 배민·쿠팡의 "다른 앱보다 불리하게 하지 말라"(최혜대우) 요구에 시정명령을 내렸고, 공정위 설명으로는 가게가 앱별 요금을 보고 가격·최소주문금액을 자유롭게 정할 수 있어요. 배민 안에서도 가게배달과 배민배달의 최소주문금액을 따로 둘 수 있게 돼요 (2026-11-09 발표, 업체는 불복 뜻).</p>
+  </section>
+
+  <details class="more" id="deep">
+    <summary><span>더 자세히<small>수수료율·포장재·할인·멤버십을 바꾸고, 한 가지 방식을 줄마다 보기</small></span><span class="chev" aria-hidden="true">▾</span></summary>
+    <div class="inner">
+      <div>
+        <h3>더 넣을 것 (모르면 그대로)</h3>
+        <div class="grid2">
+          <label class="f">배달앱 메뉴 1개당 더 받는 돈 (원)<small>매장보다 올려 받는 금액 · 같으면 0 · 본사 앱·포장은 매장가로 봐요</small><input type="number" id="up" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">포장재 1건당 (원)<small>용기·봉투·컵 홀더 등 · 매장 손님은 빼요</small><input type="number" id="pack" min="0" step="50" inputmode="numeric"></label>
+          <label class="f">중개 수수료 (배민배달·쿠팡이츠)<small>상생요금제 2.0~7.8% (부가세 별도) · 위 매출 구간을 고르면 바뀜</small>
+            <select id="broker"><option value="7.8">7.8% (상위 35%)</option><option value="6.8">6.8% (35~80%)</option><option value="2">2.0% (하위 20%)</option></select></label>
+          <label class="f">가게 부담 배달비 (앱배달, 원)<small>상생요금제 1,900~3,400원 · 거리마다 · 구간을 고르면 가운데 값</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">결제 수수료 (%)<small>주문금액의 3% (부가세 별도) · 쿠팡이츠 약관·배민 정산서 사례</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
+          <label class="f">가게배달 중개 수수료 (%)<small>배민 가게배달(오픈리스트) 6.8% · 공정위 자료 · 다시 정하라는 명령 받음</small><input type="number" id="mp" min="0" max="15" step="0.1" inputmode="decimal"></label>
+          <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
+          <label class="f">본사 앱 적립 할인, 1개당 가게 부담 (원)<small>10개에 2천 원 할인이면 200 · 본사가 다 내면 0</small><input type="number" id="stamp" min="0" step="10" inputmode="numeric"></label>
+          <label class="f">직접 배달 1건 비용 (원)<small>시간 인건비 + 기름값 어림 · 직접 배달 방식에만</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 앱배달 · 없으면 0</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">가게 단독 할인 (원)<small>사장님이 직접 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">본사 행사 중 가게가 내는 몫 (원)<small>브랜드 행사 할인을 가맹점이 나눠 낼 때 · 가게 돈에서 빠짐</small><input type="number" id="hqshare" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">본사 행사 중 본사가 내는 몫 (원)<small>본사가 채워 줌 · 가게 돈에선 안 빠짐</small><input type="number" id="hqdisc" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">앱 부담 할인 (원)<small>앱이 자기 돈으로 준 쿠폰 · 가게 돈에선 안 빠짐</small><input type="number" id="appdisc" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">쓰는 앱 (가게 할인에 수수료 붙는 방식)<small>공정위 자료 기준 · 아래 설명</small>
+            <select id="feebase"><option value="bm">배민·요기요·땡겨요 등 — 가게 할인 뺀 금액에</option><option value="cp">쿠팡이츠 (2026-04~) — 중개는 할인 전, 결제는 단독 할인만 뺌</option><option value="cpold">쿠팡이츠 (2026-03까지) — 중개·결제 모두 할인 전</option></select></label>
+          <label class="f">한 달 배달 건수<small>월 고정비를 1건으로 나눌 때 씀</small><input type="number" id="count" min="1" step="1" inputmode="numeric"></label>
+          <label class="f">배달 월 고정비 (원)<small>배달대행 월 관리비 + 충전 수수료, 오토바이 리스 등 · 없으면 0</small><input type="number" id="fixed" min="0" step="1000" inputmode="numeric"></label>
+          <label class="f">매장 카드 수수료 (%)<small>매출 규모마다 다름 · 비교용</small><input type="number" id="card" min="0" max="5" step="0.1" inputmode="decimal"></label>
+          <label class="f">앱 포장 주문 수수료 (%)<small>공개 글 기준 예시 6.8% · 비교용</small><input type="number" id="takeout" min="0" max="15" step="0.1" inputmode="decimal"></label>
+        </div>
+        <details class="note" style="margin-top:10px"><summary><b>앱마다 수수료 계산 방식이 달라요</b> (지금까지 확인한 것)</summary>
+          <ul style="margin:6px 0 0;padding-left:1.2em">
+            <li><b>문제가 되는 건 가게 돈으로 한 할인뿐이에요.</b> 사장님이 직접 건 할인, 본사 행사 중 가맹점이 나눠 낸 몫. 본사나 앱이 다 낸 할인은 가게 매출이 줄지 않아서 이번 쟁점이 아니에요.</li>
+            <li><b>배민·요기요·땡겨요·먹깨비</b>: 가게가 부담한 할인은 빼고 중개·결제 수수료를 매겨요 (공정위 자료). 배민 실제 정산서 사례에서도 결제 수수료가 가게 할인 뺀 금액의 정확히 3%로 맞았어요.</li>
+            <li><b>쿠팡이츠</b>: 약관에 "주문금액은 할인 전 판매가 기준"이라 가게가 할인한 돈에도 <b>중개 수수료</b>가 붙어요. 결제 수수료는 2026-04-01부터 가게 단독 할인만 빼 주고, 본사와 따로 계약한 행사는 가맹점 몫이 있어도 그대로 붙어요. 공정위가 이 약관을 60일 안에 고치라고 명령했어요 (2026-11, 업체는 반발). 실제 정산서 사례는 아직 못 구했어요.</li>
+            <li>공정위 조사에서 쿠팡이츠 가게 <b>과반이 이 기준 금액을 모르거나 "할인 후"로 잘못 알고 있었어요.</b> 내 정산서로 확인하려면 "중개 수수료 ÷ 주문금액"과 "중개 수수료 ÷ (주문금액 − 가게 할인)" 중 어느 쪽이 요율과 맞는지 보면 돼요.</li>
+            <li>요율을 언제 누가 공개했는지, 소송·공정위 쟁점까지 날짜별로: <a href="fees.html">요율 근거표 →</a></li>
+          </ul></details>
+        <div class="row" style="margin-top:12px"><span class="lab">과세 유형</span>
+          <div class="seg" id="tax" role="group" aria-label="과세 유형">
+            <button type="button" data-v="general" aria-pressed="true">일반과세</button>
+            <button type="button" data-v="simple" aria-pressed="false">간이과세</button>
+          </div>
+        </div>
+        <p class="note" id="tax-note"></p>
+      </div>
+
+      <div>
+        <h3>한 가지 방식, 줄마다 (할인·멤버십까지)</h3>
+        <div class="row"><span class="lab">배달 방식</span>
+          <div class="seg" id="mode" role="group" aria-label="배달 방식">
+            <button type="button" data-v="app" aria-pressed="true">앱배달 (앱이 라이더)</button>
+            <button type="button" data-v="agency" aria-pressed="false">가게배달 + 배달대행</button>
+            <button type="button" data-v="self" aria-pressed="false">직접 배달</button>
+          </div>
+        </div>
+        <div class="big" id="big"></div>
+        <div class="eq" id="eq" style="margin-top:14px"></div>
+        <div class="groups" id="groups"></div>
+        <p class="note" id="small"></p>
       </div>
     </div>
-    <p class="note" id="tax-note"></p>
-  </section>
-
-  <section class="card" aria-labelledby="out-title">
-    <h2 id="out-title">배달 1건, 이렇게 남아요</h2>
-    <div class="big" id="big"></div>
-    <div class="eq" id="eq" style="margin-top:14px"></div>
-    <div class="groups" id="groups"></div>
-    <p class="note" id="small"></p>
-  </section>
-
-  <section class="card" aria-labelledby="cmp-title">
-    <h2 id="cmp-title">같은 메뉴, 어떻게 팔면 얼마 남나</h2>
-    <p class="muted">1건당 · 원가·포장재까지 뺀 금액 · 판단은 사장님 몫이에요</p>
-    <div style="overflow-x:auto;margin-top:8px"><table><thead><tr><th class="l">파는 방식</th><th>받는 값</th><th class="hide-m">빠지는 돈</th><th class="hide-m">원가·포장재</th><th>남는 돈</th></tr></thead><tbody id="cmp"></tbody></table></div>
-  </section>
+  </details>
 
   <section class="card cta">
     <h2>실제 정산서로 맞춰 보고 싶으시면</h2>
@@ -173,23 +233,135 @@
     <p class="note" id="lib-err" hidden>엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
   </section>
 
-  <p class="foot">요율·단가는 공개 보도·공개 글 기준 <b>예시</b>예요. 앱·시기·가게 매출 구간·지역마다 다르고 자주 바뀌니, 실제 금액은 사장님 정산서로 확인해 주세요. 세금 판단은 세무사님 확인이 필요해요.</p>
+  <p class="foot">요율·단가는 상생요금제·공정위 자료·공개 글 기준 <b>예시</b>예요. 앱·시기·가게 매출 구간·지역마다 다르고 자주 바뀌니, 실제 금액은 사장님 정산서로 확인해 주세요. 세금 판단은 세무사님 확인이 필요해요.</p>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 (function () {
   'use strict';
-  var DEF = { price: 20000, up: 0, rate: 33, pack: 500, broker: '7.8', pay: 3, deliv: 3400, agency: 4000, self: 2500, tip: 2000, member: 0, disc: 0, hqshare: 0, hqdisc: 0, appdisc: 0, feebase: 'bm', count: 30, fixed: 55000, card: 1.1, takeout: 6.8 };
-  var mode = 'app', tax = 'general';
+  // 예시 묶음 — 카페는 컵 값이 작아 "몇 잔부터 남나"가 핵심
+  var PRESET = {
+    food: { item: 10000, items: 2, rate: 33, pack: 500, stamp: 0, unit: '개' },
+    cafe: { item: 3000, items: 4, rate: 35, pack: 300, stamp: 200, unit: '잔' }
+  };
+  // 상생요금제 매출 구간 → 중개 수수료 · 가게 부담 배달비(범위 가운데)
+  var TIER = { t1: { b: '7.8', d: 2900 }, t2: { b: '6.8', d: 2600 }, t3: { b: '6.8', d: 2400 }, t4: { b: '2', d: 2400 } };
+  var DEF = { item: 10000, items: 2, rate: 33, agency: 4000, tip: 3000, tier: 't1', up: 0, pack: 500, broker: '7.8', deliv: 2900, pay: 3, mp: 6.8, hqfee: 3, stamp: 0,
+    self: 2500, member: 0, disc: 0, hqshare: 0, hqdisc: 0, appdisc: 0, feebase: 'bm', count: 300, fixed: 0, card: 1.1, takeout: 6.8 };
+  var mode = 'app', tax = 'general', unit = '개', open = {};
   var $ = function (id) { return document.getElementById(id); };
   Object.keys(DEF).forEach(function (k) { $(k).value = DEF[k]; });
   function n(id) { var v = Number($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
   function won(x) { return Math.round(x).toLocaleString('ko-KR'); }
-  function pct(x) { return (Math.round(x * 10) / 10).toFixed(1).replace(/\.0$/, ''); }
+  function pct(x) { return (Math.round(x * 100) / 100).toFixed(2).replace(/\.?0+$/, ''); }
+  function row(op, name, amt, how, cls) {
+    return '<span class="op">' + op + '</span><span class="' + (cls || '') + '">' + name + '</span><span class="amt ' + (cls || '') + '">' + won(amt) + '</span>' + (how ? '<span class="how">' + how + '</span>' : '');
+  }
 
+  function applyPreset(k) {
+    var p = PRESET[k]; if (!p) return;
+    ['item', 'items', 'rate', 'pack', 'stamp'].forEach(function (x) { $(x).value = p[x]; });
+    unit = p.unit;
+    Array.prototype.forEach.call($('preset').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x.dataset.v === k)); });
+  }
+  function applyTier() { var t = TIER[$('tier').value]; if (t) { $('broker').value = t.b; $('deliv').value = t.d; } }
+
+  // ── 길별 비교: 1건 남는 돈, 손해 안 보는 최소 주문 (할인·광고 빼고)
+  function model() {
+    var it = n('item'), k = Math.max(1, n('items')), up = n('up'), r = n('rate') / 100, pk = n('pack');
+    var b = Number($('broker').value) / 100, py = n('pay') / 100, mp = n('mp') / 100, hf = n('hqfee') / 100, tk = n('takeout') / 100, cd = n('card') / 100;
+    var ag = n('agency'), tp = n('tip'), dv = n('deliv'), M = n('member'), st = n('stamp'), sf = n('self');
+    var K = n('fixed'), N = Math.max(1, n('count')), fx = Math.round(K / N);
+    var fxRow = fx ? ['월 고정비 1건 몫', fx, '<code>' + won(K) + ' ÷ ' + won(N) + '건</code>'] : null;
+    var agRows = [['배달대행비', ag, '대행 라이더 · 충전금에서 나감'], ['손님 배달팁', -tp, '손님이 낸 배달비 · 가게로 들어옴'], fxRow];
+    var L = [
+      { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(py * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + py) * 1.1,
+        fTxt: '(' + pct(b * 100) + '% + ' + pct(py * 100) + '%) × 1.1',
+        costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · 상생요금제 1,900~3,400원'], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
+        per: 0, note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
+      { id: 'mp', grp: 'd', short: '가게배달', nm: '가게배달 + 배달대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(py * 100) + '% · 대행 라이더', price: it + up, f: (mp + py) * 1.1,
+        fTxt: '(' + pct(mp * 100) + '% + ' + pct(py * 100) + '%) × 1.1', costs: agRows.slice(), per: 0,
+        note: '가게배달 중개 ' + pct(mp * 100) + '%는 배민 오픈리스트 기준(공정위 자료)이에요. 공정위가 배민에 이 요율을 다시 정하라고 명령해서 바뀔 수 있어요.' },
+      { id: 'hq', grp: 'd', short: '본사 앱', nm: '본사 앱 배달', sub: '프랜차이즈 자체 앱 · 수수료 ' + pct(hf * 100) + '% (가정) · 대행 라이더', price: it, f: hf * 1.1,
+        fTxt: pct(hf * 100) + '% × 1.1', costs: agRows.slice(), per: st,
+        note: '본사 앱 수수료(' + pct(hf * 100) + '%)·적립 할인 부담(1개당 ' + won(st) + '원)은 가정이에요. 브랜드마다 달라서 점장님께 확인할 숫자예요. 메뉴는 매장 가격으로 봤어요.' },
+      { id: 'shop', grp: 'c', nm: '매장에서 (카드)', sub: '손님이 와서 먹거나 받아 감', price: it, f: cd, fTxt: pct(cd * 100) + '%', costs: [], per: 0, noPack: true,
+        note: '카드 수수료 ' + pct(cd * 100) + '%는 예시예요 (매출 규모마다 달라요).' },
+      { id: 'hqtk', grp: 'c', nm: '포장 · 본사 앱', sub: '본사 앱으로 주문하고 가져감', price: it, f: hf * 1.1, fTxt: pct(hf * 100) + '% × 1.1', costs: [], per: st,
+        note: '본사 앱 수수료·적립 할인 부담은 가정이에요.' },
+      { id: 'tk', grp: 'c', nm: '포장 · 배달앱 주문', sub: '배달앱으로 주문하고 가져감', price: it, f: (tk + py) * 1.1, fTxt: '(' + pct(tk * 100) + '% + ' + pct(py * 100) + '%) × 1.1', costs: [], per: 0,
+        note: '배달앱 포장 수수료 ' + pct(tk * 100) + '%는 공개 글 기준 예시예요.' },
+      { id: 'self', grp: null, short: '직접 배달', nm: '직접 배달', price: it + up, f: (mp + py) * 1.1, fTxt: '', costs: [['직접 배달 비용', sf, ''], ['손님 배달팁', -tp, ''], fxRow], per: 0 }
+    ];
+    L.forEach(function (c) {
+      c.costs = c.costs.filter(Boolean);
+      if (!c.noPack) c.costs.push(['포장재', pk, '1건당']);
+      c.k = k; c.it = it; c.r = r;
+      c.P = Math.round(k * c.price);
+      c.fee = Math.round(c.P * c.f);
+      c.fixed = c.costs.reduce(function (s, x) { return s + Math.round(x[1]); }, 0);   // 주문마다 나가는 돈 (개수와 상관없이)
+      c.mat = Math.round(k * it * r);
+      c.stamp = Math.round(k * c.per);
+      c.left = c.P - c.fee - c.fixed - c.mat - c.stamp;
+      c.m = c.price * (1 - c.f) - it * r - c.per;                                        // 1개 더 팔 때 남는 몫
+      if (c.m <= 0) { c.beN = null; }
+      else if (c.fixed <= 0) { c.beN = 1; c.beX = 0; c.beP = 0; }
+      else { c.beX = c.fixed / c.m; c.beN = Math.max(1, Math.ceil(c.beX - 1e-9)); c.beP = Math.ceil(c.beX * c.price / 100) * 100; }
+    });
+    return L;
+  }
+  function beText(c) {
+    if (c.beN == null) return '몇 ' + unit + '를 팔아도 손해';
+    if (c.beN === 1) return '1' + unit + '부터 남음';
+    return c.beN + unit + '부터 (' + won(c.beP) + '원~)';
+  }
+  function chDetail(c) {
+    var h = row('', '받는 돈', c.P, '<code>' + c.k + unit + ' × ' + won(c.price) + '원</code>' + (c.price !== c.it ? ' · 배달앱 메뉴 1개당 ' + won(c.price - c.it) + '원 더 받음' : ''));
+    h += row('−', '수수료', c.fee, '<code>' + won(c.P) + ' × ' + c.fTxt + '</code>' + (c.id === 'shop' ? '' : ' · 부가세 포함'));
+    c.costs.forEach(function (x) { h += row(x[1] < 0 ? '+' : '−', x[0], Math.abs(Math.round(x[1])), x[2]); });
+    if (c.stamp) h += row('−', '적립 할인 (가게 부담 가정)', c.stamp, '<code>' + c.k + unit + ' × ' + won(c.per) + '원</code>');
+    h += row('−', '재료비', c.mat, '<code>' + c.k + unit + ' × ' + won(c.it) + ' × ' + pct(c.r * 100) + '%</code> · 매장 가격 기준');
+    h += row('=', '1건 남는 돈', c.left, '인건비·임대료·로열티 내기 전', 'sum');
+    var be;
+    if (c.beN == null) be = '1' + unit + ' 팔 때 남는 몫이 0원 이하라 몇 ' + unit + '를 팔아도 손해예요. 원가율이나 수수료를 확인해 보세요.';
+    else if (c.fixed <= 0) be = '주문마다 따로 나가는 돈이 없어서 1' + unit + '부터 남아요.';
+    else be = '<b>손해 안 보는 최소 주문</b>: <code>주문마다 나가는 돈 ' + won(c.fixed) + ' ÷ 1' + unit + '당 남는 몫 ' + won(c.m) + ' = ' + (Math.round(c.beX * 10) / 10) + unit + '</code> → <b>' + c.beN + unit + '부터</b>' + (c.beN > 1 ? ' (최소주문금액 약 ' + won(c.beP) + '원)' : '') +
+      '<br>1' + unit + '당 남는 몫 = <code>' + won(c.price) + ' × (1 − ' + pct(c.f * 100) + '%) − 재료비 ' + won(c.it * c.r) + (c.per ? ' − 적립 ' + won(c.per) : '') + '</code>';
+    return '<div class="eq">' + h + '</div><p class="note">' + be + '</p>' + (c.note ? '<p class="note">' + c.note + '</p>' : '');
+  }
+  function renderChannels(L) {
+    var it = n('item');
+    $('items-lab').textContent = '배달 1건에 몇 ' + unit;
+    if (!it) { $('answer').innerHTML = '<p>메뉴 1개 값을 넣어 주세요.</p>'; $('chs').innerHTML = ''; return; }
+    var shown = L.filter(function (c) { return c.grp; });
+    var d = shown.filter(function (c) { return c.grp === 'd'; }), app = d[0];
+    var best = d.slice().sort(function (x, y) { return y.left - x.left; })[0];
+    var s1 = '<b>배달 1건(' + app.k + unit + ')</b>이면 <b>' + best.nm + '</b>이 <b>' + won(best.left) + '원</b>으로 가장 많이 남아요' + (best !== app ? ' — 앱배달보다 <b>' + won(best.left - app.left) + '원</b> 더' : '') + '.';
+    if (app.left < 0) s1 += ' <span class="neg">앱배달은 이 주문이면 1건에 ' + won(-app.left) + '원 손해예요.</span>';
+    var s2 = '<b>손해 안 보는 최소 주문</b>: ' + d.map(function (c) { return c.short + ' ' + (c.beN == null ? '늘 손해' : c.beN + unit + '부터'); }).join(' · ');
+    $('answer').innerHTML = '<p>' + s1 + '</p><p>' + s2 + '</p>';
+    var mx = Math.max.apply(null, shown.map(function (c) { return Math.max(c.left, 0); }).concat([1]));
+    var h = '<div class="gh"><span>배달</span><span>1건 남는 돈 · 몇 ' + unit + '부터 남나</span></div>';
+    shown.forEach(function (c, i) {
+      if (i && c.grp !== shown[i - 1].grp) h += '<div class="gh"><span>비교: 매장·포장</span></div>';
+      var cls = 'ch' + (c.grp === 'c' ? ' cmp' : '') + (c === best ? ' best' : '') + (c.left < 0 ? ' loss' : '');
+      h += '<details class="' + cls + '" data-id="' + c.id + '"' + (open[c.id] ? ' open' : '') + '><summary>' +
+        '<span class="nm">' + c.nm + '<small>' + c.sub + '</small></span>' +
+        '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '원<small>' + beText(c) + '</small></span>' +
+        '<span class="chev" aria-hidden="true">▾</span>' +
+        '<span class="bar" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></span>' +
+        '</summary><div class="detail">' + chDetail(c) + '</div></details>';
+    });
+    $('chs').innerHTML = h;
+  }
+  $('chs').addEventListener('toggle', function (e) { var el = e.target; if (el.dataset && el.dataset.id) open[el.dataset.id] = el.open; }, true);
+
+  // ── 한 가지 방식, 줄마다 (할인·멤버십까지)
   function calc() {
-    var P = n('price'), U = Math.min(n('up'), P), r = n('rate') / 100, pack = n('pack'), b = Number($('broker').value) / 100, p = n('pay') / 100;
+    var k = Math.max(1, n('items')), upI = n('up');
+    var P = Math.round(k * (n('item') + upI)), U = Math.round(k * upI), r = n('rate') / 100, pack = n('pack');
+    var b = (mode === 'app' ? Number($('broker').value) : n('mp')) / 100, p = n('pay') / 100;
     var D1 = Math.min(n('disc'), P), D2 = Math.min(n('hqshare'), P - D1), D = D1 + D2;   // 가게 돈으로 한 할인 (단독 + 본사 행사 가게 몫)
     var H = Math.min(n('hqdisc'), P - D), A = Math.min(n('appdisc'), P - D - H), M = n('member'), N = Math.max(1, n('count')), K = n('fixed');
     var fb = $('feebase').value;           // bm: 가게 할인 뺀 금액 / cp: 중개 할인 전·결제 단독 할인만 뺌 / cpold: 둘 다 할인 전
@@ -197,45 +369,42 @@
     var mat = Math.round(shop * r);        // 재료비 (같은 재료)
     var base = P - D;                      // 가게 할인 뺀 금액 (본사·앱이 낸 할인은 가게 매출이 그대로라 안 뺌)
     var brokerBase = fb === 'bm' ? base : P;
-    var payBase = fb === 'bm' ? base : fb === 'cp' ? P - D2 : P;
+    var payBase = fb === 'bm' ? base : fb === 'cp' ? P - D1 : P;   // 쿠팡 2026-04~: 결제는 가게 단독 할인(D1)만 빼 줌, 본사 행사 가게 몫(D2)은 안 빼 줌
     var broker = Math.round(brokerBase * b), pay = Math.round(payBase * p);
     var extraFee = (broker - Math.round(base * b)) + (pay - Math.round(base * p)); // 가게가 할인한 돈에 붙은 수수료
     var feeBefore = fb !== 'bm', feeOnDisc = Math.round(extraFee * 1.1);
     var appDeliv = mode === 'app' ? n('deliv') : 0;
+    var memb = mode === 'app' ? M : 0;
     var tip = mode === 'app' ? 0 : n('tip');
-    var vat = Math.round((broker + pay + appDeliv + M) * 0.1);
-    var settle = P - D - broker - pay - appDeliv - M - vat + tip;   // 정산금: 본사·앱 부담 할인은 가게 몫에서 안 빠짐 (앱·본사가 채워 줌)
+    var vat = Math.round((broker + pay + appDeliv + memb) * 0.1);
+    var settle = P - D - broker - pay - appDeliv - memb - vat + tip;   // 정산금: 본사·앱 부담 할인은 가게 몫에서 안 빠짐 (앱·본사가 채워 줌)
     var outside = mode === 'agency' ? n('agency') : mode === 'self' ? n('self') : 0; // 정산 밖에서 나가는 돈
     var fixedPer = mode === 'app' ? 0 : Math.round(K / N);
     var left = settle - outside - fixedPer - mat - pack;
-    return { H: H, A: A, D1: D1, D2: D2, fb: fb, feeBefore: feeBefore, brokerBase: brokerBase, payBase: payBase, extraFee: extraFee, feeOnDisc: feeOnDisc, P: P, U: U, r: r, pack: pack, b: b, p: p, D: D, M: M, N: N, K: K, shop: shop, mat: mat, base: base, broker: broker, pay: pay,
+    return { H: H, A: A, D1: D1, D2: D2, fb: fb, feeBefore: feeBefore, brokerBase: brokerBase, payBase: payBase, extraFee: extraFee, feeOnDisc: feeOnDisc, P: P, U: U, r: r, pack: pack, b: b, p: p, D: D, M: memb, N: N, K: K, shop: shop, mat: mat, base: base, broker: broker, pay: pay,
       appDeliv: appDeliv, tip: tip, vat: vat, settle: settle, outside: outside, fixedPer: fixedPer, left: left };
-  }
-  function leftAt(price) { // 작은 주문 비교용: 같은 조건에 주문금액만 바꿔
-    var save = $('price').value, saveUp = $('up').value; $('price').value = price; var c = calc(); $('price').value = save; $('up').value = saveUp; return c;
   }
 
   function render() {
+    var L = model();
+    renderChannels(L);
     var c = calc();
-    Array.prototype.forEach.call(document.querySelectorAll('[data-show]'), function (el) { el.hidden = el.dataset.show.split(' ').indexOf(mode) < 0; });
     $('tax-note').innerHTML = tax === 'general'
       ? '<b>일반과세</b>: 재료 살 때 낸 부가세는 신고 때 공제받아 원가가 아니에요. 원가율은 <b>재료비·판매가 둘 다 부가세 뺀 금액</b>으로 나눠요 (예: 4,500원 메뉴면 4,090원 기준). 둘 다 부가세 포함으로 넣어도 비율은 같아요 — 한쪽만 빼면 틀려요.'
       : '<b>간이과세</b>: 매입 부가세 공제가 작아서 재료비는 <b>부가세 포함 금액 그대로</b> 넣는 게 실제에 가까워요. 내는 부가세 비율은 업종마다 달라서 세무사님 확인이 필요해요.';
     var modeName = { app: '앱배달', agency: '가게배달 + 배달대행', self: '직접 배달' }[mode];
+    if (!c.P) { $('big').innerHTML = ''; $('eq').innerHTML = ''; $('groups').innerHTML = ''; $('small').innerHTML = '메뉴 1개 값을 넣어 주세요.'; return; }
     $('big').innerHTML =
       '<div class="t"><span class="k">통장에 들어오는 돈 (정산금)</span><div class="n">' + won(c.settle) + '원</div><span class="d">주문금액 ' + won(c.P) + '원의 ' + pct(c.settle / c.P * 100) + '%</span></div>' +
       '<div class="t"><span class="k">배달 때문에 빠진 돈</span><div class="n">' + won(c.P - c.settle + c.outside + c.fixedPer) + '원</div><span class="d">주문금액의 ' + pct((c.P - c.settle + c.outside + c.fixedPer) / c.P * 100) + '% · ' + modeName + '</span></div>' +
       '<div class="t left' + (c.left < 0 ? ' neg' : '') + '"><span class="k">원가·포장재까지 빼고 남는 돈</span><div class="n">' + won(c.left) + '원</div><span class="d">' + (c.left < 0 ? '1건 팔 때마다 손해' : '인건비·임대료 내기 전') + '</span></div>';
 
-    function row(op, name, amt, how, cls) {
-      return '<span class="op">' + op + '</span><span class="' + (cls || '') + '">' + name + '</span><span class="amt ' + (cls || '') + '">' + won(amt) + '</span>' + (how ? '<span class="how">' + how + '</span>' : '');
-    }
-    var h = row('', '주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달가 인상 ' + won(c.U) : '');
+    var h = row('', '주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달앱에서 더 받는 돈 ' + won(c.U) : '');
     if (c.D) h += row('−', '가게 돈으로 한 할인', c.D, (c.D1 ? '단독 할인 ' + won(c.D1) : '') + (c.D1 && c.D2 ? ' + ' : '') + (c.D2 ? '본사 행사 가게 몫 ' + won(c.D2) : '') + ' · 가게가 고르는 돈', 'choice');
     if (c.H || c.A) h += row('', '본사·앱이 낸 할인 (가게 돈에선 안 빠짐)', c.H + c.A, (c.H ? '본사 ' + won(c.H) : '') + (c.H && c.A ? ' + ' : '') + (c.A ? '앱 ' + won(c.A) : '') + ' · 손님은 그만큼 덜 냈지만 가게 몫은 그대로 · 본사 부담분은 본사 정산에서 따로 오가기도 해요');
     function baseNote(x) { return x === c.P ? (c.D ? '<b>할인 전 금액</b>에 붙음' : '주문금액에 붙음') : '가게 할인 뺀 금액에 붙음'; }
-    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">상생요금제 2.0~7.8% (매출 구간마다)</span>');
-    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.payBase) + ' × ' + pct(c.p * 100) + '%</code> · ' + (c.payBase === c.P - c.D2 && c.D2 && c.D1 ? '단독 할인만 뺀 금액에 붙음 (본사 행사 몫은 안 빼 줌)' : baseNote(c.payBase)));
+    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">' + (mode === 'app' ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료') + '</span>');
+    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.payBase) + ' × ' + pct(c.p * 100) + '%</code> · ' + (c.payBase === c.P - c.D1 && c.D1 && c.D2 ? '단독 할인만 뺀 금액에 붙음 (본사 행사 몫은 안 빼 줌)' : baseNote(c.payBase)));
     if (c.extraFee) h += row('', '↳ 이 중 가게가 할인한 돈에 붙은 수수료', c.feeOnDisc, '<code>(' + won(c.extraFee) + ' + 부가세 10%)</code> · 손님에게 받지 않은 돈에 붙은 수수료예요. 공정위가 쿠팡이츠에 고치라고 한 부분', 'choice');
     if (c.appDeliv) h += row('−', '배달비 (앱이 정산에서 뗌)', c.appDeliv, '<span class="rng">범위 1,900~3,400원</span>');
     if (c.M) h += row('−', '멤버십 가게 부담 배달료', c.M, '손님 무료배달 혜택 가게라 붙는 몫 · 가게가 고르는 돈', 'choice');
@@ -245,7 +414,7 @@
     if (mode === 'agency') h += row('−', '배달대행비', c.outside, '배달료 + 콜비 · 정산금이 아니라 <b>충전금</b>에서 나가요 (통장엔 충전할 때 큰 출금만)');
     if (mode === 'self') h += row('−', '직접 배달 비용', c.outside, '시간 인건비 + 기름값 어림');
     if (c.fixedPer) h += row('−', '월 고정비 1건 몫', c.fixedPer, '<code>' + won(c.K) + ' ÷ ' + won(c.N) + '건</code> · 건수가 적을수록 1건당 커져요');
-    h += row('−', '재료비', c.mat, '<code>' + won(c.shop) + ' × ' + pct(c.r * 100) + '%</code> · 매장 판매가 기준 원가율' + (c.U ? ' (배달가 인상분엔 재료 안 듦)' : ''));
+    h += row('−', '재료비', c.mat, '<code>' + won(c.shop) + ' × ' + pct(c.r * 100) + '%</code> · 매장 판매가 기준 원가율' + (c.U ? ' (더 받는 돈엔 재료 안 듦)' : ''));
     h += row('−', '포장재', c.pack, '');
     h += row('=', '남는 돈', c.left, '인건비·임대료·로열티 내기 전', 'sum');
     $('eq').innerHTML = h;
@@ -256,22 +425,9 @@
       '<div class="g c"><b>가게가 고르는 돈</b><span class="muted">가게 할인·멤버십 부담 · 줄이거나 끌 수 있음</span><div class="n">−' + won(choice) + '원</div></div>' +
       (c.feeOnDisc ? '<p class="note" style="grid-column:1/-1">정해진 돈 안에 <b>가게가 할인한 돈에 붙은 수수료 ' + won(c.feeOnDisc) + '원</b>(부가세 포함)이 들어 있어요. 할인 1만 원당 약 ' + won(c.feeOnDisc / c.D * 10000) + '원이에요. 공정위가 2026-11 쿠팡이츠에 약관을 60일 안에 고치라고 명령한 부분이라(업체는 반발), 고치면 이 몫이 없어져요. <a href="fees.html">근거 →</a></p>' : '');
 
-    var s = leftAt(10000);
-    $('small').innerHTML = '배달비·고정비는 주문마다 똑같이 붙어서 <b>작은 주문일수록 비율이 커져요.</b> 같은 조건에서 1만 원 주문이면 남는 돈 <b class="' + (s.left < 0 ? 'neg' : 'pos') + '">' + won(s.left) + '원</b> (지금 ' + won(c.P) + '원 주문은 ' + won(c.left) + '원). 최소 주문 금액을 두는 이유예요.';
-
-    // 비교: 같은 메뉴(매장가 기준)
-    var cardFee = Math.round(c.shop * n('card') / 100);
-    var tk = n('takeout') / 100, tkBroker = Math.round(c.shop * tk), tkPay = Math.round(c.shop * c.p), tkVat = Math.round((tkBroker + tkPay) * 0.1);
-    var rows = [
-      { nm: '매장에서 카드로', s: '포장재 없음', recv: c.shop, cut: cardFee, cost: c.mat },
-      { nm: '전화 포장 (카드)', s: '수수료는 카드 수수료만', recv: c.shop, cut: cardFee, cost: c.mat + c.pack },
-      { nm: '앱 포장 주문', s: '포장 수수료 ' + pct(tk * 100) + '% + 결제 ' + pct(c.p * 100) + '% + 부가세', recv: c.shop, cut: tkBroker + tkPay + tkVat, cost: c.mat + c.pack },
-      { nm: '지금 배달 (' + modeName + ')', s: '위 계산 그대로', recv: c.P, cut: c.P - c.settle + c.outside + c.fixedPer, cost: c.mat + c.pack, me: true }
-    ];
-    $('cmp').innerHTML = rows.map(function (x) {
-      var l = x.recv - x.cut - x.cost;
-      return '<tr' + (x.me ? ' class="me"' : '') + '><td class="l">' + x.nm + '<span class="s">' + x.s + '</span></td><td>' + won(x.recv) + '</td><td class="hide-m">−' + won(x.cut) + '</td><td class="hide-m">−' + won(x.cost) + '</td><td class="' + (l < 0 ? 'neg' : 'pos') + '">' + won(l) + '</td></tr>';
-    }).join('');
+    var m = L.filter(function (x) { return x.id === { app: 'app', agency: 'mp', self: 'self' }[mode]; })[0];
+    $('small').innerHTML = (m.beN == null ? '이 방식은 이 조건이면 몇 ' + unit + '를 팔아도 손해예요.' : m.beN === 1 ? '이 방식은 1' + unit + '부터 손해가 아니에요 (할인 빼고).' : '이 방식은 <b>' + m.beN + unit + '(약 ' + won(m.beP) + '원)부터</b> 손해가 아니에요 (할인 빼고).') +
+      ' 배달비·고정비는 주문마다 똑같이 붙어서 <b>작은 주문일수록 남는 비율이 줄어요.</b> 최소 주문 금액을 두는 이유예요.';
   }
 
   function seg(id, set) {
@@ -284,7 +440,12 @@
   }
   seg('mode', function (v) { mode = v; });
   seg('tax', function (v) { tax = v; });
-  Array.prototype.forEach.call(document.querySelectorAll('input, select'), function (el) { el.addEventListener('input', render); });
+  seg('preset', applyPreset);
+  function onEdit(e) { if (e.target.id === 'tier') applyTier(); render(); }
+  Array.prototype.forEach.call(document.querySelectorAll('input, select'), function (el) { el.addEventListener('input', onEdit); el.addEventListener('change', onEdit); });
+  // 주소에 cafe가 있으면 카페 예시로 시작 (예: calc.html?type=cafe)
+  try { if (/cafe|카페/i.test(decodeURIComponent(location.search + location.hash))) applyPreset('cafe'); } catch (err) {}
+  applyTier();
   render();
 
   // 일별 마감 엑셀 양식 (빈 양식)
