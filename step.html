@@ -171,7 +171,7 @@
   <div class="in">
     <p class="label">결과 1</p>
     <h2 id="r1-h">배달 1건(<span id="r-k"></span>)이면<br><b>이만큼 남아요</b></h2>
-    <p class="hint" style="margin:0 0 10px">대행 불러서 직접 보내는 배달도 하세요? (배민 가게배달·전화 주문)</p>
+    <p class="hint" style="margin:0 0 10px">대행 불러서 보내는 배달도 하세요? (배민 가게배달·전화 주문·본사 앱)</p>
     <div class="chips" data-key="shop" role="group" aria-label="가게배달 함 안 함" style="margin-bottom:14px"></div>
     <div id="hq-q"><p class="hint" style="margin:0 0 10px">본사(프랜차이즈) 앱 배달이 있나요?</p>
     <div class="chips" data-key="hq" role="group" aria-label="본사 앱 있음 없음" style="margin-bottom:18px"></div></div>
@@ -249,7 +249,7 @@
     var P0 = PRESET[st.kind], it = st.item, k = Math.max(1, st.items), r = st.rate / 100, pk = P0.pack, sp = P0.stamp, T = TIER[st.tier];
     var ag = st.agency, tp = st.tip;
     var L = [
-      { id: 'hq', nm: '본사 앱 배달', sub: '자체 앱 · 대행 라이더', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
+      { id: 'hq', nm: '본사 앱 배달', sub: '본사 앱 주문 · 대행 라이더 · 수수료 3% 가정', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
       { id: 'mp', nm: '배민 가게배달', sub: '배민 앱 주문 · 대행 라이더 · 중개 6.8%', f: (MP + PAY) * 1.1, costs: [ag, -tp, tp * PAY * 1.1, pk], per: 0, del: ag - tp },
       { id: 'tel', nm: '전화 주문 배달', sub: '앱 없이 전화로 · 대행 라이더 · 카드 결제 가정', f: CARD, costs: [ag, -tp, tp * CARD, pk], per: 0, del: ag - tp },
       { id: 'app', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 앱이 라이더', f: (T.b + PAY) * 1.1, costs: [T.d * 1.1, pk], per: 0, del: T.d * 1.1 },
