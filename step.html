@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>배달, 어디로 팔면 더 남을까</title>
+<meta name="description" content="숫자 다섯 개만 고르면 배민·쿠팡·가게배달·본사 앱 중 어디가 더 남는지, 몇 잔부터 남는지 보여 드려요 (예시 요율)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* 무인양품 톤: 생지 바탕 · 먹색 글씨 · 가는 선 · 그림자 없음 · 금색은 강조에만 */
+  :root {
+    --paper: #f4f1ea; --sheet: #fbf9f4; --ink: #35322d; --sub: #7b756b; --line: #d8d1c3; --line-strong: #bfb5a2;
+    --kraft: #9c8257; --kraft-soft: #ebe3d3; --gold: #8a6400; --gold-soft: #f6eccb; --loss: #9b3a2a;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; -webkit-text-size-adjust: 100%; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; font-weight: 400; font-size: 16px; line-height: 1.6; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  button, input { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  a { color: var(--gold); }
+  .bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: transparent; z-index: 5; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--kraft); transition: width .4s ease; }
+  .scene { min-height: 100vh; min-height: 100svh; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; padding: 64px 24px 56px; border-top: 1px solid var(--line); }
+  .scene:first-of-type { border-top: 0; }
+  .in { width: 100%; max-width: 520px; margin: 0 auto; }
+  .label { font-size: 12px; letter-spacing: 0.24em; color: var(--sub); margin: 0 0 22px; }
+  h1, h2 { font-weight: 400; letter-spacing: -0.03em; line-height: 1.28; margin: 0 0 20px; }
+  h1 { font-size: 40px; }
+  h2 { font-size: 32px; }
+  h1 b, h2 b { font-weight: 700; }
+  .gold { color: var(--gold); }
+  .lead { font-size: 17px; line-height: 1.75; margin: 0 0 32px; color: var(--ink); }
+  .lead b { font-weight: 700; }
+  .fine { font-size: 12.5px; color: var(--sub); margin: 18px 0 0; line-height: 1.6; }
+  .hint { font-size: 14px; color: var(--sub); margin: -8px 0 24px; }
+  .row-btn { display: flex; flex-wrap: wrap; gap: 10px; }
+  .go { appearance: none; border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); border-radius: 2px; padding: 15px 26px; font-size: 16px; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; min-width: 148px; }
+  .go.ghost { background: transparent; color: var(--ink); }
+  .go:focus-visible, .chip:focus-visible, .step-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .linkish { appearance: none; background: none; border: 0; padding: 0; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; font-size: 14px; cursor: pointer; margin-top: 20px; }
+  .count { font-size: 12px; letter-spacing: 0.24em; color: var(--kraft); margin: 0 0 18px; }
+  .num { font-size: 60px; font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 22px; }
+  .num small { font-size: 22px; font-weight: 400; margin-left: 4px; color: var(--sub); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  .chip { appearance: none; border: 1px solid var(--line-strong); background: transparent; border-radius: 2px; padding: 10px 14px; font-size: 15px; cursor: pointer; min-width: 64px; }
+  .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--sheet); }
+  .own { display: flex; align-items: center; gap: 8px; margin: -12px 0 26px; }
+  .own input { width: 150px; border: 0; border-bottom: 1px solid var(--ink); background: transparent; padding: 6px 2px; font-size: 22px; text-align: right; border-radius: 0; }
+  .own input:focus { outline: none; border-bottom-color: var(--gold); }
+  .stepper { display: flex; align-items: center; gap: 22px; margin: 0 0 28px; }
+  .step-btn { appearance: none; width: 56px; height: 56px; border: 1px solid var(--line-strong); background: transparent; border-radius: 50%; font-size: 26px; font-weight: 300; cursor: pointer; line-height: 1; }
+  .stepper .num { margin: 0; min-width: 2.2em; text-align: center; }
+  /* 결과 */
+  .list { border-top: 1px solid var(--ink); margin: 6px 0 0; }
+  .item { padding: 16px 0 14px; border-bottom: 1px solid var(--line); }
+  .item .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .item .nm { font-size: 16px; font-weight: 500; }
+  .item .nm small { display: block; font-size: 12px; font-weight: 400; color: var(--sub); }
+  .item .v { font-size: 28px; font-weight: 300; white-space: nowrap; letter-spacing: -0.02em; }
+  .item .v small { font-size: 15px; color: var(--sub); margin-left: 2px; }
+  .item .track { height: 4px; background: var(--kraft-soft); margin-top: 10px; }
+  .item .track span { display: block; height: 100%; background: var(--kraft); }
+  .item .how { font-size: 12.5px; color: var(--sub); margin-top: 6px; }
+  .item.best .v, .item.best .nm { color: var(--gold); }
+  .item.best .v { font-weight: 500; }
+  .item.best .track span { background: var(--gold); }
+  .item.loss .v { color: var(--loss); }
+  .item.cmp { opacity: .78; }
+  .tag { display: inline-block; font-size: 11px; letter-spacing: 0.1em; border: 1px solid var(--gold); color: var(--gold); padding: 0 6px; margin-left: 6px; vertical-align: 3px; border-radius: 2px; }
+  .sub-h { font-size: 12px; letter-spacing: 0.2em; color: var(--sub); margin: 22px 0 0; }
+  .big-say { font-size: 30px; font-weight: 300; line-height: 1.35; margin: 0 0 18px; letter-spacing: -0.02em; }
+  .big-say b { font-weight: 700; }
+  .note-box { border: 1px solid var(--line); background: var(--sheet); padding: 14px 16px; font-size: 14px; line-height: 1.7; }
+  .note-box b { font-weight: 700; }
+  ol.do { margin: 0; padding: 0; list-style: none; counter-reset: d; display: grid; gap: 18px; }
+  ol.do li { counter-increment: d; padding-left: 40px; position: relative; font-size: 17px; line-height: 1.6; }
+  ol.do li::before { content: counter(d); position: absolute; left: 0; top: -2px; font-size: 26px; font-weight: 300; color: var(--kraft); }
+  ol.do li small { display: block; font-size: 13px; color: var(--sub); margin-top: 2px; }
+  .assume { font-size: 13px; color: var(--sub); line-height: 1.75; margin: 18px 0 0; padding-left: 1.1em; }
+  .contact { display: grid; gap: 10px; margin: 24px 0 0; max-width: 340px; }
+  .contact a { display: block; text-align: center; text-decoration: none; }
+  .foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 26px; font-size: 14px; }
+  .foot-links a { color: var(--sub); text-underline-offset: 3px; }
+  @media (max-width: 420px) {
+    h1 { font-size: 34px; } h2 { font-size: 28px; } .num { font-size: 52px; } .big-say { font-size: 26px; }
+    .scene { padding: 56px 22px 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="bar" aria-hidden="true"><span id="bar"></span></div>
+
+<section class="scene" id="hero" aria-labelledby="hero-h">
+  <div class="in">
+    <p class="label">배달 계산 · 1분</p>
+    <h1 id="hero-h">같은 주문인데,<br><b>어디로 팔면</b><br><b class="gold">더 남을까?</b></h1>
+    <p class="lead">배민 · 쿠팡 · 가게배달 · 본사 앱.<br>숫자 다섯 개만 고르면 <b>1건에 얼마 남는지</b>,<br><b>몇 잔부터 남는지</b> 보여 드려요.</p>
+    <div class="row-btn">
+      <button type="button" class="go" data-start="cafe">카페예요</button>
+      <button type="button" class="go ghost" data-start="food">식당이에요</button>
+    </div>
+    <button type="button" class="linkish" id="skip">예시 숫자로 바로 결과 보기</button>
+    <p class="fine">숫자는 이 화면에서만 계산돼요. 어디에도 저장하지 않아요.</p>
+  </div>
+</section>
+
+<section class="scene" id="s1" hidden aria-labelledby="s1-h">
+  <div class="in">
+    <p class="count">1 / 5</p>
+    <h2 id="s1-h">메뉴 <span class="u1">한 잔</span>,<br>평균 얼마예요?</h2>
+    <div class="num" aria-live="polite"><span id="v-item"></span><small>원</small></div>
+    <div class="chips" data-key="item" role="group" aria-label="메뉴 값 고르기"></div>
+    <div class="own" data-own="item" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="메뉴 값 직접 넣기"><span>원</span></div>
+    <button type="button" class="go" data-next="s2">다음</button>
+  </div>
+</section>
+
+<section class="scene" id="s2" hidden aria-labelledby="s2-h">
+  <div class="in">
+    <p class="count">2 / 5</p>
+    <h2 id="s2-h">배달 한 번에<br>보통 몇 <span class="u">잔</span>이에요?</h2>
+    <div class="stepper">
+      <button type="button" class="step-btn" data-step="-1" aria-label="하나 빼기">−</button>
+      <div class="num" aria-live="polite"><span id="v-items"></span><small class="u">잔</small></div>
+      <button type="button" class="step-btn" data-step="1" aria-label="하나 더하기">+</button>
+    </div>
+    <button type="button" class="go" data-next="s3">다음</button>
+  </div>
+</section>
+
+<section class="scene" id="s3" hidden aria-labelledby="s3-h">
+  <div class="in">
+    <p class="count">3 / 5</p>
+    <h2 id="s3-h">재료비는<br>판 값의 몇 %쯤이에요?</h2>
+    <p class="hint" id="h-rate"></p>
+    <div class="num" aria-live="polite"><span id="v-rate"></span><small>%</small></div>
+    <div class="chips" data-key="rate" role="group" aria-label="원가율 고르기"></div>
+    <button type="button" class="go" data-next="s4">다음</button>
+  </div>
+</section>
+
+<section class="scene" id="s4" hidden aria-labelledby="s4-h">
+  <div class="in">
+    <p class="count">4 / 5</p>
+    <h2 id="s4-h">배달대행비,<br>1건에 얼마 내세요?</h2>
+    <p class="hint">가게배달·본사 앱 배달에 쓰는 라이더 비용이에요.</p>
+    <div class="num" aria-live="polite"><span id="v-agency"></span><small>원</small></div>
+    <div class="chips" data-key="agency" role="group" aria-label="배달대행비 고르기"></div>
+    <div class="own" data-own="agency" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="배달대행비 직접 넣기"><span>원</span></div>
+    <button type="button" class="go" data-next="s5">다음</button>
+  </div>
+</section>
+
+<section class="scene" id="s5" hidden aria-labelledby="s5-h">
+  <div class="in">
+    <p class="count">5 / 5</p>
+    <h2 id="s5-h">손님한테 받는<br>배달팁은요?</h2>
+    <p class="hint">가게배달·본사 앱에서 손님이 내는 배달비예요. 가게로 정산돼요.</p>
+    <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
+    <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
+    <button type="button" class="go" data-next="r1">결과 보기</button>
+  </div>
+</section>
+
+<section class="scene" id="r1" hidden aria-labelledby="r1-h">
+  <div class="in">
+    <p class="label">결과 1</p>
+    <h2 id="r1-h">배달 1건(<span id="r-k"></span>)이면<br><b>이만큼 남아요</b></h2>
+    <div class="list" id="list"></div>
+    <p class="fine">재료비·포장재까지 뺀 돈 · 인건비·임대료·부가세 신고 전 · 할인·광고 빼고 · 예시 요율</p>
+  </div>
+</section>
+
+<section class="scene" id="r2" hidden aria-labelledby="r2-h">
+  <div class="in">
+    <p class="label">결과 2</p>
+    <h2 id="r2-h">몇 <span class="u">잔</span>부터<br>남을까?</h2>
+    <p class="big-say" id="say-be"></p>
+    <div class="note-box" id="be-why"></div>
+  </div>
+</section>
+
+<section class="scene" id="r3" hidden aria-labelledby="r3-h">
+  <div class="in">
+    <p class="label">결과 3</p>
+    <h2 id="r3-h">그래서,<br><b>이렇게 해 볼 수 있어요</b></h2>
+    <ol class="do" id="do"></ol>
+  </div>
+</section>
+
+<section class="scene" id="r4" hidden aria-labelledby="r4-h">
+  <div class="in">
+    <p class="label">숫자 바꿔 보기</p>
+    <h2 id="r4-h">앱 수수료 구간,<br>아세요?</h2>
+    <p class="hint">배민·쿠팡 매출 구간마다 달라요. 모르시면 그대로 두세요 (가장 비싼 쪽).</p>
+    <div class="chips" data-key="tier" role="group" aria-label="앱 수수료 구간 고르기"></div>
+    <p class="fine" id="tier-say"></p>
+    <ul class="assume" id="assume"></ul>
+    <button type="button" class="linkish" id="again">처음부터 다시 넣기</button>
+  </div>
+</section>
+
+<section class="scene" id="r5" hidden aria-labelledby="r5-h">
+  <div class="in">
+    <p class="label">실제로 맞춰 보기</p>
+    <h2 id="r5-h">정산서 한 달 치면<br><b>진짜 숫자</b>로 나눠 드려요</h2>
+    <p class="lead">배민·쿠팡 정산 화면 사진이면 돼요 (가게 이름은 가리셔도 돼요).<br>어디서 얼마 빠졌는지, <b>무료로</b> 나눠 드려요.</p>
+    <div class="contact">
+      <a class="go" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener">인스타 DM 보내기</a>
+      <a class="go ghost" href="tel:01032706077">전화 010-3270-6077</a>
+    </div>
+    <p class="fine">존슨거라지 · johnsongarage.official@gmail.com · 받은 자료는 답변에만 쓰고, 끝나면 지워요.</p>
+    <div class="foot-links">
+      <a href="calc.html?type=cafe">자세한 계산기 →</a>
+      <a href="fees.html">요율 근거표 →</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  // 계산은 calc.html 길별 비교와 같은 식 (예시 요율 · 부가세 신고 전 · 할인·광고 빼고)
+  var PRESET = {
+    cafe: { unit: '잔', one: '한 잔', item: 3000, items: 4, rate: 35, pack: 300, stamp: 200,
+      itemChips: [2000, 2500, 3000, 3500, 4000], rateChips: [25, 30, 35, 40, 45], rateHint: '모르시면 그대로 두세요. 커피는 보통 30~40%쯤이에요.' },
+    food: { unit: '개', one: '하나', item: 10000, items: 2, rate: 33, pack: 500, stamp: 0,
+      itemChips: [8000, 10000, 12000, 15000, 20000], rateChips: [25, 30, 33, 35, 40], rateHint: '모르시면 그대로 두세요. 식당은 보통 30% 안팎이에요.' }
+  };
+  var TIER = { t1: { b: 0.078, d: 2900, nm: '상위 35%', r: '7.8%' }, t2: { b: 0.068, d: 2600, nm: '35~50%', r: '6.8%' }, t3: { b: 0.068, d: 2400, nm: '50~80%', r: '6.8%' }, t4: { b: 0.02, d: 2400, nm: '하위 20%', r: '2.0%' } };
+  var PAY = 0.03, MP = 0.068, HQ = 0.03, CARD = 0.011;
+  var AGENCY_CHIPS = [3000, 3500, 4000, 4500, 5000], TIP_CHIPS = [0, 1000, 2000, 3000, 4000];
+  var st = { kind: 'cafe', item: 3000, items: 4, rate: 35, agency: 4000, tip: 3000, tier: 't1' };
+  var ORDER = ['s1', 's2', 's3', 's4', 's5', 'r1', 'r2', 'r3', 'r4', 'r5'];
+  var $ = function (id) { return document.getElementById(id); };
+  function won(x) { return Math.round(x).toLocaleString('ko-KR'); }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function model() {
+    var P0 = PRESET[st.kind], it = st.item, k = Math.max(1, st.items), r = st.rate / 100, pk = P0.pack, sp = P0.stamp, T = TIER[st.tier];
+    var ag = st.agency, tp = st.tip;
+    var L = [
+      { id: 'hq', nm: '본사 앱 배달', sub: '자체 앱 · 대행 라이더', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
+      { id: 'mp', nm: '가게배달', sub: '배민 가게배달 · 대행 라이더', f: (MP + PAY) * 1.1, costs: [ag, -tp, tp * PAY * 1.1, pk], per: 0, del: ag - tp },
+      { id: 'app', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 앱이 라이더', f: (T.b + PAY) * 1.1, costs: [T.d * 1.1, pk], per: 0, del: T.d * 1.1 },
+      { id: 'shop', nm: '매장에서 (비교)', sub: '카드 수수료만', f: CARD, costs: [], per: 0, del: 0, cmp: true }
+    ];
+    L.forEach(function (c) {
+      c.P = Math.round(k * it);
+      c.fee = Math.round(c.P * c.f);
+      c.fixed = c.costs.reduce(function (s, x) { return s + Math.round(x); }, 0);
+      c.mat = Math.round(k * it * r);
+      c.stamp = Math.round(k * c.per);
+      c.left = c.P - c.fee - c.fixed - c.mat - c.stamp;
+      c.m = it * (1 - c.f) - it * r - c.per;
+      if (c.m <= 0) c.beN = null;
+      else if (c.fixed <= 0) { c.beN = 1; c.beP = 0; }
+      else { c.beX = c.fixed / c.m; c.beN = Math.max(1, Math.ceil(c.beX - 1e-9)); c.beP = Math.ceil(c.beX * it / 100) * 100; }
+      c.pk = c.cmp ? 0 : pk;
+    });
+    return L;
+  }
+
+  function chips(key, list, fmt, own) {
+    var host = document.querySelector('.chips[data-key="' + key + '"]');
+    var cur = st[key], hit = false;
+    var h = list.map(function (v) { var on = String(v) === String(cur); if (on) hit = true; return '<button type="button" class="chip" data-v="' + v + '" aria-pressed="' + on + '">' + fmt(v) + '</button>'; }).join('');
+    if (own) h += '<button type="button" class="chip" data-v="own" aria-pressed="' + (!hit) + '">직접</button>';
+    host.innerHTML = h;
+    var ownBox = document.querySelector('.own[data-own="' + key + '"]');
+    if (ownBox) { ownBox.hidden = hit; if (!hit) ownBox.querySelector('input').value = cur; }
+  }
+
+  function render() {
+    var P0 = PRESET[st.kind], u = P0.unit;
+    Array.prototype.forEach.call(document.querySelectorAll('.u'), function (el) { el.textContent = u; });
+    Array.prototype.forEach.call(document.querySelectorAll('.u1'), function (el) { el.textContent = P0.one; });
+    $('v-item').textContent = won(st.item); $('v-items').textContent = st.items; $('v-rate').textContent = st.rate;
+    $('v-agency').textContent = won(st.agency); $('v-tip').textContent = won(st.tip); $('h-rate').textContent = P0.rateHint;
+    chips('item', P0.itemChips, won, true);
+    chips('rate', P0.rateChips, function (v) { return v + '%'; });
+    chips('agency', AGENCY_CHIPS, won, true);
+    chips('tip', TIP_CHIPS, function (v) { return v ? won(v) : '안 받아요'; });
+    chips('tier', ['t1', 't2', 't3', 't4'], function (v) { return TIER[v].nm + ' · ' + TIER[v].r; });
+
+    var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
+    var best = d.slice().sort(function (a, b) { return b.left - a.left; })[0];
+    var mx = Math.max.apply(null, L.map(function (c) { return Math.max(c.left, 0); }).concat([1]));
+    $('r-k').textContent = st.items + u;
+    $('list').innerHTML = L.map(function (c) {
+      var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
+        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(st.tip * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
+      return '<div class="item' + (c === best ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (c === best ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
+        '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '<small>원</small></span></div>' +
+        '<div class="track" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></div><div class="how">' + how + '</div></div>';
+    }).join('');
+
+    // 몇 잔부터
+    var others = d.filter(function (c) { return c.id !== 'app'; });
+    if (app.beN == null) $('say-be').innerHTML = '앱배달은 이 조건이면<br><b>몇 ' + u + '를 팔아도 손해</b>예요.';
+    else if (app.beN === 1) $('say-be').innerHTML = '앱배달도<br><b>1' + u + '부터</b> 남아요.';
+    else $('say-be').innerHTML = '앱배달은<br><b class="gold">' + app.beN + u + '부터</b> 남아요.';
+    var ot = others.map(function (c) { return c.nm + ' ' + (c.beN == null ? '늘 손해' : c.beN + u + '부터'); }).join(' · ');
+    $('be-why').innerHTML = (app.beN && app.beN > 1 ? '주문이 <b>약 ' + won(app.beP) + '원 이상</b>이면 손해가 아니에요. 배민·쿠팡 <b>최소주문금액</b> 칸에 넣을 숫자예요.<br>' : '') +
+      '배달비는 주문마다 똑같이 붙어서, 작은 주문일수록 남는 게 줄어요.<br><span style="color:var(--sub)">' + ot + '</span>';
+
+    // 그래서
+    var tips = [];
+    if (best.id !== 'app') tips.push('<b>단골 배달 손님은 ' + (best.id === 'hq' ? '본사 앱' : '가게배달') + '으로</b> 안내해 보세요.<small>1건에 약 ' + won(best.left - app.left) + '원 더 남아요 (이 조건 기준).</small>');
+    if (app.beN && app.beN > 1) tips.push('<b>앱배달 최소주문금액을 ' + won(app.beP) + '원 이상</b>으로.<small>' + (app.beN - 1) + u + ' 이하 주문은 팔 때마다 손해예요.</small>');
+    tips.push('<b>앱마다 메뉴 가격·최소주문금액을 따로</b> 정해도 돼요.<small>공정위가 "다른 앱보다 불리하게 하지 말라"(최혜대우) 요구에 시정명령을 내렸어요 (2026-11-09 발표).</small>');
+    $('do').innerHTML = tips.map(function (t) { return '<li>' + t + '</li>'; }).join('');
+
+    $('tier-say').textContent = '지금: ' + TIER[st.tier].nm + ' — 중개 ' + TIER[st.tier].r + ' + 결제 3%, 가게 부담 배달비 ' + won(TIER[st.tier].d) + '원(구간 가운데 값)';
+    $('assume').innerHTML = ['가게배달 중개 6.8% (배민 오픈리스트, 공정위 자료) · 결제 수수료 3% · 수수료엔 부가세 10%',
+      '본사 앱 수수료 3%' + (P0.stamp ? ', 적립 할인 1' + u + '당 ' + won(P0.stamp) + '원 가게 부담' : '') + '은 <b>가정</b>이에요 — 점장님께 여쭤볼 숫자',
+      '배달팁에도 결제 수수료가 붙는다고 봤어요 (확인 필요) · 포장재 1건 ' + won(P0.pack) + '원',
+      '남는 돈은 인건비·임대료·로열티·부가세 신고 전 · 할인·광고는 빼고 계산'].map(function (x) { return '<li>' + x + '</li>'; }).join('');
+
+    var shown = ORDER.filter(function (id) { return !$(id).hidden; }).length;
+    $('bar').style.width = Math.min(100, shown / ORDER.length * 100) + '%';
+  }
+
+  function reveal(id, scroll) {
+    var i = ORDER.indexOf(id);
+    for (var j = 0; j <= i; j++) $(ORDER[j]).hidden = false;
+    if (id === 'r1') ['r2', 'r3', 'r4', 'r5'].forEach(function (x) { $(x).hidden = false; });
+    render();
+    if (scroll !== false) setTimeout(function () { $(id).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }, 30);
+  }
+  function setKind(kind) {
+    var P0 = PRESET[kind]; st.kind = kind; st.item = P0.item; st.items = P0.items; st.rate = P0.rate;
+  }
+
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-start]');
+    if (s) { setKind(s.dataset.start); reveal('s1'); return; }
+    var nx = e.target.closest('[data-next]');
+    if (nx) { reveal(nx.dataset.next); return; }
+    var sb = e.target.closest('[data-step]');
+    if (sb) { st.items = Math.min(20, Math.max(1, st.items + Number(sb.dataset.step))); render(); return; }
+    var ch = e.target.closest('.chip');
+    if (ch) {
+      var key = ch.parentNode.dataset.key, v = ch.dataset.v;
+      if (v === 'own') { var box = document.querySelector('.own[data-own="' + key + '"]'); box.hidden = false; var inp = box.querySelector('input'); inp.value = st[key]; inp.focus(); inp.select(); ch.parentNode.querySelectorAll('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === ch)); }); return; }
+      st[key] = key === 'tier' ? v : Number(v); render(); return;
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var box = e.target.closest('.own'); if (!box) return;
+    var v = Number(e.target.value); if (!isFinite(v) || v < 0) return;
+    st[box.dataset.own] = v;
+    $('v-' + box.dataset.own).textContent = won(v);
+    var keep = document.activeElement; render(); box.hidden = false; if (keep === e.target) e.target.focus();
+  });
+  $('skip').addEventListener('click', function () { setKind('cafe'); reveal('r1'); });
+  $('again').addEventListener('click', function () { $('s1').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+  try { if (/food|식당/i.test(decodeURIComponent(location.search + location.hash))) setKind('food'); } catch (err) {}
+  render();
+})();
+</script>
+</body>
+</html>

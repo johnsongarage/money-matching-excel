@@ -8,6 +8,7 @@
     { file: 'delivery.html', title: '배달 정산 (카드형)' },
     { file: 'dashboard.html', title: '배달 정산 (대시보드형)' },
     { file: 'upload.html', title: '내 파일로 맞추기' },
+    { file: 'step.html', title: '한 단계씩 (사장님용)' },
     { file: 'calc.html', title: '배달 1건 계산기' },
     { file: 'fees.html', title: '배달앱 요율 근거표' },
     { file: 'hq-check.html', title: '본사 정산 확인' }
