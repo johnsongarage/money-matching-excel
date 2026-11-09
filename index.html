@@ -11,28 +11,28 @@
   :root {
     --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --faint: #9ca3af;
     --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6; --hover: #f3f4f6;
-    --total: #2563eb; --total-soft: #dbeafe;
+    --total: #8a6400; --total-soft: #fdf3cf;
     --cost: #9aa3ad; --timing: #64748b; --off: #c4c9d0;
     --red: #dc2626; --red-bg: #fee2e2; --amber: #b45309; --amber-bg: #fef3c7; --green: #15803d; --green-bg: #dcfce7;
-    --track: #f1f2f4; --src: #eef2ff; --src-ink: #3730a3;
+    --track: #f1f2f4; --src: #fdf3cf; --src-ink: #6b4e00;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
       --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
-      --total: #60a5fa; --total-soft: #172554;
+      --total: #e8c15a; --total-soft: #3a2d0a;
       --cost: #6b7280; --timing: #94a3b8; --off: #4b5563;
       --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
-      --track: #222327; --src: #1e1b4b; --src-ink: #c7d2fe; color-scheme: dark;
+      --track: #222327; --src: #3a2d0a; --src-ink: #f2d98a; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --page: #111214; --panel: #1a1a19; --ink: #f3f4f6; --sub: #a1a1aa; --faint: #71717a;
     --line: #2c2d31; --line-strong: #3a3b40; --head: #222327; --hover: #232428;
-    --total: #60a5fa; --total-soft: #172554;
+    --total: #e8c15a; --total-soft: #3a2d0a;
     --cost: #6b7280; --timing: #94a3b8; --off: #4b5563;
     --red: #f87171; --red-bg: #3b1a1a; --amber: #fbbf24; --amber-bg: #3a2c0d; --green: #4ade80; --green-bg: #14321f;
-    --track: #222327; --src: #1e1b4b; --src-ink: #c7d2fe; color-scheme: dark;
+    --track: #222327; --src: #3a2d0a; --src-ink: #f2d98a; color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -321,6 +321,7 @@
     #ch-table td.st { min-width: 9em; }
     #hq-table td { white-space: normal; }
   }
+  a { color: var(--total); } a:hover { color: #6b4e00; }
 </style>
 </head>
 <body>

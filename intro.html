@@ -10,7 +10,7 @@
 /* Layout: 한 장짜리 소개서 — 좁은 본문 칼럼, 가운데 '돈의 길' 막대표가 핵심 */
 :root{
   --bg:#f6f7f8; --paper:#ffffff; --ink:#18212b; --sub:#5a6672; --line:#dde2e7;
-  --accent:#1f5f8b; --accent-soft:#e6eff6;
+  --accent:#8a6400; --accent-soft:#fdf3cf;
   --ok:#2f7d5b; --warn:#b46a10; --warn-soft:#fbf1e3; --cut:#9aa6b1;
   --f-display:"Noto Serif KR","Nanum Myeongjo",serif;
   --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -18,10 +18,10 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#12171c; --paper:#1a2027; --ink:#e7ecf0; --sub:#9aa7b3; --line:#2c353e;
-  --accent:#6aa9d6; --accent-soft:#1c2c3a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}}
+  --accent:#e8c15a; --accent-soft:#3a2d0a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#12171c; --paper:#1a2027; --ink:#e7ecf0; --sub:#9aa7b3; --line:#2c353e;
-  --accent:#6aa9d6; --accent-soft:#1c2c3a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}
+  --accent:#e8c15a; --accent-soft:#3a2d0a; --ok:#5fb98f; --warn:#e3a14d; --warn-soft:#2e2416; --cut:#5c6874; color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 56px}
 .wrap{max-width:760px;margin:0 auto;display:grid;gap:44px}
