@@ -815,7 +815,7 @@
         note: '정산서엔 안 나오고 대행사 관리 화면에만 건별로 있어요. 손님 배달팁(+' + won(tot.tip) + '원)이 일부를 메워요.' },
       { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee,
         rows: [].concat.apply([], apps.map(function (a) { var R = SETTLE[a.key]; return [
-          [a.name + ' 중개 수수료', a.broker, '<code>' + won(a.sale) + ' × ' + (R.brokerRate * 100).toFixed(1) + '%</code> · 어느 금액(할인 전/후)에 매기는지가 앱마다 달라요'],
+          [a.name + ' 중개 수수료', a.broker, '<code>' + won(a.sale) + ' × ' + (R.brokerRate * 100).toFixed(1) + '%</code> · 가게가 할인한 돈에도 매기는지가 앱마다 달라요 (쿠팡이츠는 할인 전 금액, 배민 등은 가게 할인 뺀 금액)'],
           [a.name + ' 결제 수수료', a.pay, '<code>' + won(a.sale) + ' × ' + (R.payRate * 100).toFixed(1) + '%</code>'],
           [a.name + ' 수수료 부가세', fv(a), '<code>(' + won(a.broker) + ' + ' + won(a.pay) + ') × 10%</code>']]; })),
         note: '요율은 예시예요 (중개 2.0~7.8%, 결제 약 3% · 공개 보도·정산서 사례 기준). <b>무엇에 몇 %를 매겼는지</b>가 실제 다툼이 된 부분이라, 사장님 정산서로 맞춰 보는 게 핵심이에요.' }
@@ -868,8 +868,8 @@
     var it10 = [
       { g: '정해진 돈 (앱·배달 구조)' },
       { nm: '배달비 (앱배달)', v: P(tot.delApp), how: '주문마다 고정 금액 × 건수 + 부가세 · 작은 주문일수록 비중이 커요' },
-      { nm: '중개 수수료', v: P(brokerT), how: '<code>주문금액 × 요율</code> · 예시 ' + apps.map(function (a) { return a.name + ' ' + (SETTLE[a.key].brokerRate * 100).toFixed(1) + '%'; }).join(', ') + ' · <b>할인 전/후 어느 금액에 매기는지 앱마다 다름</b>' },
-      { nm: '결제 수수료', v: P(payT), how: '<code>주문금액 × 약 3%</code> · 정산서 사례에선 할인 뺀 금액에 붙음' },
+      { nm: '중개 수수료', v: P(brokerT), how: '<code>주문금액 × 요율</code> · 예시 ' + apps.map(function (a) { return a.name + ' ' + (SETTLE[a.key].brokerRate * 100).toFixed(1) + '%'; }).join(', ') + ' · <b>가게 할인에도 매기는지 앱마다 다름</b> (쿠팡이츠 할인 전 · 배민 등 할인 후)' },
+      { nm: '결제 수수료', v: P(payT), how: '<code>주문금액 × 약 3%</code> · 보통 가게 할인 뺀 금액에 붙음 (쿠팡이츠 본사 행사는 할인 전)' },
       { nm: '수수료 부가세', v: P(feeVatT), how: '<code>(중개 + 결제) × 10%</code> · 일반과세면 부가세 신고 때 공제받는 몫이에요 (세무사 확인)' },
       { nm: '배달대행비 (가게배달)', v: P(tot.agency), how: '건당 대행비 × 건수 · 정산서 밖, 충전금에서 빠짐' },
       { nm: '손님 배달팁', v: -P(tot.tip), how: '가게배달일 때 손님이 낸 배달비 · 정산금에 더해짐' },
@@ -899,7 +899,7 @@
   }
   dcutRender();
   // 수식으로 보기 — 요율 범위는 공개 보도 기준 (2025 상생요금제 · 매출 구간별), 결제 수수료는 정산서 사례 기준 · 확인 필요
-  var RANGE = { broker: '중개 수수료 범위 2.0~7.8% (매출 구간마다 · 공개 보도 기준)', deliv: '가게 부담 배달비 범위 1,900~3,400원 (구간·거리마다 · 공개 보도 기준)', pay: '정산서 사례에선 약 3% (확인 필요)' };
+  var RANGE = { broker: '상생요금제 중개 수수료 2.0~7.8% (매출 구간마다 · 부가세 별도)', deliv: '가게 부담 배달비 1,900~3,400원 (구간·거리마다)', pay: '주문금액의 3% (부가세 별도 · 쿠팡이츠 약관)' };
   var fApp = 'A';
   function fRender() {
     var a = apps.filter(function (x) { return x.key === fApp; })[0], S2 = SETTLE[fApp];
@@ -918,7 +918,7 @@
     h += row('=', '정산금 (가게 몫)', net, '이 달 주문 기준 · 통장엔 정산일에 맞춰 나눠 들어옴', 'total');
     if (a.agency) h += row('', '따로: 배달대행비 (충전금)', a.agency, '<code>' + a.orders + '건 × ' + won(S2.agency.perOrder) + '원</code> · 정산금이 아니라 충전금에서 나감', 'side');
     document.getElementById('f-body').innerHTML = '<div class="f-eq">' + h + '</div>' +
-      '<p class="muted">요율·단가는 예시예요. 노란 글씨는 공개 보도 기준 범위라 앱·시기·가게 매출 구간마다 달라요. 실제 정산서에선 결제 수수료가 할인 뺀 금액에 붙기도 해요. 발표 날짜·출처는 <a href="fees.html">요율 근거표</a>.</p>';
+      '<p class="muted">요율·단가는 예시예요. 노란 글씨는 상생요금제 범위라 앱·시기·가게 매출 구간마다 달라요. 실제 정산서에선 결제 수수료가 할인 뺀 금액에 붙기도 해요. 발표 날짜·출처는 <a href="fees.html">요율 근거표</a>.</p>';
     document.getElementById('f-tabs').innerHTML = apps.map(function (x) {
       return '<button type="button" data-app="' + x.key + '" aria-pressed="' + (x.key === fApp) + '">' + x.name + ' · ' + x.mode + '</button>';
     }).join('');
