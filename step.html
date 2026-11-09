@@ -152,14 +152,14 @@
     <div class="chips" data-key="agency" role="group" aria-label="배달대행비 고르기"></div>
     <div class="own" data-own="agency" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="배달대행비 직접 넣기"><span>원</span></div>
     <button type="button" class="go" data-next="s5">다음</button>
-    <button type="button" class="linkish" id="noshop" style="display:block">가게배달은 안 해요 (배민배달·쿠팡만) →</button>
+    <button type="button" class="linkish" id="noshop" style="display:block">대행은 안 불러요 (배민배달·쿠팡만) →</button>
   </div>
 </section>
 
 <section class="scene" id="s5" hidden aria-labelledby="s5-h">
   <div class="in">
     <p class="count">5 / 5</p>
-    <h2 id="s5-h">가게배달 주문 때<br>손님 배달팁은요?</h2>
+    <h2 id="s5-h">대행으로 보낼 때<br>손님 배달팁은요?</h2>
     <p class="hint" id="h-tip"></p>
     <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
     <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
@@ -171,7 +171,7 @@
   <div class="in">
     <p class="label">결과 1</p>
     <h2 id="r1-h">배달 1건(<span id="r-k"></span>)이면<br><b>이만큼 남아요</b></h2>
-    <p class="hint" style="margin:0 0 10px">가게배달(대행 불러서 직접)도 하세요?</p>
+    <p class="hint" style="margin:0 0 10px">대행 불러서 직접 보내는 배달도 하세요? (배민 가게배달·전화 주문)</p>
     <div class="chips" data-key="shop" role="group" aria-label="가게배달 함 안 함" style="margin-bottom:14px"></div>
     <div id="hq-q"><p class="hint" style="margin:0 0 10px">본사(프랜차이즈) 앱 배달이 있나요?</p>
     <div class="chips" data-key="hq" role="group" aria-label="본사 앱 있음 없음" style="margin-bottom:18px"></div></div>
@@ -250,12 +250,13 @@
     var ag = st.agency, tp = st.tip;
     var L = [
       { id: 'hq', nm: '본사 앱 배달', sub: '자체 앱 · 대행 라이더', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
-      { id: 'mp', nm: '가게배달', sub: '배민 가게배달 · 대행 라이더', f: (MP + PAY) * 1.1, costs: [ag, -tp, tp * PAY * 1.1, pk], per: 0, del: ag - tp },
+      { id: 'mp', nm: '배민 가게배달', sub: '배민 앱 주문 · 대행 라이더 · 중개 6.8%', f: (MP + PAY) * 1.1, costs: [ag, -tp, tp * PAY * 1.1, pk], per: 0, del: ag - tp },
+      { id: 'tel', nm: '전화 주문 배달', sub: '앱 없이 전화로 · 대행 라이더 · 카드 결제 가정', f: CARD, costs: [ag, -tp, tp * CARD, pk], per: 0, del: ag - tp },
       { id: 'app', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 앱이 라이더', f: (T.b + PAY) * 1.1, costs: [T.d * 1.1, pk], per: 0, del: T.d * 1.1 },
       { id: 'shop', nm: '매장에서 (비교)', sub: '카드 수수료만', f: CARD, costs: [], per: 0, del: 0, cmp: true }
     ];
     if (st.hq !== 'yes' || st.shop !== 'yes') L = L.filter(function (c) { return c.id !== 'hq'; });
-    if (st.shop !== 'yes') L = L.filter(function (c) { return c.id !== 'mp'; });
+    if (st.shop !== 'yes') L = L.filter(function (c) { return c.id !== 'mp' && c.id !== 'tel'; });
     L.forEach(function (c) {
       c.P = Math.round(k * it);
       c.fee = Math.round(c.P * c.f);
@@ -297,9 +298,9 @@
     $('hq-q').hidden = st.shop !== 'yes';
     if (!$('r1').hidden) $('s5').hidden = st.shop !== 'yes';
     chips('hq', ['yes', 'no'], function (v) { return v === 'yes' ? '있어요' : '없어요 (개인 가게)'; });
-    var via = st.hq === 'yes' ? '가게배달·본사 앱' : '가게배달';
-    $('h-agency').textContent = (st.hq === 'yes' ? '가게배달·본사 앱 배달' : '가게배달') + '에 쓰는 라이더 비용이에요. 배민배달·쿠팡처럼 앱이 라이더를 붙이는 주문엔 안 써요.';
-    $('h-tip').textContent = via + ' 주문 때 손님이 내는 배달비예요. 가게로 들어와서 대행비를 덜어 줘요. 배민배달·쿠팡 주문은 손님 배달비가 앱으로 가서 여기 숫자는 안 써요.';
+    var via = st.hq === 'yes' ? '배민 가게배달·전화 주문·본사 앱' : '배민 가게배달·전화 주문';
+    $('h-agency').textContent = via + '처럼 대행을 불러 보낼 때 내는 라이더 비용이에요. 배민배달·쿠팡처럼 앱이 라이더를 붙이는 주문엔 안 써요.';
+    $('h-tip').textContent = '대행으로 보낼 때 손님이 내는 배달비예요 (' + via + '). 가게로 들어와서 대행비를 덜어 줘요. 배민배달·쿠팡 주문은 손님 배달비가 앱으로 가서 여기 숫자는 안 써요.';
     chips('tier', ['t1', 't2', 't3', 't4'], function (v) { return TIER[v].nm + ' · ' + TIER[v].r; });
 
     var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
@@ -308,7 +309,7 @@
     $('r-k').textContent = st.items + u;
     $('list').innerHTML = L.map(function (c) {
       var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
-        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(st.tip * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
+        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : c.id === 'tel' ? Math.round(st.tip * CARD) : Math.round(st.tip * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
       return '<div class="item' + (c === best ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (c === best ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
         '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '<small>원</small></span></div>' +
         '<div class="track" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></div><div class="how">' + how + '</div></div>';
@@ -325,7 +326,7 @@
 
     // 그래서
     var tips = [];
-    if (best.id !== 'app') tips.push('<b>단골 배달 손님은 ' + (best.id === 'hq' ? '본사 앱으로' : '가게배달로') + '</b> 안내해 보세요.<small>1건에 약 ' + won(best.left - app.left) + '원 더 남아요 (이 조건 기준).</small>');
+    if (best.id !== 'app') tips.push('<b>단골 배달 손님은 ' + ({ hq: '본사 앱으로', mp: '배민 가게배달로', tel: '전화 주문으로' }[best.id]) + '</b> 안내해 보세요.<small>1건에 약 ' + won(best.left - app.left) + '원 더 남아요 (이 조건 기준).</small>');
     if (app.beN && app.beN > 1) tips.push('<b>앱배달 최소주문금액을 ' + won(app.beP) + '원 이상</b>으로.<small>' + (app.beN - 1) + u + ' 이하 주문은 팔 때마다 손해예요.</small>');
     tips.push('<b>앱마다 메뉴 가격·최소주문금액을 따로</b> 정해도 돼요.<small>공정위가 "다른 앱보다 불리하게 하지 말라"(최혜대우) 요구에 시정명령을 내렸어요 (2026-11-09 발표).</small>');
     $('do').innerHTML = tips.map(function (t) { return '<li>' + t + '</li>'; }).join('');

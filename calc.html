@@ -223,7 +223,7 @@
         <div class="row"><span class="lab">배달 방식</span>
           <div class="seg" id="mode" role="group" aria-label="배달 방식">
             <button type="button" data-v="app" aria-pressed="true">앱배달 (앱이 라이더)</button>
-            <button type="button" data-v="agency" aria-pressed="false">가게배달 + 배달대행</button>
+            <button type="button" data-v="agency" aria-pressed="false">배민 가게배달 + 대행</button>
             <button type="button" data-v="self" aria-pressed="false">직접 배달</button>
           </div>
         </div>
@@ -326,7 +326,7 @@
         fTxt: '(' + pct(b * 100) + '% + ' + pct(py * 100) + '%) × 1.1',
         costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · 이 구간 ' + tierRange() + ' (거리마다)'], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
         per: 0, note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
-      { id: 'mp', grp: 'd', short: '가게배달', nm: '가게배달 + 배달대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(py * 100) + '% · 대행 라이더', price: it + up, f: (mp + py) * 1.1,
+      { id: 'mp', grp: 'd', short: '가게배달', nm: '배민 가게배달 + 대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(py * 100) + '% · 대행 라이더', price: it + up, f: (mp + py) * 1.1,
         fTxt: '(' + pct(mp * 100) + '% + ' + pct(py * 100) + '%) × 1.1', costs: agRows(py, '배달팁에도 붙는다고 봄 (확인 필요)'), per: 0,
         note: '가게배달 중개 ' + pct(mp * 100) + '%는 배민 오픈리스트 기준(공정위 자료)이에요. 공정위가 배민에 이 요율을 다시 정하라고 명령해서 바뀔 수 있어요.' },
       { id: 'hq', grp: 'd', short: '본사 앱', nm: '본사 앱 배달', sub: '프랜차이즈 자체 앱 · 수수료 ' + pct(hf * 100) + '% (가정) · 대행 라이더', price: it, f: hf * 1.1,
@@ -441,7 +441,7 @@
     $('tax-note').innerHTML = tax === 'general'
       ? '<b>일반과세</b>: 이 계산의 남는 돈은 <b>부가세 신고 전</b> 숫자예요. 수수료·배달비에 붙은 부가세(아래 ' + won(c.vat) + '원)는 신고 때 돌려받고, 메뉴값 속 부가세(주문금액 ÷ 11 ≈ ' + won(c.P / 11) + '원)는 내요. 그래서 신고까지 하면 남는 돈이 달라져요 (세무사님 확인). 원가율은 <b>재료비·판매가 둘 다 부가세 뺀 금액</b>으로 나눠요 — 둘 다 포함해도 비율은 같고, 한쪽만 빼면 틀려요.'
       : '<b>간이과세</b>: 이 계산의 남는 돈은 <b>부가세 신고 전</b> 숫자예요. 간이과세는 매입 부가세를 거의 못 돌려받아서, 수수료·배달비 부가세(' + won(c.vat) + '원)는 그대로 비용에 가까워요. 재료비도 <b>부가세 포함 금액 그대로</b> 넣는 게 실제에 가까워요. 내는 부가세 비율은 업종마다 달라서 세무사님 확인이 필요해요.';
-    var modeName = { app: '앱배달', agency: '가게배달 + 배달대행', self: '직접 배달' }[mode];
+    var modeName = { app: '앱배달', agency: '배민 가게배달 + 대행', self: '직접 배달' }[mode];
     if (!c.P) { $('big').innerHTML = ''; $('eq').innerHTML = ''; $('groups').innerHTML = ''; $('small').innerHTML = '메뉴 1개 값을 넣어 주세요.'; return; }
     var cut = c.P - c.settle + c.outside + c.fixedPer;
     var feesAll = c.broker + c.pay + c.tipPay + c.vat;
