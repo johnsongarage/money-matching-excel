@@ -158,7 +158,7 @@
 <section class="scene" id="s5" hidden aria-labelledby="s5-h">
   <div class="in">
     <p class="count">5 / 5</p>
-    <h2 id="s5-h">손님한테 받는<br>배달팁은요?</h2>
+    <h2 id="s5-h">가게배달 주문 때<br>손님 배달팁은요?</h2>
     <p class="hint" id="h-tip"></p>
     <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
     <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
@@ -291,8 +291,8 @@
     chips('tip', TIP_CHIPS, function (v) { return v ? won(v) : '안 받아요'; });
     chips('hq', ['yes', 'no'], function (v) { return v === 'yes' ? '있어요' : '없어요 (개인 가게)'; });
     var via = st.hq === 'yes' ? '가게배달·본사 앱' : '가게배달';
-    $('h-agency').textContent = (st.hq === 'yes' ? '가게배달·본사 앱 배달' : '가게배달') + '에 쓰는 라이더 비용이에요.';
-    $('h-tip').textContent = via + '에서 손님이 내는 배달비예요. 가게로 정산돼요.';
+    $('h-agency').textContent = (st.hq === 'yes' ? '가게배달·본사 앱 배달' : '가게배달') + '에 쓰는 라이더 비용이에요. 배민배달·쿠팡처럼 앱이 라이더를 붙이는 주문엔 안 써요.';
+    $('h-tip').textContent = via + ' 주문 때 손님이 내는 배달비예요. 가게로 들어와서 대행비를 덜어 줘요. 배민배달·쿠팡 주문은 손님 배달비가 앱으로 가서 여기 숫자는 안 써요.';
     chips('tier', ['t1', 't2', 't3', 't4'], function (v) { return TIER[v].nm + ' · ' + TIER[v].r; });
 
     var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
