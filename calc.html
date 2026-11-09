@@ -113,7 +113,11 @@
       <label class="f" data-show="self">직접 배달 1건당 드는 돈 (원)<small>시간 인건비 + 기름값 어림</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
       <label class="f" data-show="agency self">손님 배달팁 (원)<small>손님이 낸 배달비 · 정산금에 더해짐</small><input type="number" id="tip" min="0" step="100" inputmode="numeric"></label>
       <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 없으면 0</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">가게 부담 할인 (원)<small>가게가 건 쿠폰·할인</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">가게 부담 할인 (원)<small>가게가 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">본사 부담 할인 (원)<small>브랜드 행사 중 본사가 내는 몫 · 프랜차이즈만</small><input type="number" id="hqdisc" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">앱 부담 할인 (원)<small>앱이 자기 돈으로 준 쿠폰 · 가게 돈에선 안 빠짐</small><input type="number" id="appdisc" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">중개 수수료가 붙는 금액<small>앱·약관마다 다름 · 정산서에서 확인</small>
+        <select id="feebase"><option value="before">할인 전 금액 (주문금액 전체)</option><option value="after">할인 뺀 금액 (손님이 낸 돈)</option></select></label>
       <label class="f" data-show="agency self">한 달 배달 건수<small>고정비를 1건당으로 나눌 때 씀</small><input type="number" id="count" min="1" step="1" inputmode="numeric"></label>
       <label class="f" data-show="agency self">배달 월 고정비 (원)<small>배달대행 월 관리비 + 충전 수수료, 오토바이 리스 등 · 없으면 0</small><input type="number" id="fixed" min="0" step="1000" inputmode="numeric"></label>
       <label class="f">매장 카드 수수료 (%)<small>매출 규모마다 다름 · 비교용</small><input type="number" id="card" min="0" max="5" step="0.1" inputmode="decimal"></label>
@@ -159,7 +163,7 @@
 <script>
 (function () {
   'use strict';
-  var DEF = { price: 20000, up: 0, rate: 33, pack: 500, broker: '7.8', pay: 3, deliv: 3400, agency: 4000, self: 2500, tip: 2000, member: 0, disc: 0, count: 30, fixed: 55000, card: 1.1, takeout: 6.8 };
+  var DEF = { price: 20000, up: 0, rate: 33, pack: 500, broker: '7.8', pay: 3, deliv: 3400, agency: 4000, self: 2500, tip: 2000, member: 0, disc: 0, hqdisc: 0, appdisc: 0, feebase: 'before', count: 30, fixed: 55000, card: 1.1, takeout: 6.8 };
   var mode = 'app', tax = 'general';
   var $ = function (id) { return document.getElementById(id); };
   Object.keys(DEF).forEach(function (k) { $(k).value = DEF[k]; });
@@ -169,19 +173,22 @@
 
   function calc() {
     var P = n('price'), U = Math.min(n('up'), P), r = n('rate') / 100, pack = n('pack'), b = Number($('broker').value) / 100, p = n('pay') / 100;
-    var D = Math.min(n('disc'), P), M = n('member'), N = Math.max(1, n('count')), K = n('fixed');
+    var D = Math.min(n('disc'), P), H = Math.min(n('hqdisc'), P - D), A = Math.min(n('appdisc'), P - D - H), M = n('member'), N = Math.max(1, n('count')), K = n('fixed');
+    var feeBefore = $('feebase').value === 'before';
     var shop = P - U;                      // 같은 메뉴의 매장 가격
     var mat = Math.round(shop * r);        // 재료비 (같은 재료)
-    var base = P - D;                      // 할인 뺀 금액
-    var broker = Math.round(P * b), pay = Math.round(base * p);
+    var base = P - D - H - A;              // 손님이 실제로 낸 돈 (모든 할인 뺀 금액)
+    var brokerBase = feeBefore ? P : base;
+    var broker = Math.round(brokerBase * b), pay = Math.round(base * p);
+    var feeOnOthers = feeBefore ? Math.round((H + A) * b) : 0; // 본사·앱이 낸 할인분에도 붙은 수수료 (가게가 냄)
     var appDeliv = mode === 'app' ? n('deliv') : 0;
     var tip = mode === 'app' ? 0 : n('tip');
     var vat = Math.round((broker + pay + appDeliv + M) * 0.1);
-    var settle = P - D - broker - pay - appDeliv - M - vat + tip;   // 정산금 (통장에 들어오는 돈)
+    var settle = P - D - broker - pay - appDeliv - M - vat + tip;   // 정산금: 본사·앱 부담 할인은 가게 몫에서 안 빠짐 (앱·본사가 채워 줌)
     var outside = mode === 'agency' ? n('agency') : mode === 'self' ? n('self') : 0; // 정산 밖에서 나가는 돈
     var fixedPer = mode === 'app' ? 0 : Math.round(K / N);
     var left = settle - outside - fixedPer - mat - pack;
-    return { P: P, U: U, r: r, pack: pack, b: b, p: p, D: D, M: M, N: N, K: K, shop: shop, mat: mat, base: base, broker: broker, pay: pay,
+    return { H: H, A: A, feeBefore: feeBefore, brokerBase: brokerBase, feeOnOthers: feeOnOthers, P: P, U: U, r: r, pack: pack, b: b, p: p, D: D, M: M, N: N, K: K, shop: shop, mat: mat, base: base, broker: broker, pay: pay,
       appDeliv: appDeliv, tip: tip, vat: vat, settle: settle, outside: outside, fixedPer: fixedPer, left: left };
   }
   function leftAt(price) { // 작은 주문 비교용: 같은 조건에 주문금액만 바꿔
@@ -205,8 +212,10 @@
     }
     var h = row('', '주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달가 인상 ' + won(c.U) : '');
     if (c.D) h += row('−', '가게 부담 할인', c.D, '가게가 건 쿠폰 · 가게가 고르는 돈', 'choice');
-    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.P) + ' × ' + pct(c.b * 100) + '%</code> <span class="rng">범위 2.0~7.8% (매출 구간마다)</span>');
-    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.base) + ' × ' + pct(c.p * 100) + '%</code> · 할인 뺀 금액에 붙음');
+    if (c.H || c.A) h += row('', '본사·앱 부담 할인 (가게 돈에선 안 빠짐)', c.H + c.A, (c.H ? '본사 ' + won(c.H) : '') + (c.H && c.A ? ' + ' : '') + (c.A ? '앱 ' + won(c.A) : '') + ' · 손님은 그만큼 덜 냈지만 가게 몫은 그대로 · 본사 부담분은 본사 정산에서 따로 오가기도 해요');
+    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + (c.feeBefore ? '할인 전 금액에 붙음' : '할인 뺀 금액에 붙음') + ' <span class="rng">범위 2.0~7.8% (매출 구간마다)</span>' +
+      (c.feeOnOthers ? '<br>↳ 이 중 <b>' + won(c.feeOnOthers) + '원</b>은 본사·앱이 낸 할인분에도 붙은 수수료예요 — 할인은 남이 했는데 수수료는 가게가 내요' : ''));
+    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.base) + ' × ' + pct(c.p * 100) + '%</code> · 손님이 실제로 낸 돈에 붙음');
     if (c.appDeliv) h += row('−', '배달비 (앱이 정산에서 뗌)', c.appDeliv, '<span class="rng">범위 1,900~3,400원</span>');
     if (c.M) h += row('−', '멤버십 가게 부담 배달료', c.M, '손님 무료배달 혜택 가게라 붙는 몫 · 가게가 고르는 돈', 'choice');
     h += row('−', '부가세', c.vat, '<code>(' + [c.broker, c.pay].concat(c.appDeliv ? [c.appDeliv] : []).concat(c.M ? [c.M] : []).map(won).join(' + ') + ') × 10%</code>');
@@ -223,7 +232,8 @@
     var choice = c.D + c.M, fixed = (c.P - c.settle + c.outside + c.fixedPer) - choice;
     $('groups').innerHTML =
       '<div class="g"><b>정해진 돈</b><span class="muted">수수료·배달비·세금·고정비</span><div class="n">−' + won(fixed) + '원</div></div>' +
-      '<div class="g c"><b>가게가 고르는 돈</b><span class="muted">할인·멤버십 부담 · 줄이거나 끌 수 있음</span><div class="n">−' + won(choice) + '원</div></div>';
+      '<div class="g c"><b>가게가 고르는 돈</b><span class="muted">가게 할인·멤버십 부담 · 줄이거나 끌 수 있음</span><div class="n">−' + won(choice) + '원</div></div>' +
+      (c.feeOnOthers ? '<p class="note" style="grid-column:1/-1">정해진 돈 안에 <b>본사·앱 할인분에 붙은 수수료 ' + won(c.feeOnOthers) + '원</b>이 들어 있어요. 수수료를 할인 전 금액에 매기는 약관은 공정위가 한 앱에 고치라고 명령한 부분이라(2026년 11월, 업체는 반발), 바뀌면 이 몫이 줄 수 있어요.</p>' : '');
 
     var s = leftAt(10000);
     $('small').innerHTML = '배달비·고정비는 주문마다 똑같이 붙어서 <b>작은 주문일수록 비율이 커져요.</b> 같은 조건에서 1만 원 주문이면 남는 돈 <b class="' + (s.left < 0 ? 'neg' : 'pos') + '">' + won(s.left) + '원</b> (지금 ' + won(c.P) + '원 주문은 ' + won(c.left) + '원). 최소 주문 금액을 두는 이유예요.';
