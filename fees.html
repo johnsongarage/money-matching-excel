@@ -39,7 +39,9 @@
   .ev dd { margin: 0; }
   .ev .base { font-weight: 700; }
   .ev .src { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-  .ev .src a { color: var(--total); }
+  .ev .src a, .card .src a { color: var(--total); }
+  .src > span.src { color: var(--sub); }
+  .card > .src { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
   .st { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 8px; }
   .st.ok { background: var(--green-bg); color: var(--green); } .st.no { background: var(--amber-bg); color: var(--amber); } .st.dis { background: var(--red-bg); color: var(--red); }
   table.rate { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -65,12 +67,12 @@
 <main class="content">
   <section class="card">
     <p class="lead">계산에 쓰는 수수료율·배달비가 <b>언제, 누가 공개한 숫자인지</b> 모았어요. 숫자보다 중요한 건 <b>어느 금액에 몇 %를 매기느냐</b>(기준 금액)예요. 실제로 다툼이 된 것도 대부분 이 부분이에요.</p>
-    <p class="muted" style="margin-top:6px">출처는 공개 보도와 공정위 발표예요. 플랫폼 공지 원문은 사장님 전용 화면(로그인)에 있는 경우가 많아 아직 직접 확인하지 못한 것은 <span class="st no">원문 미확인</span>으로 표시했어요. 2026년 11월 9일 기준.</p>
+    <p class="muted" style="margin-top:6px">출처는 <b>공정위 보도자료 원문</b>(2026-11-09 배포, 약관 원문 인용 포함)과 공개 보도예요. 공정위 원문으로 확인한 것은 <span class="st ok">공정위 원문</span>, 보도로만 확인한 것은 <span class="st no">원문 미확인</span>으로 표시했어요. 2026년 11월 9일 기준.</p>
   </section>
 
   <section class="card">
-    <h2>지금 공개된 요율 (상생요금제)</h2>
-    <p class="muted">두 앱 모두 배달 플랫폼 상생협의체 합의에 따라 매출 구간별로 다르게 매겨요. 3년간 운영하겠다고 발표했어요.</p>
+    <h2>지금 요율 (상생요금제)</h2>
+    <p class="muted">두 앱 모두 배달 플랫폼 상생협의체 합의에 따라 매출 구간별로 다르게 매겨요.</p>
     <div style="overflow-x:auto;margin-top:8px">
     <table class="rate">
       <thead><tr><th>매출 구간</th><th>중개 수수료</th><th>가게 부담 배달비</th></tr></thead>
@@ -79,80 +81,94 @@
         <tr><td>35% 초과 ~ 50%</td><td class="n">6.8%</td><td class="n">2,100~3,100원</td></tr>
         <tr><td>50% 초과 ~ 80%</td><td class="n">6.8%</td><td class="n">1,900~2,900원</td></tr>
         <tr><td>80% 초과 ~ 100% (하위 20%)</td><td class="n">2.0%</td><td class="n">1,900~2,900원</td></tr>
+        <tr><td>결제 수수료 (쿠팡이츠 약관)</td><td class="n" colspan="2">주문금액의 3% (부가세 별도)</td></tr>
       </tbody>
     </table></div>
     <ul class="c">
-      <li>배민: 배민1플러스 매출 기준 · 2025-01-22 발표 → <b>2025-02-26 시행</b></li>
-      <li>쿠팡이츠: 월 실제 매출 기준 · 부가세 별도 · 2025-02-18 발표 → <b>2025-04-01 시행</b> · <b>일단 7.8%로 정산하고 다음 달 5영업일 안에 차액을 돌려주는 방식</b>이라고 보도됨</li>
-      <li>결제 수수료(약 3%)는 공식 발표를 찾지 못했고, 정산서 사례에서 확인한 값이에요.</li>
+      <li>쿠팡이츠: 위 구간·요율·배달비와 결제 수수료 3%는 <b>공정위 보도자료에 실린 약관 원문</b>("쿠팡이츠 사장님 요금제 정책")과 같아요. <span class="st ok">원문 확인</span> 2025-04-01 시행. 일단 7.8%로 정산하고 다음 달에 차액을 돌려주는 방식이라고 보도됨.</li>
+      <li>배민: 배민1플러스 매출 기준 · 2025-01-22 발표 → 2025-02-26 시행 <span class="st no">원문 미확인</span></li>
     </ul>
   </section>
 
   <section class="card">
-    <h2>가게가 부담한 할인이 있을 때, 수수료는 어느 금액에? (공정위 발표 자료)</h2>
+    <h2>가게가 부담한 할인이 있을 때, 수수료는 어느 금액에? <span class="st ok">공정위 원문</span></h2>
     <div style="overflow-x:auto;margin-top:6px">
     <table class="rate">
-      <thead><tr><th>앱 · 행사</th><th>중개 수수료</th><th>결제 수수료 (약관)</th><th>결제 수수료 (실제)</th></tr></thead>
+      <thead><tr><th>앱</th><th>중개 수수료</th><th>결제 수수료</th></tr></thead>
       <tbody>
-        <tr><td>쿠팡이츠 · 가게 단독 행사</td><td class="n" style="color:var(--red)">할인 전</td><td class="n" style="color:var(--red)">할인 전</td><td class="n" style="color:var(--green)">할인 후</td></tr>
-        <tr><td>쿠팡이츠 · 가맹(본사) 행사</td><td class="n" style="color:var(--red)">할인 전</td><td class="n" style="color:var(--red)">할인 전</td><td class="n" style="color:var(--red)">할인 전</td></tr>
-        <tr><td>배민 · 가게 단독 행사</td><td class="n">할인 후</td><td class="n" colspan="2" style="text-align:center">할인 후</td></tr>
-        <tr><td>배민 · 가맹(본사) 행사</td><td class="n">할인 후</td><td class="n" colspan="2" style="text-align:center">할인 후</td></tr>
+        <tr><td>쿠팡이츠</td><td class="n" style="color:var(--red)">할인 전</td><td class="n" style="color:var(--red)">할인 전 *</td></tr>
+        <tr><td>배민 · 요기요 · 땡겨요 · 먹깨비</td><td class="n">할인 후</td><td class="n">할인 후</td></tr>
+        <tr><td>우버이츠 · 도어대시 (해외)</td><td class="n">할인 후</td><td class="n">—</td></tr>
       </tbody>
     </table></div>
+    <p class="muted" style="margin-top:4px">* 쿠팡이츠는 <b>2026-04-01</b>부터 가게가 부담한 할인의 <b>결제 수수료만</b> 할인 후 금액으로 고쳤어요. 단, 쿠팡과 본사가 따로 계약한 할인(가맹 행사)은 가맹점이 부담한 몫이 있어도 여전히 할인 전 금액이에요. 중개 수수료는 그대로 할인 전.</p>
     <ul class="c">
-      <li><b>쿠팡이츠는 약관을 어긴 게 아니라, 약관 자체가 "할인 전 가격"이었어요.</b> 중개 수수료는 약관대로 할인 전 가격에 매겼어요.</li>
-      <li>약관과 실제가 다른 곳은 하나예요. 가게 단독 행사의 결제 수수료는 약관(할인 전)보다 <b>가게에 유리하게</b> 할인 후 가격으로 매겼어요.</li>
-      <li>공정위는 이 약관(할인 전 가격 기준)이 불공정하다고 보고 고치라고 했어요.</li>
-      <li>배민은 이 자료 기준으로 두 행사 모두 할인 후 가격이에요. (점주 소송은 약관을 고치기 전 기간을 다투는 것으로 보이며, 확인 필요)</li>
+      <li><b>쿠팡이츠는 약관을 어긴 게 아니에요. 약관 자체가</b> "주문금액은 할인 전 판매가 기준"이었어요. 이 문장이 약관 맨 아래 <b>유의사항</b>에 있어서 가게가 알기 어려웠다는 것도 공정위가 문제 삼았어요.</li>
+      <li>공정위 조사: 쿠팡이츠 입점 가게 <b>과반이 수수료 기준 금액을 정확히 모르거나 "할인 후"로 잘못 알고 있었어요</b> (2025-09 인식조사).</li>
+      <li>가게가 부담한 할인에 붙은 중개 수수료: <b>2023년 ~ 2025년 6월 324억 원</b> (할인액 약 3,593억 원 → <b>할인 1만 원당 약 900원</b>).</li>
     </ul>
-    <p class="muted">출처: 공정위 2026-11-09 발표 자료의 표 ("입점업체 부담액이 있는 할인 행사의 경우 수수료 부과 기준 금액")를 옮겨 적음.</p>
+    <div style="overflow-x:auto;margin-top:8px">
+    <table class="rate">
+      <thead><tr><th>공정위 예시: 2만 원 메뉴를 가게가 5천 원 할인</th><th>중개 7.8%</th><th>결제 3%</th><th>실제 수수료율</th></tr></thead>
+      <tbody>
+        <tr><td>할인 전 판매가 20,000원에 매기면</td><td class="n">1,560</td><td class="n">600</td><td class="n" style="color:var(--red)">14.4%</td></tr>
+        <tr><td>실제 결제금액 15,000원에 매기면</td><td class="n">1,170</td><td class="n">450</td><td class="n">10.8%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="src" style="margin-top:6px"><span class="src">공정위 보도자료 2026-11-09 (11-10 조간) 붙임6·참고1</span></div>
   </section>
 
   <section class="card">
     <h2>날짜별로 보기 — 무엇이, 어느 금액 기준으로</h2>
     <div class="tl">
       <article class="ev">
-        <div class="when"><b>2024년 8월</b><span class="who">배민</span><span class="st ok">공정위 발표에 인용</span></div>
+        <div class="when"><b>2024년 8월</b><span class="who">배민</span><span class="st ok">공정위 원문</span></div>
         <h3>배민1플러스 중개 수수료 6.8% → 9.8%</h3>
-        <dl><dt>기준 금액</dt><dd>주문금액 (할인 처리는 아래 2025-06 항목 참고)</dd>
-          <dt>의미</dt><dd>공정위는 이 인상을 경쟁 제한의 결과 중 하나로 지목했어요.</dd></dl>
-        <div class="src"><a href="https://www.segye.com/newsView/20261109513393" target="_blank" rel="noopener">세계일보 2026-11-09 (공정위 제재 기사)</a></div>
+        <dl><dt>의미</dt><dd>공정위는 최혜대우 요구 직후의 이 인상이, 쿠팡의 최혜대우 요구와 맞물려 배달앱 전체 가격을 올렸다고 봤어요.</dd>
+          <dt>참고</dt><dd>거래금액당 배민에 돌아가는 몫 (2024): <b>가게배달 7.8% vs 배민배달 28%</b></dd></dl>
+        <div class="src"><span class="src">공정위 보도자료 2026-11-09 (11-10 조간) 참고2 Q&amp;A</span></div>
       </article>
       <article class="ev">
         <div class="when"><b>2025-01-22 발표 · 2025-02-26 시행</b><span class="who">배민</span><span class="st no">원문 미확인</span></div>
         <h3>상생요금제: 중개 9.8% → 2.0~7.8% (매출 구간별)</h3>
-        <dl><dt>기준 금액</dt><dd>배민1플러스 매출 구간으로 요율을 정하고, 주문금액에 매김</dd>
+        <dl><dt>기준 금액</dt><dd>배민1플러스 매출 구간으로 요율을 정함 · 가게 부담 할인은 할인 후 금액에 매김 (공정위 자료)</dd>
           <dt>공지 위치</dt><dd>배민외식업광장 공지라고 보도됨</dd></dl>
         <div class="src"><a href="https://www.ntoday.co.kr/news/articleView.html?idxno=112739" target="_blank" rel="noopener">투데이신문</a><a href="https://edaily.co.kr/News/Read?mediaCodeNo=257&newsId=02204166642040344" target="_blank" rel="noopener">이데일리</a></div>
       </article>
       <article class="ev">
-        <div class="when"><b>2025-02-18 발표 · 2025-04-01 시행</b><span class="who">쿠팡이츠</span><span class="st no">원문 미확인</span></div>
+        <div class="when"><b>2025-02-18 발표 · 2025-04-01 시행</b><span class="who">쿠팡이츠</span><span class="st ok">약관 원문 (공정위 인용)</span></div>
         <h3>상생요금제: 중개 9.8% → 2.0~7.8% (부가세 별도)</h3>
-        <dl><dt>기준 금액</dt><dd class="base">할인 전 판매가 (2026-11 공정위가 문제 삼음)</dd>
-          <dt>정산 방식</dt><dd>7.8%로 먼저 정산 → 월 매출 구간 확정 뒤 다음 달 차액 환급. <b>그래서 한 달 정산서만 보면 요율이 안 맞아 보일 수 있어요.</b></dd></dl>
+        <dl><dt>기준 금액</dt><dd class="base">할인 전 판매가 (약관 유의사항)</dd>
+          <dt>정산 방식</dt><dd>7.8%로 먼저 정산 → 월 매출 구간 확정 뒤 다음 달 차액 환급 (보도). <b>그래서 한 달 정산서만 보면 요율이 안 맞아 보일 수 있어요.</b></dd></dl>
         <div class="src"><a href="https://economist.co.kr/article/view/ecn202502180051" target="_blank" rel="noopener">이코노미스트</a><a href="https://www.mt.co.kr/tech/2025/03/20/2025032008514372091" target="_blank" rel="noopener">머니투데이</a></div>
       </article>
       <article class="ev">
         <div class="when"><b>2025-06-19 발표 (중간 합의안)</b><span class="who">배민</span><span class="st no">시행일 미확인</span></div>
         <h3>1만 원 이하 주문 중개 수수료 면제 · 본사 쿠폰의 점주 부담분도 수수료 제외</h3>
-        <dl><dt>기준 금액</dt><dd class="base">가게가 직접 발행한 쿠폰 할인액엔 "기존에도" 중개 수수료를 안 매겼다고 함 → 이번에 본사 발행 쿠폰 중 점주 부담분까지 넓힘</dd>
-          <dt>남은 것</dt><dd>1만~1.5만 원 주문은 차등 지원, 세부는 추후. 점주 단체는 "가맹점은 2만 원 넘는 주문이 많아 혜택이 적다"고 지적</dd></dl>
+        <dl><dt>기준 금액</dt><dd class="base">가게가 직접 발행한 쿠폰 할인액엔 "기존에도" 중개 수수료를 안 매겼다고 함 → 본사 발행 쿠폰 중 점주 부담분까지 넓힘</dd>
+          <dt>남은 것</dt><dd>1만~1.5만 원 주문은 차등 지원, 세부는 추후</dd></dl>
         <div class="src"><a href="https://www.khan.co.kr/article/202506192022005" target="_blank" rel="noopener">경향신문</a><a href="https://www.etoday.co.kr/news/view/2480118" target="_blank" rel="noopener">이투데이</a></div>
+      </article>
+      <article class="ev">
+        <div class="when"><b>2025-10 시정권고 → 2025-12 심의 시작</b><span class="who gov">공정위</span><span class="who">쿠팡이츠</span><span class="st ok">공정위 원문</span></div>
+        <h3>"할인 전 판매가 기준" 약관을 고치라고 권고 → 60일 동안 안 고침</h3>
+        <dl><dt>이후</dt><dd>2026-04-01 쿠팡이 결제 수수료만 일부 고침 (가게 단독 할인 → 할인 후). 중개 수수료와 가맹 행사 결제 수수료는 그대로.</dd></dl>
+        <div class="src"><span class="src">공정위 보도자료 2026-11-09 (11-10 조간) 붙임6·참고1</span></div>
       </article>
       <article class="ev">
         <div class="when"><b>2026-01-14 보도 · 진행 중</b><span class="who">배민</span><span class="st dis">소송</span></div>
         <h3>가맹점주 366명 단체소송 — "할인해도 수수료는 정가 기준"</h3>
         <dl><dt>쟁점</dt><dd class="base">할인 전 금액에 중개 수수료를 매겼다는 주장 (총 3억 6,600만 원 반환 청구)</dd>
-          <dt>배민 입장</dt><dd>약관을 고쳐 점주가 부담한 할인액은 수수료 계산에서 빼고 있고, 약관 위반이 없다고 반박 (2026-09 첫 변론)</dd></dl>
+          <dt>배민 입장</dt><dd>점주가 부담한 할인액은 수수료 계산에서 빼고 있고, 약관 위반이 없다고 반박. 공정위 자료도 배민은 "할인 후" 기준으로 분류 (어느 기간을 다투는지는 확인 필요)</dd></dl>
         <div class="src"><a href="https://www.sedaily.com/article/14142436" target="_blank" rel="noopener">서울경제 2026-01-14</a><a href="https://m.news.nate.com/view/20260916n23435" target="_blank" rel="noopener">2026-09-16 배민 반박 보도</a></div>
       </article>
       <article class="ev">
-        <div class="when"><b>2026-11-09 발표</b><span class="who gov">공정위</span><span class="who">쿠팡이츠 · 배민</span><span class="st dis">업체 반발</span></div>
-        <h3>최혜대우 요구 과징금 (배민 3,311억 · 쿠팡 3,008억, 잠정) + 쿠팡이츠 약관 시정명령</h3>
-        <dl><dt>기준 금액</dt><dd class="base">쿠팡이츠 약관이 <b>중개·결제 수수료를 할인 전 판매가</b>로 매기도록 되어 있음 → 약관법 위반, 60일 안에 고치라고 명령. 실제로는 중개는 약관대로 할인 전, 결제는 가게 단독 행사만 할인 후 (위 표)</dd>
-          <dt>의미</dt><dd>고치기 전까지는 가게가 건 할인분에도 수수료가 붙는 구조예요. 두 업체 모두 불복 의사.</dd></dl>
-        <div class="src"><a href="https://www.segye.com/newsView/20261109513393" target="_blank" rel="noopener">세계일보</a><a href="https://www.industrynews.co.kr/news/articleView.html?idxno=89135" target="_blank" rel="noopener">인더스트리뉴스</a><a href="https://biz.sbs.co.kr/article/20000345099" target="_blank" rel="noopener">SBS Biz</a></div>
+        <div class="when"><b>2026-10-27 의결 · 2026-11-09 발표</b><span class="who gov">공정위</span><span class="who">쿠팡이츠 · 배민</span><span class="st dis">업체 반발</span></div>
+        <h3>쿠팡이츠 약관 시정명령 + 최혜대우 등 과징금 (배민 3,311억 · 쿠팡 3,008억, 잠정)</h3>
+        <dl><dt>약관</dt><dd class="base">수수료 기준 "주문금액"을 할인 전 판매가로 정한 조항 → 공정위와 협의해 <b>명령 받은 날부터 60일 안에</b> 고치라고 함</dd>
+          <dt>배민</dt><dd>가게배달(울트라콜) 폐지로 배민배달 전환을 강제했다고 봄 → <b>가게배달 중개 수수료율을 다시 정하라</b>고 명령. 가게배달과 배민배달의 최소주문금액 등을 따로 정할 수 있게 됨</dd>
+          <dt>의미</dt><dd>고치기 전까지 쿠팡이츠는 가게가 건 할인분에도 중개 수수료가 붙어요. 두 업체 모두 불복 의사(보도).</dd></dl>
+        <div class="src"><span class="src">공정위 보도자료 2026-11-09 (11-10 조간) 본문·붙임6·Q&amp;A</span><a href="https://www.segye.com/newsView/20261109513393" target="_blank" rel="noopener">세계일보</a><a href="https://biz.sbs.co.kr/article/20000345099" target="_blank" rel="noopener">SBS Biz</a></div>
       </article>
     </div>
   </section>
@@ -161,7 +177,7 @@
     <h2>실제 정산서 사례로 맞춰 본 것 (배민, 가게 정보 가림)</h2>
     <div class="chk">
       <div class="r"><span>결제정산 수수료<small><code>(주문금액 − 환불 − 고객 할인) × 3%</code> 로 원 단위까지 맞음 → <b>할인 뺀 금액</b> 기준</small></span><span class="st ok">맞음</span></div>
-      <div class="r"><span>중개 수수료<small>할인 뺀 금액으로 나누면 약 4.6%, 할인 전 금액으로 나누면 약 3.5% → 공개 요율(2.0/6.8/7.8%) 어느 것과도 딱 안 맞음. 공정위 자료로는 배민 기준이 <b>할인 후 가격</b>이라, 기준 금액 문제가 아니라 아래 이유일 가능성이 커요.</small></span><span class="st no">안 맞음</span></div>
+      <div class="r"><span>중개 수수료<small>할인 뺀 금액으로 나누면 약 4.6%, 할인 전 금액으로 나누면 약 3.5% → 공개 요율(2.0/6.8/7.8%) 어느 것과도 딱 안 맞음. 공정위 원문으로는 배민 기준이 <b>할인 후 금액</b>이라, 기준 금액 문제가 아니라 아래 이유일 가능성이 커요.</small></span><span class="st no">안 맞음</span></div>
     </div>
     <p class="muted" style="margin-top:8px">안 맞는 이유 후보 (추정, 확인 필요):</p>
     <ul class="c">
