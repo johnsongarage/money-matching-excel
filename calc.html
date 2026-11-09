@@ -358,7 +358,7 @@
     return L;
   }
   function beText(c) {
-    if (c.beN == null) return '몇 ' + unit + '를 팔아도 손해';
+    if (c.beN == null) return '몇 ' + unit + (unit === '잔' ? '을' : '를') + ' 팔아도 손해';
     if (c.beN === 1) return '1' + unit + '부터 남음';
     return c.beN + unit + '부터 · 주문 ' + won(c.beP) + '원 이상';
   }
@@ -370,7 +370,7 @@
     h += row('−', '재료비', c.mat, '<code>' + c.k + unit + ' × ' + won(c.it) + ' × ' + pct(c.r * 100) + '%</code> · 매장 가격 기준');
     h += row('=', '1건 남는 돈', c.left, '인건비·임대료·로열티 내기 전 · 부가세 신고 전', 'sum');
     var be;
-    if (c.beN == null) be = '1' + unit + ' 팔 때 남는 몫이 0원 이하라 몇 ' + unit + '를 팔아도 손해예요. 원가율이나 수수료를 확인해 보세요.';
+    if (c.beN == null) be = '1' + unit + ' 팔 때 남는 몫이 0원 이하라 몇 ' + unit + (unit === '잔' ? '을' : '를') + ' 팔아도 손해예요. 원가율이나 수수료를 확인해 보세요.';
     else if (c.fixed <= 0) be = '주문마다 따로 나가는 돈이 없어서 1' + unit + '부터 남아요.';
     else be = '<b>손해 안 보는 최소 주문</b>: <code>주문마다 나가는 돈 ' + won(c.fixed) + ' ÷ 1' + unit + '당 남는 몫 ' + won(c.m) + ' = ' + (Math.round(c.beX * 10) / 10) + unit + '</code> → ' +
       (c.beN > 1 ? '주문이 <b>약 ' + won(c.beP) + '원 이상</b>이면 손해가 아니에요 (평균 ' + won(c.price) + '원짜리로 <b>' + c.beN + unit + '</b>). 앱 <b>최소주문금액</b> 칸에 넣을 숫자예요.' : '<b>1' + unit + '부터</b> 남아요.') +
@@ -487,7 +487,7 @@
       (c.feeOnDisc ? '<p class="note" style="grid-column:1/-1">정해진 돈 안에 <b>가게가 할인한 돈에 붙은 수수료 ' + won(c.feeOnDisc) + '원</b>(부가세 포함)이 들어 있어요. 할인 1만 원당 약 ' + won(c.feeOnDisc / c.D * 10000) + '원이에요. 공정위가 2026-11 쿠팡이츠에 약관을 60일 안에 고치라고 명령한 부분이라(업체는 반발), 고치면 이 몫이 없어져요. <a href="fees.html">근거 →</a></p>' : '');
 
     var m = L.filter(function (x) { return x.id === { app: 'app', agency: 'mp', self: 'self' }[mode]; })[0];
-    $('small').innerHTML = (m.beN == null ? '이 방식은 이 조건이면 몇 ' + unit + '를 팔아도 손해예요.' : m.beN === 1 ? '이 방식은 1' + unit + '부터 손해가 아니에요 (할인 빼고).' :
+    $('small').innerHTML = (m.beN == null ? '이 방식은 이 조건이면 몇 ' + unit + (unit === '잔' ? '을' : '를') + ' 팔아도 손해예요.' : m.beN === 1 ? '이 방식은 1' + unit + '부터 손해가 아니에요 (할인 빼고).' :
       '이 방식은 주문이 <b>약 ' + won(m.beP) + '원 이상</b>이면 손해가 아니에요 (평균 ' + won(m.price) + '원짜리로 <b>' + m.beN + unit + '</b>, 할인 빼고). 앱 <b>최소주문금액</b> 칸에 넣을 숫자예요.') +
       ' 배달비·고정비는 주문마다 똑같이 붙어서 <b>작은 주문일수록 남는 비율이 줄어요.</b>';
   }
