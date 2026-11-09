@@ -8,6 +8,7 @@
     { file: 'delivery.html', title: '배달 정산 (카드형)' },
     { file: 'dashboard.html', title: '배달 정산 (대시보드형)' },
     { file: 'upload.html', title: '내 파일로 맞추기' },
+    { file: 'calc.html', title: '배달 1건 계산기' },
     { file: 'hq-check.html', title: '본사 정산 확인' }
   ];
   var here = location.pathname.split('/').pop() || 'index.html';

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>배달 1건 계산기</title>
+<meta name="description" content="배달 1건 팔면 얼마 남는지, 수수료·배달비·원가까지 줄마다 수식으로 (예시 요율)">
+<style>
+  :root {
+    --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6;
+    --total: #2563eb; --red: #dc2626; --red-bg: #fee2e2; --green: #15803d; --green-bg: #dcfce7; --amber: #b45309; --amber-bg: #fef3c7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+  button, input, select { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: 18px; }
+  .top h1 .tag { font-size: 11px; font-weight: 700; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .top-right { display: flex; gap: 6px 14px; flex-wrap: wrap; }
+  .design-pick, .refs-pick { font-size: 13px; color: var(--sub); display: inline-flex; align-items: center; gap: 6px; }
+  .design-pick select, .refs-pick select { font-size: 13px; background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; max-width: 13em; }
+  .content { max-width: 960px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  h2 { font-size: 15px; margin: 0 0 6px; }
+  .muted { color: var(--sub); font-size: 13px; margin: 0; }
+  .lead { font-size: 15px; margin: 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+  label.f { display: grid; gap: 3px; font-size: 13px; font-weight: 600; }
+  label.f small { font-weight: 400; color: var(--sub); font-size: 11.5px; }
+  label.f input, label.f select { width: 100%; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel); text-align: right; }
+  label.f select { text-align: left; }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px; background: var(--page); }
+  .seg button { border: 0; background: transparent; border-radius: 999px; padding: 5px 12px; cursor: pointer; color: var(--sub); font-size: 13px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 10px; }
+  .row .lab { font-size: 13px; font-weight: 600; }
+  .big { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .big .t { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .big .t .k { font-size: 12px; color: var(--sub); font-weight: 600; }
+  .big .t .n { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25; }
+  .big .t .d { font-size: 12px; color: var(--sub); }
+  .big .t.left { border-color: var(--green); background: var(--green-bg); } .big .t.left .n { color: var(--green); }
+  .big .t.left.neg { border-color: var(--red); background: var(--red-bg); } .big .t.left.neg .n { color: var(--red); }
+  .eq { display: grid; grid-template-columns: 1.2em minmax(0, 1fr) auto; gap: 2px 8px; font-size: 13.5px; align-items: baseline; }
+  .eq .op { color: var(--sub); text-align: center; font-weight: 700; }
+  .eq .amt { text-align: right; font-weight: 700; white-space: nowrap; }
+  .eq .how { grid-column: 2 / -1; font-size: 12px; color: var(--sub); margin: -1px 0 5px; }
+  .eq .how code { font-family: inherit; background: var(--head); border-radius: 4px; padding: 0 4px; color: var(--ink); }
+  .eq .rng { color: var(--amber); }
+  .eq .sum { border-top: 1px solid var(--line-strong); padding-top: 4px; font-weight: 800; }
+  .eq .choice { color: var(--amber); }
+  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .groups .g { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .groups .g.c { border-color: var(--amber); background: var(--amber-bg); }
+  .groups .g b { display: block; } .groups .g .n { font-size: 20px; font-weight: 800; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th { background: var(--head); font-size: 12px; font-weight: 600; }
+  td.l, th.l { text-align: left; white-space: normal; }
+  td .s { display: block; font-size: 11px; color: var(--sub); white-space: normal; }
+  tr.me td { background: #eff6ff; font-weight: 700; }
+  .pos { color: var(--green); font-weight: 700; } .neg { color: var(--red); font-weight: 700; }
+  .note { font-size: 12.5px; color: var(--sub); margin: 8px 0 0; }
+  .note b { color: var(--ink); }
+  .cta { border: 1px solid var(--total); background: #eff6ff; }
+  .cta .contact { display: inline-block; margin-top: 6px; padding: 4px 10px; border: 1px dashed var(--total); border-radius: 6px; color: var(--total); font-weight: 700; }
+  .btn { display: inline-block; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 13px; text-decoration: none; color: var(--ink); }
+  .btn.primary { background: var(--total); border-color: var(--total); color: #fff; font-weight: 700; }
+  .foot { font-size: 12px; color: var(--sub); margin: 0; }
+  @media (max-width: 760px) {
+    .top { padding: 10px 16px; } .top h1 { font-size: 16px; }
+    .content { padding: 12px 16px 28px; }
+    .grid2, .big, .groups { grid-template-columns: 1fr; }
+    .big .t .n { font-size: 22px; }
+    th, td { padding: 7px 6px; }
+    .hide-m { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>배달 1건 계산기<span class="tag">예시 요율</span></h1>
+  <div class="top-right"><span data-refs></span><span data-screens></span></div>
+</header>
+
+<main class="content">
+  <section class="card">
+    <p class="lead"><b>배달 1건 팔면 얼마 남을까요?</b> 메뉴 가격과 원가만 넣으면 수수료·배달비·원가까지 빼고 남는 돈을 <b>줄마다 수식</b>으로 보여 드려요. 같은 메뉴를 매장·포장으로 팔 때와도 나란히 놓아요.</p>
+    <p class="muted" style="margin-top:6px">입력한 숫자는 이 화면에서만 계산되고 어디에도 저장되지 않아요.</p>
+  </section>
+
+  <section class="card" aria-labelledby="in-title">
+    <h2 id="in-title">넣을 것</h2>
+    <div class="row"><span class="lab">배달 방식</span>
+      <div class="seg" id="mode" role="group" aria-label="배달 방식">
+        <button type="button" data-v="app" aria-pressed="true">앱배달 (앱이 라이더)</button>
+        <button type="button" data-v="agency" aria-pressed="false">가게배달 + 배달대행</button>
+        <button type="button" data-v="self" aria-pressed="false">직접 배달</button>
+      </div>
+    </div>
+    <div class="grid2">
+      <label class="f">배달 주문금액 (원)<small>손님이 시킨 메뉴 값 합계</small><input type="number" id="price" min="0" step="500" inputmode="numeric"></label>
+      <label class="f">배달가 인상 (원)<small>같은 메뉴를 매장보다 얼마 비싸게 받나 · 같으면 0</small><input type="number" id="up" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">원가율 (%)<small>재료비 ÷ 매장 판매가 · 보통 식당 30% 안팎</small><input type="number" id="rate" min="0" max="90" step="1" inputmode="numeric"></label>
+      <label class="f">포장재 1건당 (원)<small>용기·봉투·컵 홀더 등</small><input type="number" id="pack" min="0" step="50" inputmode="numeric"></label>
+      <label class="f">중개 수수료 구간<small class="rng-s">공개 보도 기준 2.0~7.8% · 매출 구간마다</small>
+        <select id="broker"><option value="7.8">7.8% (매출 상위 구간)</option><option value="6.8">6.8% (중간 구간)</option><option value="2">2.0% (하위 구간)</option></select></label>
+      <label class="f">결제 수수료 (%)<small>할인 뺀 금액에 붙음 · 정산서 사례 약 3%</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
+      <label class="f" data-show="app">가게 부담 배달비 (원)<small>공개 보도 기준 1,900~3,400원 · 구간·거리마다</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
+      <label class="f" data-show="agency">배달대행비 1건당 (원)<small>배달료 + 콜비 · 지사마다 다름</small><input type="number" id="agency" min="0" step="100" inputmode="numeric"></label>
+      <label class="f" data-show="self">직접 배달 1건당 드는 돈 (원)<small>시간 인건비 + 기름값 어림</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
+      <label class="f" data-show="agency self">손님 배달팁 (원)<small>손님이 낸 배달비 · 정산금에 더해짐</small><input type="number" id="tip" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 없으면 0</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
+      <label class="f">가게 부담 할인 (원)<small>가게가 건 쿠폰·할인</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
+      <label class="f" data-show="agency self">한 달 배달 건수<small>고정비를 1건당으로 나눌 때 씀</small><input type="number" id="count" min="1" step="1" inputmode="numeric"></label>
+      <label class="f" data-show="agency self">배달 월 고정비 (원)<small>배달대행 월 관리비 + 충전 수수료, 오토바이 리스 등 · 없으면 0</small><input type="number" id="fixed" min="0" step="1000" inputmode="numeric"></label>
+      <label class="f">매장 카드 수수료 (%)<small>매출 규모마다 다름 · 비교용</small><input type="number" id="card" min="0" max="5" step="0.1" inputmode="decimal"></label>
+      <label class="f">앱 포장 주문 수수료 (%)<small>공개 글 기준 예시 6.8% · 비교용</small><input type="number" id="takeout" min="0" max="15" step="0.1" inputmode="decimal"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><span class="lab">과세 유형</span>
+      <div class="seg" id="tax" role="group" aria-label="과세 유형">
+        <button type="button" data-v="general" aria-pressed="true">일반과세</button>
+        <button type="button" data-v="simple" aria-pressed="false">간이과세</button>
+      </div>
+    </div>
+    <p class="note" id="tax-note"></p>
+  </section>
+
+  <section class="card" aria-labelledby="out-title">
+    <h2 id="out-title">배달 1건, 이렇게 남아요</h2>
+    <div class="big" id="big"></div>
+    <div class="eq" id="eq" style="margin-top:14px"></div>
+    <div class="groups" id="groups"></div>
+    <p class="note" id="small"></p>
+  </section>
+
+  <section class="card" aria-labelledby="cmp-title">
+    <h2 id="cmp-title">같은 메뉴, 어떻게 팔면 얼마 남나</h2>
+    <p class="muted">1건당 · 원가·포장재까지 뺀 금액 · 판단은 사장님 몫이에요</p>
+    <div style="overflow-x:auto;margin-top:8px"><table><thead><tr><th class="l">파는 방식</th><th>받는 값</th><th class="hide-m">빠지는 돈</th><th class="hide-m">원가·포장재</th><th>남는 돈</th></tr></thead><tbody id="cmp"></tbody></table></div>
+  </section>
+
+  <section class="card cta">
+    <h2>실제 정산서로 맞춰 보고 싶으시면</h2>
+    <p class="muted" style="color:var(--ink)">배달앱 정산 상세 화면이나 엑셀을 주시면(가게 이름은 가리고), 어디서 얼마 빠졌는지 <b>무료로 나눠 드려요.</b> 수수료·배달비·할인·광고로 나누고, 줄마다 얼마 × 몇 %인지 수식으로 보여 드려요.</p>
+    <span class="contact">연락 방법: (준비 중 — 가르시아가 채울 자리)</span>
+    <p class="note">받은 자료는 답변에만 쓰고 저장하지 않아요. <a href="index.html#delivery">예시로 한 달 치를 나눠 본 화면 보기 →</a></p>
+    <p style="margin:12px 0 0"><button type="button" class="btn primary" id="tpl">일별 마감 엑셀 양식 받기 (빈 양식)</button></p>
+    <p class="note">판매일과 입금일을 따로 적는 칸이 있어요. 카드·배달 돈은 며칠 뒤 들어와서, 같은 매출을 두 번 더하거나 하루 빠진 것으로 보는 혼동을 줄여 줘요. 칸은 적게 만들었어요.</p>
+    <p class="note" id="lib-err" hidden>엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
+  </section>
+
+  <p class="foot">요율·단가는 공개 보도·공개 글 기준 <b>예시</b>예요. 앱·시기·가게 매출 구간·지역마다 다르고 자주 바뀌니, 실제 금액은 사장님 정산서로 확인해 주세요. 세금 판단은 세무사님 확인이 필요해요.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var DEF = { price: 20000, up: 0, rate: 33, pack: 500, broker: '7.8', pay: 3, deliv: 3400, agency: 4000, self: 2500, tip: 2000, member: 0, disc: 0, count: 30, fixed: 55000, card: 1.1, takeout: 6.8 };
+  var mode = 'app', tax = 'general';
+  var $ = function (id) { return document.getElementById(id); };
+  Object.keys(DEF).forEach(function (k) { $(k).value = DEF[k]; });
+  function n(id) { var v = Number($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+  function won(x) { return Math.round(x).toLocaleString('ko-KR'); }
+  function pct(x) { return (Math.round(x * 10) / 10).toFixed(1).replace(/\.0$/, ''); }
+
+  function calc() {
+    var P = n('price'), U = Math.min(n('up'), P), r = n('rate') / 100, pack = n('pack'), b = Number($('broker').value) / 100, p = n('pay') / 100;
+    var D = Math.min(n('disc'), P), M = n('member'), N = Math.max(1, n('count')), K = n('fixed');
+    var shop = P - U;                      // 같은 메뉴의 매장 가격
+    var mat = Math.round(shop * r);        // 재료비 (같은 재료)
+    var base = P - D;                      // 할인 뺀 금액
+    var broker = Math.round(P * b), pay = Math.round(base * p);
+    var appDeliv = mode === 'app' ? n('deliv') : 0;
+    var tip = mode === 'app' ? 0 : n('tip');
+    var vat = Math.round((broker + pay + appDeliv + M) * 0.1);
+    var settle = P - D - broker - pay - appDeliv - M - vat + tip;   // 정산금 (통장에 들어오는 돈)
+    var outside = mode === 'agency' ? n('agency') : mode === 'self' ? n('self') : 0; // 정산 밖에서 나가는 돈
+    var fixedPer = mode === 'app' ? 0 : Math.round(K / N);
+    var left = settle - outside - fixedPer - mat - pack;
+    return { P: P, U: U, r: r, pack: pack, b: b, p: p, D: D, M: M, N: N, K: K, shop: shop, mat: mat, base: base, broker: broker, pay: pay,
+      appDeliv: appDeliv, tip: tip, vat: vat, settle: settle, outside: outside, fixedPer: fixedPer, left: left };
+  }
+  function leftAt(price) { // 작은 주문 비교용: 같은 조건에 주문금액만 바꿔
+    var save = $('price').value, saveUp = $('up').value; $('price').value = price; var c = calc(); $('price').value = save; $('up').value = saveUp; return c;
+  }
+
+  function render() {
+    var c = calc();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-show]'), function (el) { el.hidden = el.dataset.show.split(' ').indexOf(mode) < 0; });
+    $('tax-note').innerHTML = tax === 'general'
+      ? '<b>일반과세</b>: 재료 살 때 낸 부가세는 신고 때 공제받아 원가가 아니에요. 원가율은 <b>재료비·판매가 둘 다 부가세 뺀 금액</b>으로 나눠요 (예: 4,500원 메뉴면 4,090원 기준). 둘 다 부가세 포함으로 넣어도 비율은 같아요 — 한쪽만 빼면 틀려요.'
+      : '<b>간이과세</b>: 매입 부가세 공제가 작아서 재료비는 <b>부가세 포함 금액 그대로</b> 넣는 게 실제에 가까워요. 내는 부가세 비율은 업종마다 달라서 세무사님 확인이 필요해요.';
+    var modeName = { app: '앱배달', agency: '가게배달 + 배달대행', self: '직접 배달' }[mode];
+    $('big').innerHTML =
+      '<div class="t"><span class="k">통장에 들어오는 돈 (정산금)</span><div class="n">' + won(c.settle) + '원</div><span class="d">주문금액 ' + won(c.P) + '원의 ' + pct(c.settle / c.P * 100) + '%</span></div>' +
+      '<div class="t"><span class="k">배달 때문에 빠진 돈</span><div class="n">' + won(c.P - c.settle + c.outside + c.fixedPer) + '원</div><span class="d">주문금액의 ' + pct((c.P - c.settle + c.outside + c.fixedPer) / c.P * 100) + '% · ' + modeName + '</span></div>' +
+      '<div class="t left' + (c.left < 0 ? ' neg' : '') + '"><span class="k">원가·포장재까지 빼고 남는 돈</span><div class="n">' + won(c.left) + '원</div><span class="d">' + (c.left < 0 ? '1건 팔 때마다 손해' : '인건비·임대료 내기 전') + '</span></div>';
+
+    function row(op, name, amt, how, cls) {
+      return '<span class="op">' + op + '</span><span class="' + (cls || '') + '">' + name + '</span><span class="amt ' + (cls || '') + '">' + won(amt) + '</span>' + (how ? '<span class="how">' + how + '</span>' : '');
+    }
+    var h = row('', '주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달가 인상 ' + won(c.U) : '');
+    if (c.D) h += row('−', '가게 부담 할인', c.D, '가게가 건 쿠폰 · 가게가 고르는 돈', 'choice');
+    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.P) + ' × ' + pct(c.b * 100) + '%</code> <span class="rng">범위 2.0~7.8% (매출 구간마다)</span>');
+    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.base) + ' × ' + pct(c.p * 100) + '%</code> · 할인 뺀 금액에 붙음');
+    if (c.appDeliv) h += row('−', '배달비 (앱이 정산에서 뗌)', c.appDeliv, '<span class="rng">범위 1,900~3,400원</span>');
+    if (c.M) h += row('−', '멤버십 가게 부담 배달료', c.M, '손님 무료배달 혜택 가게라 붙는 몫 · 가게가 고르는 돈', 'choice');
+    h += row('−', '부가세', c.vat, '<code>(' + [c.broker, c.pay].concat(c.appDeliv ? [c.appDeliv] : []).concat(c.M ? [c.M] : []).map(won).join(' + ') + ') × 10%</code>');
+    if (c.tip) h += row('+', '손님 배달팁', c.tip, '손님이 낸 배달비가 정산금에 더해짐');
+    h += row('=', '정산금 (통장에 들어오는 돈)', c.settle, '', 'sum');
+    if (mode === 'agency') h += row('−', '배달대행비', c.outside, '배달료 + 콜비 · 정산금이 아니라 <b>충전금</b>에서 나가요 (통장엔 충전할 때 큰 출금만)');
+    if (mode === 'self') h += row('−', '직접 배달 비용', c.outside, '시간 인건비 + 기름값 어림');
+    if (c.fixedPer) h += row('−', '월 고정비 1건 몫', c.fixedPer, '<code>' + won(c.K) + ' ÷ ' + won(c.N) + '건</code> · 건수가 적을수록 1건당 커져요');
+    h += row('−', '재료비', c.mat, '<code>' + won(c.shop) + ' × ' + pct(c.r * 100) + '%</code> · 매장 판매가 기준 원가율' + (c.U ? ' (배달가 인상분엔 재료 안 듦)' : ''));
+    h += row('−', '포장재', c.pack, '');
+    h += row('=', '남는 돈', c.left, '인건비·임대료·로열티 내기 전', 'sum');
+    $('eq').innerHTML = h;
+
+    var choice = c.D + c.M, fixed = (c.P - c.settle + c.outside + c.fixedPer) - choice;
+    $('groups').innerHTML =
+      '<div class="g"><b>정해진 돈</b><span class="muted">수수료·배달비·세금·고정비</span><div class="n">−' + won(fixed) + '원</div></div>' +
+      '<div class="g c"><b>가게가 고르는 돈</b><span class="muted">할인·멤버십 부담 · 줄이거나 끌 수 있음</span><div class="n">−' + won(choice) + '원</div></div>';
+
+    var s = leftAt(10000);
+    $('small').innerHTML = '배달비·고정비는 주문마다 똑같이 붙어서 <b>작은 주문일수록 비율이 커져요.</b> 같은 조건에서 1만 원 주문이면 남는 돈 <b class="' + (s.left < 0 ? 'neg' : 'pos') + '">' + won(s.left) + '원</b> (지금 ' + won(c.P) + '원 주문은 ' + won(c.left) + '원). 최소 주문 금액을 두는 이유예요.';
+
+    // 비교: 같은 메뉴(매장가 기준)
+    var cardFee = Math.round(c.shop * n('card') / 100);
+    var tk = n('takeout') / 100, tkBroker = Math.round(c.shop * tk), tkPay = Math.round(c.shop * c.p), tkVat = Math.round((tkBroker + tkPay) * 0.1);
+    var rows = [
+      { nm: '매장에서 카드로', s: '포장재 없음', recv: c.shop, cut: cardFee, cost: c.mat },
+      { nm: '전화 포장 (카드)', s: '수수료는 카드 수수료만', recv: c.shop, cut: cardFee, cost: c.mat + c.pack },
+      { nm: '앱 포장 주문', s: '포장 수수료 ' + pct(tk * 100) + '% + 결제 ' + pct(c.p * 100) + '% + 부가세', recv: c.shop, cut: tkBroker + tkPay + tkVat, cost: c.mat + c.pack },
+      { nm: '지금 배달 (' + modeName + ')', s: '위 계산 그대로', recv: c.P, cut: c.P - c.settle + c.outside + c.fixedPer, cost: c.mat + c.pack, me: true }
+    ];
+    $('cmp').innerHTML = rows.map(function (x) {
+      var l = x.recv - x.cut - x.cost;
+      return '<tr' + (x.me ? ' class="me"' : '') + '><td class="l">' + x.nm + '<span class="s">' + x.s + '</span></td><td>' + won(x.recv) + '</td><td class="hide-m">−' + won(x.cut) + '</td><td class="hide-m">−' + won(x.cost) + '</td><td class="' + (l < 0 ? 'neg' : 'pos') + '">' + won(l) + '</td></tr>';
+    }).join('');
+  }
+
+  function seg(id, set) {
+    $(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]'); if (!b) return;
+      set(b.dataset.v);
+      Array.prototype.forEach.call($(id).querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+  }
+  seg('mode', function (v) { mode = v; });
+  seg('tax', function (v) { tax = v; });
+  Array.prototype.forEach.call(document.querySelectorAll('input, select'), function (el) { el.addEventListener('input', render); });
+  render();
+
+  // 일별 마감 엑셀 양식 (빈 양식)
+  $('tpl').addEventListener('click', function () {
+    if (typeof XLSX === 'undefined') { $('lib-err').hidden = false; return; }
+    var day = [['일별 마감 (판매일 기준 매출 · 입금일은 따로)'], [],
+      ['판매일', '매장 카드', '현금', '배달앱 A', '배달앱 B', '배달앱 C', '포장·기타', '매출 합계', '식자재', '인건비', '고정비(월세 등)', '지출 합계', '메모']];
+    for (var i = 0; i < 31; i++) { var r = day.length + 1; day.push(['', '', '', '', '', '', '', { f: 'SUM(B' + r + ':G' + r + ')' }, '', '', '', { f: 'SUM(I' + r + ':K' + r + ')' }, '']); }
+    var dep = [['입금 기록 (통장에 들어온 날 기준)'], [],
+      ['입금일', '어디서 (카드사·배달앱·본사 등)', '입금액', '몇 일 판 돈인지 (판매일)', '맞음/확인 필요', '메모']];
+    for (var j = 0; j < 40; j++) dep.push(['', '', '', '', '', '']);
+    var wb = XLSX.utils.book_new();
+    var ws1 = XLSX.utils.aoa_to_sheet(day); ws1['!cols'] = [10, 10, 9, 10, 10, 10, 10, 11, 9, 9, 13, 11, 14].map(function (w) { return { wch: w }; });
+    var ws2 = XLSX.utils.aoa_to_sheet(dep); ws2['!cols'] = [10, 26, 12, 20, 14, 18].map(function (w) { return { wch: w }; });
+    XLSX.utils.book_append_sheet(wb, ws1, '일별 매출·지출');
+    XLSX.utils.book_append_sheet(wb, ws2, '입금 기록');
+    XLSX.writeFile(wb, '일별_마감_양식.xlsx');
+  });
+})();
+</script>
+<script src="refs.js"></script>
+<script src="screens.js"></script>
+</body>
+</html>
