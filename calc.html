@@ -9,7 +9,7 @@
 <style>
   :root {
     --page: #f7f7f8; --panel: #ffffff; --ink: #111827; --sub: #6b7280; --line: #e5e7eb; --line-strong: #d1d5db; --head: #f3f4f6;
-    --total: #2563eb; --total-soft: #dbeafe; --red: #dc2626; --red-bg: #fee2e2; --green: #15803d; --green-bg: #dcfce7; --amber: #b45309; --amber-bg: #fef3c7;
+    --total: #8a6400; --total-soft: #fdf3cf; --gold-big: #a87b00; --gold-bar: #b58900; --gold-fill: #f4c20d; --gold-line: #e3b600; --gold-ink: #1c1400; --gold-pale: #fffbeb; --red: #dc2626; --red-bg: #fee2e2; --green: #15803d; --green-bg: #dcfce7; --amber: #b45309; --amber-bg: #fef3c7;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; font-size: 14px; line-height: 1.5; font-variant-numeric: tabular-nums; }
@@ -39,13 +39,13 @@
   .row .lab { font-size: 13px; font-weight: 600; }
   /* 숫자 몇 개 */
   .hero-big { font-size: 32px; line-height: 1.2; font-weight: 800; letter-spacing: -0.03em; margin: 2px 0 10px; }
-  .hero-big .hl { color: var(--total); }
+  .hero-big .hl { color: var(--gold-big); }
   .hero-sum { font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
   .qhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
   .qhead .go { font-size: 16px; font-weight: 800; color: var(--total); }
   .qgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
   .qgrid label.f input, .qgrid label.f select { font-size: 16px; padding: 8px 10px; }
-  .answer { margin: 14px 0 4px; padding: 10px 12px; border-left: 4px solid var(--total); background: #eff6ff; border-radius: 0 8px 8px 0; font-size: 14.5px; }
+  .answer { margin: 14px 0 4px; padding: 10px 12px; border-left: 4px solid var(--gold-fill); background: var(--gold-pale); border-radius: 0 8px 8px 0; font-size: 14.5px; }
   .answer p { margin: 0; }
   .answer p + p { margin-top: 5px; font-size: 13px; }
   .answer .neg { color: var(--red); font-weight: 700; }
@@ -62,7 +62,7 @@
   details.ch .v { text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
   details.ch .v small { display: block; font-weight: 600; font-size: 11.5px; color: var(--sub); }
   details.ch .bar { grid-column: 1 / 3; height: 8px; background: var(--head); border-radius: 4px; overflow: hidden; }
-  details.ch .bar span { display: block; height: 100%; background: var(--total); border-radius: 4px; }
+  details.ch .bar span { display: block; height: 100%; background: var(--gold-bar); border-radius: 4px; }
   details.ch.cmp .nm, details.ch.cmp .v { color: var(--sub); }
   details.ch.cmp .bar span { background: var(--line-strong); }
   details.ch.best .v { color: var(--green); }
@@ -100,13 +100,15 @@
   .pos { color: var(--green); font-weight: 700; } .neg { color: var(--red); font-weight: 700; }
   .note { font-size: 12.5px; color: var(--sub); margin: 8px 0 0; }
   .note b { color: var(--ink); }
-  .cta { border: 1px solid var(--total); background: #eff6ff; }
+  .cta { border: 1px solid var(--gold-line); background: var(--gold-pale); }
   .cta .contact { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .cta .contact .btn { padding: 8px 14px; font-size: 14px; }
   .cta .who { font-size: 12.5px; color: var(--sub); margin: 8px 0 0; }
   .cta .who a { color: var(--total); }
   .btn { display: inline-block; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 13px; text-decoration: none; color: var(--ink); }
-  .btn.primary { background: var(--total); border-color: var(--total); color: #fff; font-weight: 700; }
+  .btn.primary { background: var(--gold-fill); border-color: var(--gold-line); color: var(--gold-ink); font-weight: 800; }
+  .btn.primary:hover { background: #e6b400; }
+  a { color: var(--total); } a:hover { color: #6b4e00; }
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
   .sec-big { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
   ol.steps { margin: 14px 0 0; padding-left: 1.4em; display: grid; gap: 10px; font-size: 14.5px; }
