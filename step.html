@@ -147,7 +147,7 @@
   <div class="in">
     <p class="count">4 / 5</p>
     <h2 id="s4-h">배달대행비,<br>1건에 얼마 내세요?</h2>
-    <p class="hint">가게배달·본사 앱 배달에 쓰는 라이더 비용이에요.</p>
+    <p class="hint" id="h-agency"></p>
     <div class="num" aria-live="polite"><span id="v-agency"></span><small>원</small></div>
     <div class="chips" data-key="agency" role="group" aria-label="배달대행비 고르기"></div>
     <div class="own" data-own="agency" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="배달대행비 직접 넣기"><span>원</span></div>
@@ -159,7 +159,7 @@
   <div class="in">
     <p class="count">5 / 5</p>
     <h2 id="s5-h">손님한테 받는<br>배달팁은요?</h2>
-    <p class="hint">가게배달·본사 앱에서 손님이 내는 배달비예요. 가게로 정산돼요.</p>
+    <p class="hint" id="h-tip"></p>
     <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
     <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
     <button type="button" class="go" data-next="r1">결과 보기</button>
@@ -170,6 +170,8 @@
   <div class="in">
     <p class="label">결과 1</p>
     <h2 id="r1-h">배달 1건(<span id="r-k"></span>)이면<br><b>이만큼 남아요</b></h2>
+    <p class="hint" style="margin:0 0 10px">본사(프랜차이즈) 앱 배달이 있나요?</p>
+    <div class="chips" data-key="hq" role="group" aria-label="본사 앱 있음 없음" style="margin-bottom:18px"></div>
     <div class="list" id="list"></div>
     <p class="fine">재료비·포장재까지 뺀 돈 · 인건비·임대료·부가세 신고 전 · 할인·광고 빼고 · 예시 요율</p>
   </div>
@@ -234,7 +236,7 @@
   var TIER = { t1: { b: 0.078, d: 2900, nm: '상위 35%', r: '7.8%' }, t2: { b: 0.068, d: 2600, nm: '35~50%', r: '6.8%' }, t3: { b: 0.068, d: 2400, nm: '50~80%', r: '6.8%' }, t4: { b: 0.02, d: 2400, nm: '하위 20%', r: '2.0%' } };
   var PAY = 0.03, MP = 0.068, HQ = 0.03, CARD = 0.011;
   var AGENCY_CHIPS = [3000, 3500, 4000, 4500, 5000], TIP_CHIPS = [0, 1000, 2000, 3000, 4000];
-  var st = { kind: 'cafe', item: 3000, items: 4, rate: 35, agency: 4000, tip: 3000, tier: 't1' };
+  var st = { kind: 'cafe', hq: 'yes', item: 3000, items: 4, rate: 35, agency: 4000, tip: 3000, tier: 't1' };
   var ORDER = ['s1', 's2', 's3', 's4', 's5', 'r1', 'r2', 'r3', 'r4', 'r5'];
   var $ = function (id) { return document.getElementById(id); };
   function won(x) { return Math.round(x).toLocaleString('ko-KR'); }
@@ -249,6 +251,7 @@
       { id: 'app', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 앱이 라이더', f: (T.b + PAY) * 1.1, costs: [T.d * 1.1, pk], per: 0, del: T.d * 1.1 },
       { id: 'shop', nm: '매장에서 (비교)', sub: '카드 수수료만', f: CARD, costs: [], per: 0, del: 0, cmp: true }
     ];
+    if (st.hq !== 'yes') L = L.filter(function (c) { return c.id !== 'hq'; });
     L.forEach(function (c) {
       c.P = Math.round(k * it);
       c.fee = Math.round(c.P * c.f);
@@ -285,6 +288,10 @@
     chips('rate', P0.rateChips, function (v) { return v + '%'; });
     chips('agency', AGENCY_CHIPS, won, true);
     chips('tip', TIP_CHIPS, function (v) { return v ? won(v) : '안 받아요'; });
+    chips('hq', ['yes', 'no'], function (v) { return v === 'yes' ? '있어요' : '없어요 (개인 가게)'; });
+    var via = st.hq === 'yes' ? '가게배달·본사 앱' : '가게배달';
+    $('h-agency').textContent = (st.hq === 'yes' ? '가게배달·본사 앱 배달' : '가게배달') + '에 쓰는 라이더 비용이에요.';
+    $('h-tip').textContent = via + '에서 손님이 내는 배달비예요. 가게로 정산돼요.';
     chips('tier', ['t1', 't2', 't3', 't4'], function (v) { return TIER[v].nm + ' · ' + TIER[v].r; });
 
     var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
@@ -317,9 +324,9 @@
 
     $('tier-say').textContent = '지금: ' + TIER[st.tier].nm + ' — 중개 ' + TIER[st.tier].r + ' + 결제 3%, 가게 부담 배달비 ' + won(TIER[st.tier].d) + '원(구간 가운데 값)';
     $('assume').innerHTML = ['가게배달 중개 6.8% (배민 오픈리스트, 공정위 자료) · 결제 수수료 3% · 수수료엔 부가세 10%',
-      '본사 앱 수수료 3%' + (P0.stamp ? ', 적립 할인 1' + u + '당 ' + won(P0.stamp) + '원(가게 부담)' : '') + '은 <b>가정</b>이에요 — 점장님께 여쭤볼 숫자',
+      st.hq !== 'yes' ? null : '본사 앱 수수료 3%' + (P0.stamp ? ', 적립 할인 1' + u + '당 ' + won(P0.stamp) + '원(가게 부담)' : '') + '은 <b>가정</b>이에요 — 점장님께 여쭤볼 숫자',
       '배달팁에도 결제 수수료가 붙는다고 봤어요 (확인 필요) · 포장재 1건 ' + won(P0.pack) + '원',
-      '남는 돈은 인건비·임대료·로열티·부가세 신고 전 · 할인·광고는 빼고 계산'].map(function (x) { return '<li>' + x + '</li>'; }).join('');
+      '남는 돈은 인건비·임대료·로열티·부가세 신고 전 · 할인·광고는 빼고 계산'].filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
 
     var shown = ORDER.filter(function (id) { return !$(id).hidden; }).length;
     $('bar').style.width = Math.min(100, shown / ORDER.length * 100) + '%';
@@ -333,7 +340,7 @@
     if (scroll !== false) setTimeout(function () { $(id).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }, 30);
   }
   function setKind(kind) {
-    var P0 = PRESET[kind]; st.kind = kind; st.item = P0.item; st.items = P0.items; st.rate = P0.rate;
+    var P0 = PRESET[kind]; st.kind = kind; st.hq = kind === 'cafe' ? 'yes' : 'no'; st.item = P0.item; st.items = P0.items; st.rate = P0.rate;
   }
 
   document.addEventListener('click', function (e) {
@@ -347,7 +354,7 @@
     if (ch) {
       var key = ch.parentNode.dataset.key, v = ch.dataset.v;
       if (v === 'own') { var box = document.querySelector('.own[data-own="' + key + '"]'); box.hidden = false; var inp = box.querySelector('input'); inp.value = st[key]; inp.focus(); inp.select(); ch.parentNode.querySelectorAll('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === ch)); }); return; }
-      st[key] = key === 'tier' ? v : Number(v); render(); return;
+      st[key] = (key === 'tier' || key === 'hq') ? v : Number(v); render(); return;
     }
   });
   document.addEventListener('input', function (e) {
