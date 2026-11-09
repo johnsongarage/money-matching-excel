@@ -8,7 +8,7 @@
 <meta name="description" content="숫자 다섯 개만 고르면 배민·쿠팡·가게배달·본사 앱 중 어디가 더 남는지, 몇 잔부터 남는지 보여 드려요 (예시 요율)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   /* 무인양품 톤: 생지 바탕 · 먹색 글씨 · 가는 선 · 그림자 없음 · 금색은 강조에만 */
   :root {
@@ -28,10 +28,12 @@
   .scene:first-of-type { border-top: 0; }
   .in { width: 100%; max-width: 520px; margin: 0 auto; }
   .label { font-size: 12px; letter-spacing: 0.24em; color: var(--sub); margin: 0 0 22px; }
-  h1, h2 { font-weight: 400; letter-spacing: -0.03em; line-height: 1.28; margin: 0 0 20px; }
+  h1, h2 { font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", "Batang", serif; font-weight: 400; letter-spacing: -0.04em; line-height: 1.32; margin: 0 0 20px; }
+  .big-say { font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", "Batang", serif; }
   h1 { font-size: 40px; }
   h2 { font-size: 32px; }
   h1 b, h2 b { font-weight: 700; }
+  h1 b, h2 b, .big-say b { font-weight: 600; }
   .gold { color: var(--gold); }
   .lead { font-size: 17px; line-height: 1.75; margin: 0 0 32px; color: var(--ink); }
   .lead b { font-weight: 700; }
