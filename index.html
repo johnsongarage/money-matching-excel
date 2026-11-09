@@ -893,7 +893,7 @@
       '<tr class="sum"><td>= 재료비·포장재까지 빼고 남는 돈<span class="s">인건비·임대료·로열티는 아직 안 뺌</span></td><td class="v">' + won(left10) + '원</td></tr>';
     document.getElementById('r10').innerHTML = '<table class="r10">' + rr + '</table>' +
       '<div class="r10-take"><b>"절반 가까이"를 나눠 보면</b><br>앱·배달 몫이 1만 원 중 <b>' + won(cut10) + '원</b>이에요. 그중 <b>' + won(fixed10) + '원</b>은 구조로 정해진 돈(배달비·수수료)이고, <b>' + won(choice10) + '원</b>은 가게가 고른 돈(할인·광고)이에요. 재료비·포장재까지 빼면 <b>' + won(left10) + '원</b>이 남아요.</div>' +
-      '<p class="muted">예시 숫자예요. 요율·배달비는 실제 앱 요율이 아니고, 사장님 정산서로 바꿔 넣으면 그 가게 숫자가 돼요.</p>';
+      '<p class="muted">예시 숫자예요. 요율·배달비는 실제 앱 요율이 아니고, 사장님 정산서로 바꿔 넣으면 그 가게 숫자가 돼요. 요율을 언제 누가 공개했는지는 <a href="fees.html">요율 근거표</a>에.</p>';
     document.getElementById('dcut-table').innerHTML = table + how +
       '<p class="muted">예시 숫자예요. 수수료율·배달비·대행비·포장재는 실제 요율이 아니고, 사장님 정산서와 원가로 바꿔 넣어요. 앱별 1만 원당은 바로 아래에.</p>';
   }
@@ -918,7 +918,7 @@
     h += row('=', '정산금 (가게 몫)', net, '이 달 주문 기준 · 통장엔 정산일에 맞춰 나눠 들어옴', 'total');
     if (a.agency) h += row('', '따로: 배달대행비 (충전금)', a.agency, '<code>' + a.orders + '건 × ' + won(S2.agency.perOrder) + '원</code> · 정산금이 아니라 충전금에서 나감', 'side');
     document.getElementById('f-body').innerHTML = '<div class="f-eq">' + h + '</div>' +
-      '<p class="muted">요율·단가는 예시예요. 노란 글씨는 공개 보도 기준 범위라 앱·시기·가게 매출 구간마다 달라요. 실제 정산서에선 결제 수수료가 할인 뺀 금액에 붙기도 해요.</p>';
+      '<p class="muted">요율·단가는 예시예요. 노란 글씨는 공개 보도 기준 범위라 앱·시기·가게 매출 구간마다 달라요. 실제 정산서에선 결제 수수료가 할인 뺀 금액에 붙기도 해요. 발표 날짜·출처는 <a href="fees.html">요율 근거표</a>.</p>';
     document.getElementById('f-tabs').innerHTML = apps.map(function (x) {
       return '<button type="button" data-app="' + x.key + '" aria-pressed="' + (x.key === fApp) + '">' + x.name + ' · ' + x.mode + '</button>';
     }).join('');
