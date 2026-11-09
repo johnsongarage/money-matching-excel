@@ -122,7 +122,7 @@
 <section class="scene" id="s2" hidden aria-labelledby="s2-h">
   <div class="in">
     <p class="count">2 / 5</p>
-    <h2 id="s2-h">배달 한 번에<br>보통 몇 <span class="u">잔</span>이에요?</h2>
+    <h2 id="s2-h">배달 한 번에<br>보통 몇 <span class="u">잔</span><span id="u-yo">이에요</span>?</h2>
     <div class="stepper">
       <button type="button" class="step-btn" data-step="-1" aria-label="하나 빼기">−</button>
       <div class="num" aria-live="polite"><span id="v-items"></span><small class="u">잔</small></div>
@@ -281,6 +281,7 @@
   function render() {
     var P0 = PRESET[st.kind], u = P0.unit;
     Array.prototype.forEach.call(document.querySelectorAll('.u'), function (el) { el.textContent = u; });
+    $('u-yo').textContent = u === '잔' ? '이에요' : '예요';
     Array.prototype.forEach.call(document.querySelectorAll('.u1'), function (el) { el.textContent = P0.one; });
     $('v-item').textContent = won(st.item); $('v-items').textContent = st.items; $('v-rate').textContent = st.rate;
     $('v-agency').textContent = won(st.agency); $('v-tip').textContent = won(st.tip); $('h-rate').textContent = P0.rateHint;
