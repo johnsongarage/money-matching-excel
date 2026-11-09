@@ -38,8 +38,11 @@
   .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 10px; }
   .row .lab { font-size: 13px; font-weight: 600; }
   /* 숫자 몇 개 */
-  .qhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
-  .qhead h2 { margin: 0; }
+  .hero-big { font-size: 32px; line-height: 1.2; font-weight: 800; letter-spacing: -0.03em; margin: 2px 0 10px; }
+  .hero-big .hl { color: var(--total); }
+  .hero-sum { font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+  .qhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .qhead .go { font-size: 16px; font-weight: 800; color: var(--total); }
   .qgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
   .qgrid label.f input, .qgrid label.f select { font-size: 16px; padding: 8px 10px; }
   .answer { margin: 14px 0 4px; padding: 10px 12px; border-left: 4px solid var(--total); background: #eff6ff; border-radius: 0 8px 8px 0; font-size: 14.5px; }
@@ -110,6 +113,7 @@
     .content { padding: 12px 16px 28px; }
     .grid2, .big, .groups { grid-template-columns: 1fr; }
     .qgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .hero-big { font-size: 28px; }
     label.f input, label.f select { font-size: 16px; }
     .big .t .n { font-size: 22px; }
     details.more > .inner { padding: 12px; }
@@ -123,14 +127,11 @@
 </header>
 
 <main class="content">
-  <section class="card">
-    <p class="lead"><b>배달, 어디로 팔면 얼마 남을까요?</b> 숫자 몇 개만 바꾸면 앱배달·가게배달·본사 앱·포장을 나란히 놓고, <b>손해 안 보는 최소 주문</b>까지 보여 드려요. 줄을 누르면 수식이 나와요.</p>
-    <p class="muted" style="margin-top:6px">입력한 숫자는 이 화면에서만 계산되고 어디에도 저장되지 않아요.</p>
-  </section>
-
-  <section class="card" aria-labelledby="q-title">
+  <section class="card" aria-labelledby="hero-title">
+    <h2 id="hero-title" class="hero-big">배달, 어디로 팔면<br><span class="hl">더 남을까?</span></h2>
+    <p class="hero-sum">앱배달 · 가게배달 · 본사 앱 · 포장<br><b>1건에 얼마 남는지</b>, <b>몇 <span class="unit-word">개</span>부터 남는지</b></p>
     <div class="qhead">
-      <h2 id="q-title">숫자 몇 개만 바꿔 보세요</h2>
+      <span class="go">↓ 숫자만 바꿔 보세요</span>
       <div class="seg" id="preset" role="group" aria-label="예시 바꾸기">
         <button type="button" data-v="food" aria-pressed="true">식당 예시</button>
         <button type="button" data-v="cafe" aria-pressed="false">카페 예시</button>
@@ -150,6 +151,7 @@
           <option value="t4">하위 20%</option>
         </select></label>
     </div>
+    <p class="note" style="margin-top:6px">입력한 숫자는 이 화면에서만 계산돼요. 저장 안 해요.</p>
     <div class="answer" id="answer" aria-live="polite"></div>
     <div class="chs" id="chs"></div>
     <p class="note">할인·광고는 빼고 비교했어요 (할인은 아래 <b>더 자세히</b>에서). 요율은 상생요금제·공정위 자료 기준 예시라 사장님 정산서와 다를 수 있어요. <a href="fees.html">요율 근거표 →</a></p>
@@ -333,6 +335,7 @@
   function renderChannels(L) {
     var it = n('item');
     $('items-lab').textContent = '배달 1건에 몇 ' + unit;
+    Array.prototype.forEach.call(document.querySelectorAll('.unit-word'), function (el) { el.textContent = unit; });
     if (!it) { $('answer').innerHTML = '<p>메뉴 1개 값을 넣어 주세요.</p>'; $('chs').innerHTML = ''; return; }
     var shown = L.filter(function (c) { return c.grp; });
     var d = shown.filter(function (c) { return c.grp === 'd'; }), app = d[0];
