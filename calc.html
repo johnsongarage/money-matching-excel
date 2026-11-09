@@ -116,13 +116,19 @@
       <label class="f">가게 부담 할인 (원)<small>가게가 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
       <label class="f">본사 부담 할인 (원)<small>브랜드 행사 중 본사가 내는 몫 · 프랜차이즈만</small><input type="number" id="hqdisc" min="0" step="100" inputmode="numeric"></label>
       <label class="f">앱 부담 할인 (원)<small>앱이 자기 돈으로 준 쿠폰 · 가게 돈에선 안 빠짐</small><input type="number" id="appdisc" min="0" step="100" inputmode="numeric"></label>
-      <label class="f">중개 수수료가 붙는 금액<small>앱·약관마다 다름 · 정산서에서 확인</small>
-        <select id="feebase"><option value="before">할인 전 금액 (주문금액 전체)</option><option value="after">할인 뺀 금액 (손님이 낸 돈)</option></select></label>
+      <label class="f">수수료 계산 방식 (앱마다 다름)<small>쓰시는 앱 정산서에서 확인 · 아래 설명</small>
+        <select id="feebase"><option value="before">할인 전 금액에 수수료 (공정위가 한 앱에서 지적한 방식)</option><option value="after">할인 뺀 금액에 수수료</option></select></label>
       <label class="f" data-show="agency self">한 달 배달 건수<small>고정비를 1건당으로 나눌 때 씀</small><input type="number" id="count" min="1" step="1" inputmode="numeric"></label>
       <label class="f" data-show="agency self">배달 월 고정비 (원)<small>배달대행 월 관리비 + 충전 수수료, 오토바이 리스 등 · 없으면 0</small><input type="number" id="fixed" min="0" step="1000" inputmode="numeric"></label>
       <label class="f">매장 카드 수수료 (%)<small>매출 규모마다 다름 · 비교용</small><input type="number" id="card" min="0" max="5" step="0.1" inputmode="decimal"></label>
       <label class="f">앱 포장 주문 수수료 (%)<small>공개 글 기준 예시 6.8% · 비교용</small><input type="number" id="takeout" min="0" max="15" step="0.1" inputmode="decimal"></label>
     </div>
+    <details class="note" style="margin-top:10px"><summary><b>앱마다 수수료 계산 방식이 달라요</b> (지금까지 확인한 것)</summary>
+      <ul style="margin:6px 0 0;padding-left:1.2em">
+        <li><b>한 앱의 실제 정산서 사례</b>: 결제 수수료가 <b>가게 할인을 뺀 금액의 정확히 3%</b>로 맞았어요. 중개 수수료가 어느 금액에 붙는지는 숫자가 딱 맞지 않아 <b>확인 못 했어요</b> (주문마다 다른 요율이 섞였을 수 있음).</li>
+        <li><b>다른 한 앱</b>: 공정위가 <b>할인 전 판매가로 수수료를 매기는 약관</b>을 60일 안에 고치라고 명령했어요 (2026년 11월, 업체는 반발). 그 전까지는 가게가 건 할인분에도 수수료가 붙는 구조예요. 이 앱의 실제 정산서 사례는 아직 못 구했어요.</li>
+        <li>그래서 정답은 <b>사장님 정산서</b>에 있어요. "중개 수수료 ÷ 주문금액"과 "중개 수수료 ÷ 할인 뺀 금액" 중 어느 쪽이 요율(예: 6.8%)과 맞는지 보면 알 수 있어요.</li>
+      </ul></details>
     <div class="row" style="margin-top:12px"><span class="lab">과세 유형</span>
       <div class="seg" id="tax" role="group" aria-label="과세 유형">
         <button type="button" data-v="general" aria-pressed="true">일반과세</button>
