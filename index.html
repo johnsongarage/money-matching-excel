@@ -204,6 +204,10 @@
   .dcut-bar .v { text-align: right; font-weight: 800; white-space: nowrap; }
   .dcut-bar .v small { display: block; font-size: 11px; font-weight: 400; color: var(--sub); }
   .dcut-bar.plus .v { color: var(--green); }
+  .dcut-group { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; }
+  .dcut-group.choice { border-color: var(--amber); background: var(--amber-bg); }
+  .dcut-group .gh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .dcut-group .gh b { font-size: 14px; } .dcut-group .gh .gv { margin-left: auto; font-weight: 800; white-space: nowrap; }
   .dcut-bar.plus .trk { background: transparent; }
   .dcut-h3 { font-size: 14px; margin: 18px 0 6px; }
   .cost-in { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; margin: 6px 0; }
@@ -754,20 +758,30 @@
       '<div class="t"><span class="k">이번 달 배달로 판 돈</span><div class="n">' + man(tot.sale) + ' 원</div><span class="d">A·B·C앱 ' + orders + '건</span></div>' +
       '<div class="t cut"><span class="k">배달로 빠진 돈 (앱·대행)</span><div class="n">' + man(cut) + ' 원</div><span class="d">판 돈의 ' + Math.round(cut / tot.sale * 100) + '% · 주문 1건당 약 ' + won(cut / orders) + '원</span></div>' +
       '<div class="t in"><span class="k">배달로 남은 돈</span><div class="n">' + man(inn) + ' 원</div><span class="d">1만 원 팔면 ' + won(inn / tot.sale * 10000) + '원 · 재료비 빼기 전</span></div>';
-    var items = [
+    var fixedItems = [
       { nm: '배달비 (앱이 정산에서 뗌)', sub: '앱배달 · 주문마다 고정', v: tot.delApp },
       { nm: '배달대행비 (충전금 차감)', sub: '가게배달 · 통장엔 충전할 때 큰 출금만', v: tot.agency },
-      { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee },
+      { nm: '수수료·세금', sub: '중개·결제 수수료 + 부가세', v: tot.fee }
+    ], choiceItems = [
       { nm: '점주 부담 할인', sub: '가게가 건 쿠폰 + 브랜드 행사 가게 몫', v: tot.cp },
-      { nm: '광고', sub: '가게가 직접 건 노출 광고', v: tot.ad }
-    ].filter(function (it) { return it.v > 0; }).sort(function (x, y) { return y.v - x.v; });
-    var mx = items[0].v;
-    var bars = items.map(function (it) {
+      { nm: '광고', sub: '정산금에서 바로 빠져서 통장엔 안 보여요', v: tot.ad }
+    ];
+    var all = fixedItems.concat(choiceItems).filter(function (it) { return it.v > 0; });
+    var mx = Math.max.apply(null, all.map(function (it) { return it.v; }));
+    function bar(it) {
       return '<div class="dcut-bar"><span class="nm">' + it.nm + '<small>' + it.sub + '</small></span>' +
         '<span class="trk" aria-hidden="true"><span style="width:' + (it.v / mx * 100).toFixed(1) + '%"></span></span>' +
         '<span class="v">−' + won(it.v) + '원<small>1만 원당 ' + won(it.v / tot.sale * 10000) + '원</small></span></div>';
-    }).join('');
-    if (tot.tip) bars += '<div class="dcut-bar plus"><span class="nm">손님 배달팁 (가게배달)<small>손님이 낸 배달비 · 정산금에 더해짐</small></span><span class="trk" aria-hidden="true"></span><span class="v">+' + won(tot.tip) + '원<small>1만 원당 ' + won(tot.tip / tot.sale * 10000) + '원</small></span></div>';
+    }
+    function group(title, sub, items, extra, cls) {
+      var list = items.filter(function (it) { return it.v > 0; }).sort(function (x, y) { return y.v - x.v; });
+      var subtotal = sum(list, function (it) { return it.v; }) - (extra || 0);
+      return '<div class="dcut-group ' + cls + '"><div class="gh"><b>' + title + '</b><span class="muted">' + sub + '</span><span class="gv">−' + won(subtotal) + '원 · 판 돈의 ' + Math.round(subtotal / tot.sale * 100) + '%</span></div>' + list.map(bar).join('');
+    }
+    var bars = group('정해진 돈', '앱·배달 구조로 빠지는 돈', fixedItems, tot.tip, 'fixed') +
+      (tot.tip ? '<div class="dcut-bar plus"><span class="nm">손님 배달팁 (가게배달)<small>손님이 낸 배달비 · 정산금에 더해짐</small></span><span class="trk" aria-hidden="true"></span><span class="v">+' + won(tot.tip) + '원<small>1만 원당 ' + won(tot.tip / tot.sale * 10000) + '원</small></span></div>' : '') + '</div>' +
+      group('가게가 고르는 돈', '사장님이 줄이거나 끌 수 있는 돈', choiceItems, 0, 'choice') + '</div>' +
+      '<p class="muted">"배달앱이 절반 떼 간다"처럼 보여도, 그중 할인·광고는 가게가 정한 몫이에요. 할인을 얼마나 줄일지는 주문 수 변화와 같이 봐야 해요.</p>';
     // 재료비까지 빼면 (어림) — 앱별
     var mat = function (x) { return Math.round(x * delivRate()); }, matShop = function (x) { return Math.round(x * MATERIAL_RATE); };
     var rowsT = p10rows.map(function (r) {

@@ -148,6 +148,9 @@
     th, td { padding: 7px 8px; }
     .hide-m { display: none; }
   }
+  .howto { margin-top: 10px; font-size: 13px; border: 1px solid var(--line, #e5e7eb); border-radius: 8px; padding: 8px 12px; }
+  .howto summary { cursor: pointer; font-weight: 600; }
+  .howto ul { margin: 6px 0 2px; padding-left: 1.2em; } .howto li { margin: 3px 0; }
 </style>
 </head>
 <body>
@@ -189,6 +192,16 @@
       <a href="samples.html">엑셀 미리보기</a>
       <a href="simulation.html">이 예시로 돌려 본 기록</a>
     </div>
+    <details class="howto">
+      <summary>실제 배달앱 정산서는 이렇게 생겼어요 (구조만 · 숫자는 예시)</summary>
+      <ul>
+        <li><b>입금 한 건 = 여러 묶음의 합</b>: 앱배달 묶음 + 가게배달 묶음 − <b>클릭 광고비</b>. 광고비는 따로 청구되지 않고 <b>정산금에서 바로 빠져서</b> 통장엔 안 보여요.</li>
+        <li>앱배달 묶음 안: 주문금액 − 부분환불 − 중개이용료 − <b>고객할인비용</b> − 배달비 − 결제정산수수료 − 부가세</li>
+        <li>결제정산수수료는 <b>할인·환불 뺀 금액</b>에 붙고, 부가세는 수수료·배달비에 붙어요.</li>
+        <li><b>날짜 기준이 두 가지</b>: "주문내역"은 판 날 기준, "정산내역"은 입금 날 기준(며칠 전 주문을 묶음). 그날 판 돈과 그날 입금을 바로 비교하면 안 맞아요.</li>
+        <li>칸이 없는 차감(예: 부분환불)은 "기타"로 따로 보여 드려요.</li>
+      </ul>
+    </details>
     <p class="err" id="lib-err" hidden>엑셀을 읽는 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
   </section>
 
@@ -246,8 +259,8 @@
     { key: 'broker', label: '중개수수료', type: 'num', aliases: ['중개이용료', '중개 수수료', '수수료', '이용료'] },
     { key: 'pay', label: '결제수수료', type: 'num', aliases: ['결제대행수수료', '결제정산수수료', '결제정산이용료', 'PG수수료', '결제 수수료', '외부결제수수료'] },
     { key: 'delivery', label: '배달비', type: 'num', aliases: ['가게부담 배달팁', '배달팁', '배달대행료', '배달료', '가게부담배달비'] },
-    { key: 'coupon', label: '할인·쿠폰', type: 'num', aliases: ['즉시할인(사장님부담)', '쿠폰(가게부담)', '할인', '가게부담 할인', '할인부담', '쿠폰'] },
-    { key: 'ad', label: '광고비', type: 'num', aliases: ['광고', '광고료'] },
+    { key: 'coupon', label: '할인·쿠폰', type: 'num', aliases: ['고객할인비용', '고객 할인 비용', '고객할인', '즉시할인(사장님부담)', '쿠폰(가게부담)', '할인', '가게부담 할인', '할인부담', '쿠폰'] },
+    { key: 'ad', label: '광고비', type: 'num', aliases: ['광고', '광고료', '클릭광고', '광고비(클릭)'] },
     { key: 'vat', label: '부가세', type: 'num', aliases: ['VAT', '부가가치세', '수수료 부가세'] },
     { key: 'net', label: '정산금액', req: true, type: 'num', aliases: ['입금예정액', '정산액', '지급예정액', '지급액', '지급금액', '정산 금액'] },
     { key: 'due', label: '정산예정일', req: true, type: 'date', aliases: ['지급예정일', '지급일', '입금예정일', '정산일', '지급 예정일'] },
@@ -661,9 +674,10 @@
     var t = function (r, i) { return r.date + ' ' + pad(11 + (i * 3) % 10) + ':' + pad((i * 17) % 60); };
     if (app === 'A') {
       var a = [['A앱 정산 내역 (가짜 양식 · 예시 데이터)'], ['조회기간: 2026-10-19 ~ 2026-10-25'], [],
-        ['주문일시', '주문번호', '주문금액', '중개이용료', '결제수수료', '배달비', '즉시할인(사장님부담)', '광고비', '부가세', '정산금액', '정산예정일']];
+        // 실제 정산서에서 흔한 순서를 흉내: 주문금액 → 중개이용료·고객할인비용(주문중개) → 배달비 → 결제정산수수료 → 부가세 (숫자는 예시)
+        ['주문일시', '주문번호', '주문금액', '중개이용료', '고객할인비용', '배달비', '결제정산수수료', '광고비(클릭)', '부가세', '정산금액', '정산예정일']];
       rows.forEach(function (r, i) {
-        a.push([t(r, i), 'A' + r.date.replace(/-/g, '').slice(2) + pad(r.no), r.sale, -r.broker, -r.pay, -r.delivery, -r.coupon, -r.ad, -r.vat, r.expected, r.due]);
+        a.push([t(r, i), 'A' + r.date.replace(/-/g, '').slice(2) + pad(r.no), r.sale, -r.broker, -r.coupon, -r.delivery, -r.pay, -r.ad, -r.vat, r.expected, r.due]);
       });
       a.push(['합계', '', D.sum('sale', rows), '', '', '', '', '', '', D.sum('expected', rows), '']);
       return a;
