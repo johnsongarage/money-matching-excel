@@ -108,6 +108,15 @@
   .btn { display: inline-block; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 13px; text-decoration: none; color: var(--ink); }
   .btn.primary { background: var(--total); border-color: var(--total); color: #fff; font-weight: 700; }
   .foot { font-size: 12px; color: var(--sub); margin: 0; }
+  .sec-big { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+  ol.steps { margin: 14px 0 0; padding-left: 1.4em; display: grid; gap: 10px; font-size: 14.5px; }
+  ol.steps li small { display: block; font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+  ol.steps li small b { color: var(--ink); }
+  .sh { display: inline-block; font-size: 12.5px; font-weight: 700; background: var(--head); border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; }
+  .ex { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--page); border: 1px solid var(--line); font-size: 13px; }
+  .ex p { margin: 4px 0 0; }
+  ul.tips { margin: 12px 0 0; padding-left: 1.2em; font-size: 12.5px; color: var(--sub); display: grid; gap: 3px; }
+  ul.tips b { color: var(--ink); }
   @media (max-width: 760px) {
     .top { padding: 10px 16px; } .top h1 { font-size: 16px; }
     .content { padding: 12px 16px 28px; }
@@ -220,6 +229,29 @@
     </div>
   </details>
 
+  <section class="card" aria-labelledby="xl-title">
+    <h2 id="xl-title" class="sec-big">매일 1분, 엑셀에 적어 두기</h2>
+    <p class="hero-sum" style="margin-bottom:12px">한 달 모이면 <b>원가율이 저절로</b> 나오고, <b>덜 들어온 돈</b>이 보여요.</p>
+    <p style="margin:0"><button type="button" class="btn primary" id="tpl">일별 마감 엑셀 받기 (빈 양식 + 쓰는 법)</button></p>
+    <p class="note" id="lib-err" hidden>엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
+    <ol class="steps">
+      <li><b>매일 마감 때</b> → <span class="sh">일별 매출·지출</span> 시트에 한 줄<small>판매일, 길별로 <b>판 돈</b>(포스 마감·앱 사장님 화면의 주문금액), 그날 산 식자재·인건비. 합계는 저절로 나와요.</small></li>
+      <li><b>돈이 들어온 날</b> → <span class="sh">입금 기록</span> 시트에 한 줄<small>입금일, 어디서, <b>며칠에 판 돈인지</b>(판매일), 그날 판 돈(일별 시트에서 옮겨 적기), 입금액. <b>빠진 돈·빠진 비율</b>은 저절로 나와요.</small></li>
+      <li><b>한 달 끝나면</b> → 일별 시트 맨 아래 <span class="sh">한 달 합계</span><small>매출·식자재 합계와 <b>원가율</b>(식자재 ÷ 매출)이 나와요. 위 계산기 원가율 칸에 넣으세요.</small></li>
+    </ol>
+    <div class="ex">
+      <b>예시 (가짜 숫자)</b>
+      <p>11/3 카드로 판 돈 <b>300,000</b> → 11/5 카드사 입금 <b>296,700</b> → 빠진 돈 3,300 (<b>1.1%</b>) · 카드 수수료라 <span class="pos">맞음</span></p>
+      <p>11/3 배민으로 판 돈 <b>120,000</b> → 11/6 배민 입금 <b>81,000</b> → 빠진 돈 39,000 (<b>32.5%</b>) · 수수료·배달비라 <span class="pos">맞음</span></p>
+    </div>
+    <ul class="tips">
+      <li>매출 칸엔 <b>판 돈</b>, 입금 기록엔 <b>들어온 돈</b>. 들어온 돈을 매출에 또 적으면 두 번 더해져요.</li>
+      <li>빠진 비율: 카드는 보통 1~2%, 배달앱은 수수료·배달비라 훨씬 커요(위 계산기 참고). <b>평소보다 크거나 이유를 모르면 '확인 필요'</b>로 적어 두세요.</li>
+      <li>배달앱처럼 여러 날 돈이 한꺼번에 들어오면 판매일에 '11/3~11/9'처럼 적고, 그 기간 판 돈을 더해 적어요.</li>
+      <li>식자재로 구한 원가율은 대략이에요(사 둔 재료가 남기도 해서). 2~3달 평균이 더 정확해요.</li>
+    </ul>
+  </section>
+
   <section class="card cta">
     <h2>실제 정산서로 맞춰 보고 싶으시면</h2>
     <p class="muted" style="color:var(--ink)">배달앱 정산 상세 화면이나 엑셀을 주시면(가게 이름은 가리고), 어디서 얼마 빠졌는지 <b>무료로 나눠 드려요.</b> 수수료·배달비·할인·광고로 나누고, 줄마다 얼마 × 몇 %인지 수식으로 보여 드려요.</p>
@@ -230,9 +262,6 @@
     </div>
     <p class="who"><a href="https://johnsongarage.github.io/" target="_blank" rel="noopener">존슨거라지</a> · 인스타 <a href="https://www.instagram.com/johnsongarage_/" target="_blank" rel="noopener">@johnsongarage_</a> · johnsongarage.official@gmail.com</p>
     <p class="note">정산 화면은 사진으로 보내셔도 돼요. 받은 자료는 답변에만 쓰고, 끝나면 지워요. <a href="index.html#delivery">예시로 한 달 치를 나눠 본 화면 보기 →</a></p>
-    <p style="margin:12px 0 0"><button type="button" class="btn primary" id="tpl">일별 마감 엑셀 양식 받기 (빈 양식)</button></p>
-    <p class="note">판매일과 입금일을 따로 적는 칸이 있어요. 카드·배달 돈은 며칠 뒤 들어와서, 같은 매출을 두 번 더하거나 하루 빠진 것으로 보는 혼동을 줄여 줘요. 칸은 적게 만들었어요.</p>
-    <p class="note" id="lib-err" hidden>엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.</p>
   </section>
 
   <p class="foot">요율·단가는 상생요금제·공정위 자료·공개 글 기준 <b>예시</b>예요. 앱·시기·가게 매출 구간·지역마다 다르고 자주 바뀌니, 실제 금액은 사장님 정산서로 확인해 주세요. 세금 판단은 세무사님 확인이 필요해요.</p>
@@ -451,18 +480,57 @@
   applyTier();
   render();
 
-  // 일별 마감 엑셀 양식 (빈 양식)
+  // 일별 마감 엑셀 양식 (빈 양식 + 쓰는 법) — 칸이 빈 곳은 null (글자 칸으로 안 만들려고)
   $('tpl').addEventListener('click', function () {
     if (typeof XLSX === 'undefined') { $('lib-err').hidden = false; return; }
-    var day = [['일별 마감 (판매일 기준 매출 · 입금일은 따로)'], [],
-      ['판매일', '매장 카드', '현금', '배달앱 A', '배달앱 B', '배달앱 C', '포장·기타', '매출 합계', '식자재', '인건비', '고정비(월세 등)', '지출 합계', '메모']];
-    for (var i = 0; i < 31; i++) { var r = day.length + 1; day.push(['', '', '', '', '', '', '', { f: 'SUM(B' + r + ':G' + r + ')' }, '', '', '', { f: 'SUM(I' + r + ':K' + r + ')' }, '']); }
-    var dep = [['입금 기록 (통장에 들어온 날 기준)'], [],
-      ['입금일', '어디서 (카드사·배달앱·본사 등)', '입금액', '몇 일 판 돈인지 (판매일)', '맞음/확인 필요', '메모']];
-    for (var j = 0; j < 40; j++) dep.push(['', '', '', '', '', '']);
+    var W = '#,##0', PCT = '0.0%';
+    function money(f) { return { f: f, z: W }; }
+    // ① 쓰는 법
+    var how = [
+      ['일별 마감 엑셀 — 쓰는 법'], [],
+      ['① 매일 마감 때', "'일별 매출·지출' 시트에 한 줄"],
+      [null, '판매일, 길별로 판 돈(포스 마감·앱 사장님 화면의 주문금액), 그날 산 식자재·인건비'],
+      [null, '합계는 저절로 나와요'], [],
+      ['② 돈이 들어온 날', "'입금 기록' 시트에 한 줄"],
+      [null, '입금일, 어디서, 며칠에 판 돈인지(판매일), 그날 판 돈(일별 시트에서 옮겨 적기), 입금액'],
+      [null, '빠진 돈·빠진 비율은 저절로 나와요'], [],
+      ['③ 한 달 끝나면', "'일별 매출·지출' 맨 아래 '한 달 합계'"],
+      [null, '매출·식자재 합계와 원가율(식자재 ÷ 매출)이 나와요 → 배달 계산기 원가율 칸에'], [],
+      ['이것만 지키세요'],
+      ['•', "매출 칸엔 '판 돈', 입금 기록엔 '들어온 돈'. 들어온 돈을 매출에 또 적으면 두 번 더해져요"],
+      ['•', "빠진 비율: 카드는 보통 1~2%, 배달앱은 수수료·배달비라 훨씬 커요. 평소보다 크거나 이유를 모르면 '확인 필요'"],
+      ['•', "여러 날 돈이 한꺼번에 들어오면 판매일에 '11/3~11/9'처럼 적고, 그 기간 판 돈을 더해 적어요"],
+      ['•', '식자재로 구한 원가율은 대략이에요(사 둔 재료가 남기도 해서). 2~3달 평균이 더 정확해요'], [],
+      ['예시 (가짜 숫자) — 입금 기록'],
+      ['입금일', '어디서', '판매일', '그날 판 돈', '입금액', '빠진 돈', '빠진 비율', '맞음 / 확인 필요']
+    ];
+    [['11/5', '카드사', '11/3', 300000, 296700, '맞음 (카드 수수료)'], ['11/6', '배민', '11/3', 120000, 81000, '맞음 (수수료·배달비)']].forEach(function (e) {
+      var r = how.length + 1;
+      how.push([e[0], e[1], e[2], { v: e[3], t: 'n', z: W }, { v: e[4], t: 'n', z: W }, money('D' + r + '-E' + r), { f: '(D' + r + '-E' + r + ')/D' + r, z: PCT }, e[5]]);
+    });
+    how.push([], ['배달 계산기', { v: 'kery27.github.io/money-matching-excel/calc.html', t: 's', l: { Target: 'https://kery27.github.io/money-matching-excel/calc.html' } }],
+      ['맞춰 보기 어려우면', '인스타 DM @johnsongarage_ · johnsongarage.official@gmail.com (무료로 나눠 드려요)']);
+    // ② 일별 매출·지출
+    var day = [['일별 매출·지출 (판매일 기준 · 판 돈을 적어요)'], ["판 돈 = 포스 마감·앱 사장님 화면의 주문금액. 통장에 들어온 돈은 '입금 기록' 시트에."],
+      ['판매일', '매장 카드', '현금', '배민', '쿠팡이츠', '본사 앱', '기타 (요기요·전화 등)', '매출 합계', '식자재', '인건비', '고정비 (월세 등)', '지출 합계', '메모']];
+    var first = day.length + 1;
+    for (var i = 0; i < 31; i++) { var r = day.length + 1; day.push([null, null, null, null, null, null, null, money('SUM(B' + r + ':G' + r + ')'), null, null, null, money('SUM(I' + r + ':K' + r + ')'), null]); }
+    var last = day.length, tot = last + 2;
+    day.push([]);
+    day.push(['한 달 합계'].concat('BCDEFGHIJKL'.split('').map(function (c) { return money('SUM(' + c + first + ':' + c + last + ')'); })));
+    day.push(['원가율 (식자재 ÷ 매출)', { f: 'IF(H' + tot + '>0,I' + tot + '/H' + tot + ',"")', z: PCT }, '→ 배달 계산기 원가율 칸에 · 2~3달 평균이 더 정확']);
+    // ③ 입금 기록
+    var dep = [['입금 기록 (통장에 들어온 날 기준 · 들어온 돈을 적어요)'], ["그날 판 돈은 '일별 매출·지출'에서 옮겨 적어요. 빠진 돈·빠진 비율은 저절로 나와요."],
+      ['입금일', '어디서 (카드사·배민·쿠팡이츠·본사 등)', '판매일 (며칠에 판 돈)', '그날 판 돈', '입금액', '빠진 돈 (자동)', '빠진 비율 (자동)', '맞음 / 확인 필요', '메모']];
+    for (var j = 0; j < 40; j++) {
+      var q = dep.length + 1;
+      dep.push([null, null, null, null, null, money('IF(AND(D' + q + '<>"",E' + q + '<>""),D' + q + '-E' + q + ',"")'), { f: 'IF(AND(D' + q + '<>"",E' + q + '<>"",N(D' + q + ')<>0),(D' + q + '-E' + q + ')/D' + q + ',"")', z: PCT }, null, null]);
+    }
     var wb = XLSX.utils.book_new();
-    var ws1 = XLSX.utils.aoa_to_sheet(day); ws1['!cols'] = [10, 10, 9, 10, 10, 10, 10, 11, 9, 9, 13, 11, 14].map(function (w) { return { wch: w }; });
-    var ws2 = XLSX.utils.aoa_to_sheet(dep); ws2['!cols'] = [10, 26, 12, 20, 14, 18].map(function (w) { return { wch: w }; });
+    var ws0 = XLSX.utils.aoa_to_sheet(how); ws0['!cols'] = [18, 64, 9, 11, 11, 10, 10, 20].map(function (w) { return { wch: w }; });
+    var ws1 = XLSX.utils.aoa_to_sheet(day); ws1['!cols'] = [20, 10, 9, 10, 10, 10, 12, 11, 9, 9, 13, 11, 14].map(function (w) { return { wch: w }; });
+    var ws2 = XLSX.utils.aoa_to_sheet(dep); ws2['!cols'] = [10, 26, 16, 12, 12, 13, 13, 16, 18].map(function (w) { return { wch: w }; });
+    XLSX.utils.book_append_sheet(wb, ws0, '쓰는 법');
     XLSX.utils.book_append_sheet(wb, ws1, '일별 매출·지출');
     XLSX.utils.book_append_sheet(wb, ws2, '입금 기록');
     XLSX.writeFile(wb, '일별_마감_양식.xlsx');
