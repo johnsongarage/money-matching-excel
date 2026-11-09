@@ -306,7 +306,7 @@
     var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
     var best = d.slice().sort(function (a, b) { return b.left - a.left; })[0];
     var mx = Math.max.apply(null, L.map(function (c) { return Math.max(c.left, 0); }).concat([1]));
-    $('r-k').textContent = st.items + u;
+    $('r-k').textContent = st.items + u + ' · 주문 ' + won(st.items * st.item) + '원';
     $('list').innerHTML = L.map(function (c) {
       var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
         : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : c.id === 'tel' ? Math.round(st.tip * CARD) : Math.round(st.tip * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
