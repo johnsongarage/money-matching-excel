@@ -167,6 +167,15 @@
           <option value="t3">50~80%</option>
           <option value="t4">하위 20%</option>
         </select></label>
+      <label class="f">연매출 (배민 결제 수수료)<small>카드 결제 우대 요율 · 모르면 그대로</small>
+        <select id="sales">
+          <option value="x">모름 · 3%로 봄</option>
+          <option value="s1">3억 이하 · 1.4%</option>
+          <option value="s2">3억~5억 · 2.0%</option>
+          <option value="s3">5억~10억 · 2.15%</option>
+          <option value="s4">10억~30억 · 2.4%</option>
+          <option value="s5">30억 초과·신규 · 3%</option>
+        </select></label>
     </div>
     <p class="note" style="margin-top:6px">입력한 숫자는 이 화면에서만 계산돼요. 저장 안 해요.</p>
     <div class="answer" id="answer" aria-live="polite"></div>
@@ -186,7 +195,7 @@
           <label class="f">중개 수수료 (배민배달·쿠팡이츠)<small>상생요금제 2.0~7.8% (부가세 별도) · 위 매출 구간을 고르면 바뀜</small>
             <select id="broker"><option value="7.8">7.8% (상위 35%)</option><option value="6.8">6.8% (35~80%)</option><option value="2">2.0% (하위 20%)</option></select></label>
           <label class="f">가게 부담 배달비 (앱배달, 원)<small>상생요금제 1,900~3,400원 · 거리마다 · 구간을 고르면 가운데 값</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
-          <label class="f">결제 수수료 (%)<small>쿠팡이츠 3% (약관) · 배민은 연매출 구간별 1.4~3% (3억 이하 1.4%, 선불 결제는 3%) · 기본은 3%로 봤어요 (부가세 별도)</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
+          <label class="f">쿠팡이츠 결제 수수료 (%)<small>약관 3% (부가세 별도) · 배민은 위 <b>연매출</b> 칸으로 정해져요 (2025-02-14부터 1.4~3%, 선불 결제는 3%)</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
           <label class="f">가게배달 중개 수수료 (%)<small>배민 가게배달(오픈리스트) 6.8% · 공정위 자료 · 다시 정하라는 명령 받음</small><input type="number" id="mp" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 적립 할인, 1개당 가게 부담 (원)<small>10개에 2천 원 할인이면 200 · 본사가 다 내면 0</small><input type="number" id="stamp" min="0" step="10" inputmode="numeric"></label>
@@ -296,9 +305,11 @@
     cafe: { item: 3000, items: 4, rate: 35, pack: 300, stamp: 200, unit: '잔' }
   };
   // 상생요금제 매출 구간 → 중개 수수료 · 가게 부담 배달비(범위 가운데)
+  // 배민 결제정산수수료 연매출 구간 (2025-02-14~, 카드 결제 기준 · 선불 결제는 3%) — 쿠팡이츠는 약관 3%
+  var SALES = { x: 3, s1: 1.4, s2: 2, s3: 2.15, s4: 2.4, s5: 3 };
   var TIER = { t1: { b: '7.8', d: 2900, r: '2,400~3,400원' }, t2: { b: '6.8', d: 2600, r: '2,100~3,100원' }, t3: { b: '6.8', d: 2400, r: '1,900~2,900원' }, t4: { b: '2', d: 2400, r: '1,900~2,900원' } };
   var DEF = { item: 10000, items: 2, rate: 33, agency: 4000, tip: 3000, tier: 't1', up: 0, pack: 500, broker: '7.8', deliv: 2900, pay: 3, mp: 6.8, hqfee: 3, stamp: 0,
-    self: 2500, member: 0, disc: 0, hqshare: 0, hqdisc: 0, appdisc: 0, feebase: 'bm', count: 300, fixed: 0, card: 1.1, takeout: 6.8 };
+    self: 2500, member: 0, disc: 0, hqshare: 0, hqdisc: 0, appdisc: 0, feebase: 'bm', sales: 'x', count: 300, fixed: 0, card: 1.1, takeout: 6.8 };
   var mode = 'app', tax = 'general', unit = '개', open = {};
   var $ = function (id) { return document.getElementById(id); };
   Object.keys(DEF).forEach(function (k) { $(k).value = DEF[k]; });
@@ -316,13 +327,15 @@
     unit = p.unit;
     Array.prototype.forEach.call($('preset').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x.dataset.v === k)); });
   }
+  // 결제 수수료: 배민(가게 할인 뺀 금액 기준 앱들)은 연매출 칸, 쿠팡이츠는 직접 넣은 값(약관 3%)
+  function payRate(fbv) { return fbv === 'bm' ? SALES[$('sales').value] / 100 : n('pay') / 100; }
   function applyTier() { var t = TIER[$('tier').value]; if (t) { $('broker').value = t.b; $('deliv').value = t.d; } }
   function tierRange() { var t = TIER[$('tier').value]; return t ? t.r : '1,900~3,400원'; }
 
   // ── 길별 비교: 1건 남는 돈, 손해 안 보는 최소 주문 (할인·광고 빼고)
   function model() {
     var it = n('item'), k = Math.max(1, n('items')), up = n('up'), r = n('rate') / 100, pk = n('pack');
-    var b = Number($('broker').value) / 100, py = n('pay') / 100, mp = n('mp') / 100, hf = n('hqfee') / 100, tk = n('takeout') / 100, cd = n('card') / 100;
+    var b = Number($('broker').value) / 100, bmPay = payRate('bm'), appPay = payRate($('feebase').value), mp = n('mp') / 100, hf = n('hqfee') / 100, tk = n('takeout') / 100, cd = n('card') / 100;
     var ag = n('agency'), tp = n('tip'), dv = n('deliv'), M = n('member'), st = n('stamp'), sf = n('self');
     var K = n('fixed'), N = Math.max(1, n('count')), fx = Math.round(K / N);
     var fxRow = fx ? ['월 고정비 1건 몫', fx, '<code>' + won(K) + ' ÷ ' + won(N) + '건</code>'] : null;
@@ -330,12 +343,12 @@
     function tipFee(rate, why) { return tp ? ['배달팁 결제 수수료', tp * rate * 1.1, '<code>' + won(tp) + ' × ' + pct(rate * 100) + '% × 1.1</code> · ' + why] : null; }
     function agRows(rate, why) { return [['배달대행비', ag, '대행 라이더 · 충전금에서 나감'], ['손님 배달팁', -tp, TIPNOTE], tipFee(rate, why), fxRow]; }
     var L = [
-      { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(py * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + py) * 1.1,
-        fTxt: '(' + pct(b * 100) + '% + ' + pct(py * 100) + '%) × 1.1',
+      { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(appPay * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + appPay) * 1.1,
+        fTxt: '(' + pct(b * 100) + '% + ' + pct(appPay * 100) + '%) × 1.1',
         costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · 이 구간 ' + tierRange() + ' (거리마다)'], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
-        per: 0, note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
-      { id: 'mp', grp: 'd', short: '가게배달', nm: '배민 가게배달 + 대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(py * 100) + '% · 대행 라이더', price: it + up, f: (mp + py) * 1.1,
-        fTxt: '(' + pct(mp * 100) + '% + ' + pct(py * 100) + '%) × 1.1', costs: agRows(py, '배달팁에도 붙는다고 봄 (확인 필요)'), per: 0,
+        per: 0, note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 결제 수수료는 배민이면 연매출 칸(' + pct(bmPay * 100) + '%), 쿠팡이츠면 ' + pct(n('pay')) + '% — 지금은 더 자세히의 "쓰는 앱" 칸대로 ' + ($('feebase').value === 'bm' ? '배민' : '쿠팡이츠') + ' 기준이에요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
+      { id: 'mp', grp: 'd', short: '가게배달', nm: '배민 가게배달 + 대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(bmPay * 100) + '% · 대행 라이더', price: it + up, f: (mp + bmPay) * 1.1,
+        fTxt: '(' + pct(mp * 100) + '% + ' + pct(bmPay * 100) + '%) × 1.1', costs: agRows(bmPay, '배달팁에도 붙는다고 봄 (확인 필요)'), per: 0,
         note: '가게배달 중개 ' + pct(mp * 100) + '%는 배민 오픈리스트 기준(공정위 자료)이에요. 공정위가 배민에 이 요율을 다시 정하라고 명령해서 바뀔 수 있어요.' },
       { id: 'hq', grp: 'd', short: '본사 앱', nm: '본사 앱 배달', sub: '프랜차이즈 자체 앱 · 수수료 ' + pct(hf * 100) + '% (가정) · 대행 라이더', price: it, f: hf * 1.1,
         fTxt: pct(hf * 100) + '% × 1.1', costs: agRows(hf, '본사 앱 수수료도 배달팁에 붙는다고 봄 (가정)'), per: st,
@@ -344,9 +357,9 @@
         note: '카드 수수료 ' + pct(cd * 100) + '%는 예시예요 (매출 규모마다 달라요).' },
       { id: 'hqtk', grp: 'c', nm: '포장 · 본사 앱', sub: '본사 앱으로 주문하고 가져감', price: it, f: hf * 1.1, fTxt: pct(hf * 100) + '% × 1.1', costs: [], per: st,
         note: '본사 앱 수수료·적립 할인 부담은 가정이에요.' },
-      { id: 'tk', grp: 'c', nm: '포장 · 배달앱 주문', sub: '배달앱으로 주문하고 가져감', price: it, f: (tk + py) * 1.1, fTxt: '(' + pct(tk * 100) + '% + ' + pct(py * 100) + '%) × 1.1', costs: [], per: 0,
+      { id: 'tk', grp: 'c', nm: '포장 · 배달앱 주문', sub: '배달앱으로 주문하고 가져감', price: it, f: (tk + appPay) * 1.1, fTxt: '(' + pct(tk * 100) + '% + ' + pct(appPay * 100) + '%) × 1.1', costs: [], per: 0,
         note: '배달앱 포장 수수료 ' + pct(tk * 100) + '%는 공개 글 기준 예시예요.' },
-      { id: 'self', grp: null, short: '직접 배달', nm: '직접 배달', price: it + up, f: (mp + py) * 1.1, fTxt: '', costs: [['직접 배달 비용', sf, ''], ['손님 배달팁', -tp, TIPNOTE], tipFee(py, '확인 필요'), fxRow], per: 0 }
+      { id: 'self', grp: null, short: '직접 배달', nm: '직접 배달', price: it + up, f: (mp + bmPay) * 1.1, fTxt: '', costs: [['직접 배달 비용', sf, ''], ['손님 배달팁', -tp, TIPNOTE], tipFee(bmPay, '확인 필요'), fxRow], per: 0 }
     ];
     L.forEach(function (c) {
       c.costs = c.costs.filter(Boolean);
@@ -417,7 +430,7 @@
   function calc() {
     var k = Math.max(1, n('items')), upI = n('up');
     var P = Math.round(k * (n('item') + upI)), U = Math.round(k * upI), r = n('rate') / 100, pack = n('pack');
-    var b = (mode === 'app' ? Number($('broker').value) : n('mp')) / 100, p = n('pay') / 100;
+    var b = (mode === 'app' ? Number($('broker').value) : n('mp')) / 100, p = payRate(mode === 'app' ? $('feebase').value : 'bm');
     var D1 = Math.min(n('disc'), P), D2 = Math.min(n('hqshare'), P - D1), D = D1 + D2;   // 가게 돈으로 한 할인 (단독 + 본사 행사 가게 몫)
     var H = Math.min(n('hqdisc'), P - D), A = Math.min(n('appdisc'), P - D - H), M = n('member'), N = Math.max(1, n('count')), K = n('fixed');
     var fb = $('feebase').value;           // bm: 가게 할인 뺀 금액 / cp: 중개 할인 전·결제 단독 할인만 뺌 / cpold: 둘 다 할인 전
