@@ -93,6 +93,10 @@
   .eq .rng { color: var(--amber); }
   .eq .sum { border-top: 1px solid var(--line-strong); padding-top: 4px; font-weight: 800; }
   .eq .choice { color: var(--amber); }
+  .eq .grp { font-weight: 800; border-top: 1px dashed var(--line); padding-top: 5px; margin-top: 2px; }
+  .eq .sub { color: var(--sub); font-weight: 400; }
+  .eq .amt.sub { font-weight: 600; }
+  .eq .sub.choice { color: var(--amber); }
   .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
   .groups .g { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
   .groups .g.c { border-color: var(--amber); background: var(--amber-bg); }
@@ -264,7 +268,7 @@
     <ol class="steps">
       <li><b>매일 마감 때</b> (선택, 1분) → <span class="sh">일별 매출·지출</span>에 길별 판 돈<small>포스·앱에서 한 달 매출을 뽑을 수 있으면 건너뛰어도 돼요.</small></li>
       <li><b>정산이 들어올 때</b> → <b>아무것도 안 해요</b><small>들어오는 대로 두세요. 며칠 치가 섞여 있어도 괜찮아요.</small></li>
-      <li><b>다음 달 7~10일쯤 한 번</b> (30분 안팎) → <span class="sh">한 달 맞추기</span>에 길별로<small><b>가</b>: ① 판 돈은 일별 시트에서 저절로 (안 썼으면 월 매출을 직접) · ② 앱 <b>주문내역</b>에서 지난달 1일~말일 주문 합계<br><b>나</b>: ③ 앱 <b>정산내역</b>에서 입금일이 지난달 1일~말일인 입금액 합계 (매출도 적으면 빠진 비율이 나와요) · ④ 통장에서 같은 기간 그 앱 입금 합계. 차이·비율은 저절로 나와요.</small></li>
+      <li><b>다음 달 7~10일쯤 한 번</b> (30분 안팎) → <span class="sh">한 달 맞추기</span>에 길별로<small><b>가</b>: ① 판 돈은 일별 시트에서 저절로 (안 썼으면 월 매출을 직접) · ② 앱 <b>주문내역</b>에서 지난달 1일~말일 주문 합계 (결제 금액은 <b>할인 뒤 금액</b>이라, 포스가 할인 전으로 찍으면 할인만큼 차이 나요)<br><b>나</b>: ③ 앱 <b>정산내역</b>에서 입금일이 지난달 1일~말일인 입금액 합계 (매출도 적으면 빠진 비율이 나와요) · ④ 통장에서 같은 기간 그 앱 입금 합계. 차이·비율은 저절로 나와요.</small></li>
     </ol>
     <div class="ex">
       <b>읽는 법 (가짜 숫자)</b>
@@ -346,9 +350,10 @@
       { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(appPay * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + appPay) * 1.1,
         fTxt: '(' + pct(b * 100) + '% + ' + pct(appPay * 100) + '%) × 1.1',
         costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · 이 구간 ' + tierRange() + ' (거리마다)'], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
-        per: 0, note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 결제 수수료는 배민이면 연매출 칸(' + pct(bmPay * 100) + '%), 쿠팡이츠면 ' + pct(n('pay')) + '% — 지금은 더 자세히의 "쓰는 앱" 칸대로 ' + ($('feebase').value === 'bm' ? '배민' : '쿠팡이츠') + ' 기준이에요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
+        per: 0, brk: b, pr: appPay, dvB: dv, mB: M, payName: $('feebase').value === 'bm' ? '연매출 칸' : '쿠팡이츠 약관', note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 결제 수수료는 배민이면 연매출 칸(' + pct(bmPay * 100) + '%), 쿠팡이츠면 ' + pct(n('pay')) + '% — 지금은 더 자세히의 "쓰는 앱" 칸대로 ' + ($('feebase').value === 'bm' ? '배민' : '쿠팡이츠') + ' 기준이에요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
       { id: 'mp', grp: 'd', short: '가게배달', nm: '배민 가게배달 + 대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(bmPay * 100) + '% · 대행 라이더', price: it + up, f: (mp + bmPay) * 1.1,
         fTxt: '(' + pct(mp * 100) + '% + ' + pct(bmPay * 100) + '%) × 1.1', costs: agRows(bmPay, '배달팁에도 붙는다고 봄 (확인 필요)'), per: 0,
+        brk: mp, pr: bmPay, tpB: tp, agB: ag, fxB: fx, payName: '연매출 칸',
         note: '가게배달 중개 ' + pct(mp * 100) + '%는 배민 오픈리스트 기준(공정위 자료)이에요. 공정위가 배민에 이 요율을 다시 정하라고 명령해서 바뀔 수 있어요.' },
       { id: 'hq', grp: 'd', short: '본사 앱', nm: '본사 앱 배달', sub: '프랜차이즈 자체 앱 · 수수료 ' + pct(hf * 100) + '% (가정) · 대행 라이더', price: it, f: hf * 1.1,
         fTxt: pct(hf * 100) + '% × 1.1', costs: agRows(hf, '본사 앱 수수료도 배달팁에 붙는다고 봄 (가정)'), per: st,
@@ -364,7 +369,7 @@
     L.forEach(function (c) {
       c.costs = c.costs.filter(Boolean);
       if (!c.noPack) c.costs.push(['포장재', pk, '1건당']);
-      c.k = k; c.it = it; c.r = r;
+      c.k = k; c.it = it; c.r = r; c.pkB = c.noPack ? 0 : pk;
       c.P = Math.round(k * c.price);
       c.fee = Math.round(c.P * c.f);
       c.fixed = c.costs.reduce(function (s, x) { return s + Math.round(x[1]); }, 0);   // 주문마다 나가는 돈 (개수와 상관없이)
@@ -383,13 +388,51 @@
     if (c.beN === 1) return '1' + unit + '부터 남음';
     return c.beN + unit + '부터 · 주문 ' + won(c.beP) + '원 이상';
   }
+  // 배민 사장님 화면 "주문내역 → 자세히 → 정산정보"와 같은 순서: (A) 주문중개 · (B) 배달 · (C) 그 외 · (D) 부가세
+  function grow(name, amt, how) {
+    return '<span class="op"></span><span class="grp">' + name + '</span><span class="amt grp">' + (amt < 0 ? '−' + won(-amt) : won(amt)) + '</span>' + (how ? '<span class="how">' + how + '</span>' : '');
+  }
+  function bmDetail(c) {
+    var isApp = c.id === 'app', P = c.P, broker = Math.round(P * c.brk), pay = Math.round(P * c.pr);
+    var dv = isApp ? c.dvB : 0, M = isApp ? (c.mB || 0) : 0, tip = isApp ? 0 : c.tpB;
+    var tipPay = !isApp && tip ? Math.round(tip * c.pr) : 0;
+    var T = c.fee + (isApp ? Math.round(dv * 1.1) + (M ? Math.round(M * 1.1) : 0) : (tip ? Math.round(tip * c.pr * 1.1) : 0));   // 앱이 정산에서 떼는 돈 (부가세 포함, 길별 비교와 같은 반올림)
+    var vat = T - broker - pay - tipPay - dv - M, settle = P - T + tip;
+    var h = grow('(A) 주문중개', P - broker);
+    h += row('', 'ㄴ 주문금액', P, '<code>' + c.k + unit + ' × ' + won(c.price) + '원</code>' + (c.price !== c.it ? ' · 배달앱 메뉴 1개당 ' + won(c.price - c.it) + '원 더 받음' : ''), 'sub');
+    h += row('−', 'ㄴ 중개이용료', broker, '<code>' + won(P) + ' × ' + pct(c.brk * 100) + '%</code> · ' + (isApp ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료'), 'sub');
+    h += grow('(B) 배달', tip - dv - M);
+    if (isApp) {
+      h += row('−', 'ㄴ 배달비', dv, '가게 부담 · 이 구간 ' + tierRange() + ' (거리마다)', 'sub');
+      if (M) h += row('−', 'ㄴ 고객배달팁 할인비용', M, '멤버십 가게 부담 · 가게가 고르는 돈', 'sub choice');
+    } else {
+      h += row('+', 'ㄴ 가게배달팁', tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내)', 'sub');
+    }
+    h += grow('(C) 그 외', -(pay + tipPay));
+    h += row('−', 'ㄴ 결제정산수수료', pay, '<code>' + won(P) + ' × ' + pct(c.pr * 100) + '%</code> · ' + c.payName, 'sub');
+    if (tipPay) h += row('−', 'ㄴ 결제정산수수료 (배달팁분)', tipPay, '<code>' + won(tip) + ' × ' + pct(c.pr * 100) + '%</code> · 배달팁에도 붙는다고 봄 <span class="rng">확인 필요</span>', 'sub');
+    h += grow('(D) 부가세', -vat, '<code>(' + [broker, pay].concat(tipPay ? [tipPay] : []).concat(dv ? [dv] : []).concat(M ? [M] : []).map(won).join(' + ') + ') × 10%</code>');
+    h += row('=', '입금예정금액 (A+B+C+D)', settle, '통장에 들어오는 돈 · 배민 사장님 화면 "주문내역 → 자세히 → 정산정보"와 같은 순서예요', 'sum');
+    if (!isApp) {
+      h += row('−', '배달대행비', c.agB, '대행 라이더 · 정산이 아니라 <b>충전금</b>에서 나가요');
+      if (c.fxB) h += row('−', '월 고정비 1건 몫', c.fxB, '');
+    }
+    if (c.pkB) h += row('−', '포장재', c.pkB, '1건당');
+    h += row('−', '재료비', c.mat, '<code>' + c.k + unit + ' × ' + won(c.it) + ' × ' + pct(c.r * 100) + '%</code> · 매장 가격 기준');
+    h += row('=', '1건 남는 돈', c.left, '인건비·임대료·로열티 내기 전 · 부가세 신고 전', 'sum');
+    return h;
+  }
   function chDetail(c) {
+    if (c.brk != null) return chDetailWrap(c, bmDetail(c));
     var h = row('', '받는 돈', c.P, '<code>' + c.k + unit + ' × ' + won(c.price) + '원</code>' + (c.price !== c.it ? ' · 배달앱 메뉴 1개당 ' + won(c.price - c.it) + '원 더 받음' : ''));
     h += row('−', '수수료', c.fee, '<code>' + won(c.P) + ' × ' + c.fTxt + '</code>' + (c.id === 'shop' ? '' : ' · 부가세 포함'));
     c.costs.forEach(function (x) { h += row(x[1] < 0 ? '+' : '−', x[0], Math.abs(Math.round(x[1])), x[2]); });
     if (c.stamp) h += row('−', '적립 할인 (가게 부담 가정)', c.stamp, '<code>' + c.k + unit + ' × ' + won(c.per) + '원</code>');
     h += row('−', '재료비', c.mat, '<code>' + c.k + unit + ' × ' + won(c.it) + ' × ' + pct(c.r * 100) + '%</code> · 매장 가격 기준');
     h += row('=', '1건 남는 돈', c.left, '인건비·임대료·로열티 내기 전 · 부가세 신고 전', 'sum');
+    return chDetailWrap(c, h);
+  }
+  function chDetailWrap(c, h) {
     var be;
     if (c.beN == null) be = '1' + unit + ' 팔 때 남는 몫이 0원 이하라 몇 ' + unit + (unit === '잔' ? '을' : '를') + ' 팔아도 손해예요. 원가율이나 수수료를 확인해 보세요.';
     else if (c.fixed <= 0) be = '주문마다 따로 나가는 돈이 없어서 1' + unit + '부터 남아요.';
@@ -480,19 +523,23 @@
       '<div class="t"><span class="k">배달 때문에 빠진 돈</span><div class="n">' + won(cut) + '원</div><span class="d">' + cutTxt + '<br>주문금액의 ' + pct1(cut / c.P * 100) + '% · ' + modeName + '</span></div>' +
       '<div class="t left' + (c.left < 0 ? ' neg' : '') + '"><span class="k">원가·포장재까지 빼고 남는 돈</span><div class="n">' + won(c.left) + '원</div><span class="d">' + (c.left < 0 ? '1건 팔 때마다 손해' : '인건비·임대료 내기 전') + ' · 부가세 신고 전</span></div>';
 
-    var h = row('', '주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달앱에서 더 받는 돈 ' + won(c.U) : '');
-    if (c.D) h += row('−', '가게 돈으로 한 할인', c.D, (c.D1 ? '단독 할인 ' + won(c.D1) : '') + (c.D1 && c.D2 ? ' + ' : '') + (c.D2 ? '본사 행사 가게 몫 ' + won(c.D2) : '') + ' · 가게가 고르는 돈', 'choice');
-    if (c.H || c.A) h += row('', '본사·앱이 낸 할인 (가게 돈에선 안 빠짐)', c.H + c.A, (c.H ? '본사 ' + won(c.H) : '') + (c.H && c.A ? ' + ' : '') + (c.A ? '앱 ' + won(c.A) : '') + ' · 손님은 그만큼 덜 냈지만 가게 몫은 그대로 · 본사 부담분은 본사 정산에서 따로 오가기도 해요');
+    var gA = c.P - c.D - c.broker, gB = c.tip - c.appDeliv - c.M, gC = -(c.pay + c.tipPay);
+    var h = grow('(A) 주문중개', gA);
+    h += row('', 'ㄴ 주문금액', c.P, c.U ? '매장가 ' + won(c.shop) + ' + 배달앱에서 더 받는 돈 ' + won(c.U) : '', 'sub');
+    if (c.D) h += row('−', 'ㄴ 고객할인비용 (가게 부담)', c.D, (c.D1 ? '단독 할인 ' + won(c.D1) : '') + (c.D1 && c.D2 ? ' + ' : '') + (c.D2 ? '본사 행사 가게 몫 ' + won(c.D2) : '') + ' · 가게가 고르는 돈', 'sub choice');
+    if (c.H || c.A) h += row('', 'ㄴ 본사·앱이 낸 할인 (가게 돈에선 안 빠짐)', c.H + c.A, (c.H ? '본사 ' + won(c.H) : '') + (c.H && c.A ? ' + ' : '') + (c.A ? '앱 ' + won(c.A) : '') + ' · 손님은 그만큼 덜 냈지만 가게 몫은 그대로 · 본사 부담분은 본사 정산에서 따로 오가기도 해요', 'sub');
     function baseNote(x) { return x === c.P ? (c.D ? '<b>할인 전 금액</b>에 붙음' : '주문금액에 붙음') : '가게 할인 뺀 금액에 붙음'; }
-    h += row('−', '중개 수수료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">' + (mode === 'app' ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료') + '</span>');
-    h += row('−', '결제 수수료', c.pay, '<code>' + won(c.payBase) + ' × ' + pct(c.p * 100) + '%</code> · ' + (c.payBase === c.P - c.D1 && c.D1 && c.D2 ? '단독 할인만 뺀 금액에 붙음 (본사 행사 몫은 안 빼 줌)' : baseNote(c.payBase)));
-    if (c.tipPay) h += row('−', '결제 수수료 (배달팁분)', c.tipPay, '<code>' + won(c.tip) + ' × ' + pct(c.p * 100) + '%</code> · 배달팁에도 붙는다고 봄 <span class="rng">확인 필요</span>');
-    if (c.extraFee) h += row('', '↳ 이 중 가게가 할인한 돈에 붙은 수수료', c.feeOnDisc, '<code>(' + won(c.extraFee) + ' + 부가세 10%)</code> · 손님에게 받지 않은 돈에 붙은 수수료예요. 공정위가 쿠팡이츠에 고치라고 한 부분', 'choice');
-    if (c.appDeliv) h += row('−', '배달비 (앱이 정산에서 뗌)', c.appDeliv, '<span class="rng">이 구간 ' + tierRange() + ' (거리마다)</span>');
-    if (c.M) h += row('−', '멤버십 가게 부담 배달료', c.M, '손님 무료배달 혜택 가게라 붙는 몫 · 가게가 고르는 돈', 'choice');
-    h += row('−', '부가세', c.vat, '<code>(' + [c.broker, c.pay].concat(c.tipPay ? [c.tipPay] : []).concat(c.appDeliv ? [c.appDeliv] : []).concat(c.M ? [c.M] : []).map(won).join(' + ') + ') × 10%</code>');
-    if (c.tip) h += row('+', '손님 배달팁', c.tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내 "가게배달팁 매출")');
-    h += row('=', '정산금 (통장에 들어오는 돈)', c.settle, '', 'sum');
+    h += row('−', 'ㄴ 중개이용료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">' + (mode === 'app' ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료') + '</span>', 'sub');
+    if (c.extraFee) h += row('', 'ㄴ 이 중 가게가 할인한 돈에 붙은 수수료', c.feeOnDisc, '<code>(' + won(c.extraFee) + ' + 부가세 10%)</code> · 손님에게 받지 않은 돈에 붙은 수수료예요. 공정위가 쿠팡이츠에 고치라고 한 부분', 'sub choice');
+    h += grow('(B) 배달', gB);
+    if (c.appDeliv) h += row('−', 'ㄴ 배달비', c.appDeliv, '가게 부담 · 앱이 정산에서 뗌 <span class="rng">이 구간 ' + tierRange() + ' (거리마다)</span>', 'sub');
+    if (c.M) h += row('−', 'ㄴ 고객배달팁 할인비용', c.M, '멤버십 가게 부담 · 가게가 고르는 돈', 'sub choice');
+    if (c.tip) h += row('+', 'ㄴ 가게배달팁', c.tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내 "가게배달팁 매출")', 'sub');
+    h += grow('(C) 그 외', gC);
+    h += row('−', 'ㄴ 결제정산수수료', c.pay, '<code>' + won(c.payBase) + ' × ' + pct(c.p * 100) + '%</code> · ' + (c.payBase === c.P - c.D1 && c.D1 && c.D2 ? '단독 할인만 뺀 금액에 붙음 (본사 행사 몫은 안 빼 줌)' : baseNote(c.payBase)), 'sub');
+    if (c.tipPay) h += row('−', 'ㄴ 결제정산수수료 (배달팁분)', c.tipPay, '<code>' + won(c.tip) + ' × ' + pct(c.p * 100) + '%</code> · 배달팁에도 붙는다고 봄 <span class="rng">확인 필요</span>', 'sub');
+    h += grow('(D) 부가세', -c.vat, '<code>(' + [c.broker, c.pay].concat(c.tipPay ? [c.tipPay] : []).concat(c.appDeliv ? [c.appDeliv] : []).concat(c.M ? [c.M] : []).map(won).join(' + ') + ') × 10%</code>');
+    h += row('=', '입금예정금액 (A+B+C+D)', c.settle, '정산금 · 통장에 들어오는 돈 · 배민 사장님 화면 "주문내역 → 자세히 → 정산정보"와 같은 순서예요', 'sum');
     if (mode === 'agency') h += row('−', '배달대행비', c.outside, '배달료 + 콜비 · 정산금이 아니라 <b>충전금</b>에서 나가요 (통장엔 충전할 때 큰 출금만)');
     if (mode === 'self') h += row('−', '직접 배달 비용', c.outside, '시간 인건비 + 기름값 어림');
     if (c.fixedPer) h += row('−', '월 고정비 1건 몫', c.fixedPer, '<code>' + won(c.K) + ' ÷ ' + won(c.N) + '건</code> · 건수가 적을수록 1건당 커져요');
@@ -583,6 +630,7 @@
       money('SUM(F' + b0 + ':F' + b1 + ')'), money('SUM(G' + b0 + ':G' + b1 + ')'), null, null]);
     mon.push([], ['읽는 법'],
       ['•', '가: ① 판 돈은 일별 시트 한 달 합계에서 저절로 들어와요 (안 썼으면 포스 월 매출을 직접). ②는 앱 주문내역에서 같은 판매 기간의 주문 합계예요'],
+      ['•', '앱 주문내역의 \'결제 금액\'은 손님이 낸 돈, 곧 할인 뒤 금액이에요. 포스가 할인 전 금액으로 찍는 가게면 그만큼(할인액) 차이 나는 게 정상이니, 같은 기준끼리 비교해요'],
       ['•', '가 차이가 나면 취소·환불된 주문이 포스에 남아 있는지 먼저 보세요'],
       ['•', '나: ③은 앱 정산내역에서 입금일이 그 달 1일~말일인 입금액 합계, 정산 매출은 같은 내역의 매출 합계예요 (적으면 빠진 비율이 나와요. 평소와 비슷하면 정상)'],
       ['•', '정산내역에 만나서결제가 \'정산 제외\'로 빠져 있으면, 정산 매출에서 그만큼 빼고 적어요 (그 돈은 카드사·현금으로 따로 와요). 부분환불은 그대로 둬요 (가게가 돌려준 돈이에요)'],
@@ -602,7 +650,7 @@
       [null, '포스·앱에서 한 달 매출을 뽑을 수 있으면 건너뛰어도 돼요'], [],
       ['② 정산이 들어올 때', '아무것도 안 해요. 들어오는 대로 두세요'], [],
       ['③ 다음 달 7~10일쯤 한 번', "'한 달 맞추기'에 길별로 (30분 안팎)"],
-      [null, '가: 판 돈은 저절로 · 앱 주문내역에서 지난달 1일~말일 주문 합계'],
+      [null, '가: 판 돈은 저절로 · 앱 주문내역에서 지난달 1일~말일 주문 합계 (주문내역의 결제 금액은 할인 뒤 금액이에요)'],
       [null, '나: 앱 정산내역에서 입금일이 지난달 1일~말일인 입금액 합계(매출도) · 통장에서 같은 기간 그 앱 입금 합계'],
       [null, '차이·빠진 비율·확인(맞음/확인 필요)은 저절로 나와요'], [],
       ['예시 (가짜 숫자)'],
