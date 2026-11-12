@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>배달 정산 맞추기 지도</title>
+<meta name="description" content="포스·앱·카드사·통장 자료를 판 날끼리, 입금 날끼리 두 짝으로 맞추는 흐름과 배민·쿠팡이츠·요기요에서 숫자가 어긋나는 18곳 (공식 안내 기준, 숫자는 견본)">
+<style>
+  /* Layout: one reading column; the flow diagram sits centered as the page's one figure, then stage-grouped cards that the app tabs filter. */
+  :root {
+    --bg: #f7f7f8; --surface: #ffffff; --ink: #111827; --ink-soft: #374151; --muted: #6b7280;
+    --line: #e5e7eb; --line-strong: #d1d5db;
+    --gold: #8a6400; --gold-strong: #a87b00; --gold-fill: #f4c20d; --gold-pale: #fdf3cf; --on-fill: #1a1400;
+    --green: #15803d; --orange: #b45309; --red: #dc2626; --amber-bg: #fef3c7;
+    --display: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    --body: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); line-height: 1.65; font-size: 15px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .top h1 { margin: 0; font-size: 18px; line-height: 1.4; }
+  .top h1 .tag { font-size: 11px; font-weight: 700; color: var(--orange); background: var(--amber-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .top-right { display: flex; gap: 6px 14px; flex-wrap: wrap; }
+  .design-pick, .refs-pick { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .design-pick select, .refs-pick select { font-size: 13px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 8px; max-width: 13em; }
+  @media (max-width: 560px) { .top { padding: 10px 16px; } }
+  .wrap { max-width: 46rem; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; display: grid; gap: 44px; }
+  .wrap > * { min-width: 0; }
+  a { color: var(--gold); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; }
+  .hero { display: grid; gap: 10px; }
+  .eyebrow { margin: 0; font-size: .8rem; font-weight: 700; letter-spacing: .06em; color: var(--gold); }
+  h1 { margin: 0; font-size: clamp(1.75rem, 5.5vw, 2.35rem); line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
+  h1 em { font-style: normal; color: var(--gold-strong); }
+  .lead { margin: 0; color: var(--ink-soft); max-width: 38rem; }
+  h2 { margin: 0 0 14px; font-size: 1.28rem; font-weight: 700; }
+  h2 .cnt { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); font-size: .88rem; margin: -6px 0 14px; }
+
+  /* 자료 받기 */
+  ol.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  ol.steps li { border-top: 2px solid var(--gold); padding-top: 8px; display: grid; gap: 3px; min-width: 0; }
+  ol.steps .sn { font-family: var(--display); font-weight: 700; color: var(--gold); font-size: .85rem; letter-spacing: .04em; }
+  ol.steps b { font-size: .98rem; }
+  ol.steps span.d { font-size: .86rem; color: var(--ink-soft); }
+  .nope { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 16px; font-size: .86rem; }
+  .nope > b { color: var(--red); margin-right: 4px; }
+  .chip-x { border: 1px solid var(--red); color: var(--red); border-radius: 999px; padding: 2px 10px; }
+
+  /* 고르기 */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .tab { font: inherit; font-size: .9rem; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
+  .tab:hover { border-color: var(--gold); }
+  .tab[aria-pressed="true"] { background: var(--gold-fill); border-color: var(--gold-fill); color: var(--on-fill); font-weight: 700; }
+
+  /* 그림 */
+  figure { margin: 0; }
+  .svgwrap { max-width: 33rem; margin: 0 auto; }
+  svg.flow { display: block; width: 100%; height: auto; }
+  figcaption { font-size: .86rem; color: var(--muted); margin: 10px auto 0; max-width: 33rem; }
+  figcaption b { color: var(--ink); }
+  .flow text { font-family: var(--body); fill: var(--ink); }
+  .flow .h { font-size: 11.5px; font-weight: 700; }
+  .flow .t { font-size: 11px; font-weight: 700; }
+  .flow .s { font-size: 10px; fill: var(--muted); }
+  .flow .box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+  .flow .box.strong { fill: var(--gold-pale); stroke: var(--gold); }
+  .flow .node { fill: var(--surface); stroke: var(--gold); stroke-width: 1; stroke-dasharray: 3 2; }
+  .flow .cmp { stroke: var(--gold); stroke-width: 1.2; stroke-dasharray: 2 2; }
+  .flow .eq { fill: var(--bg); stroke: var(--gold); stroke-width: 1.2; }
+  .flow .eqt { font-size: 10px; font-weight: 700; fill: var(--gold); }
+  .flow .flowline { stroke: var(--ink-soft); stroke-width: 1.4; fill: none; }
+  .flow .halo { stroke: var(--bg); stroke-width: 7; }
+  .flow .pill { fill: var(--bg); stroke: var(--line-strong); stroke-width: 1; }
+  .flow .pill.act { fill: var(--gold-pale); stroke: var(--gold); }
+  .flow .pt { font-size: 10px; font-weight: 700; }
+  .flow .pt.act { fill: var(--gold); }
+  .flow .ps { font-size: 9.5px; fill: var(--muted); }
+  .flow .money { stroke: var(--green); stroke-width: 1.6; }
+  .flow .back { stroke: var(--red); stroke-width: 1.4; stroke-dasharray: 3 2; }
+  .flow .rt { font-size: 9px; font-weight: 700; fill: var(--red); }
+  .flow .door { stroke: var(--orange); stroke-width: 1.4; stroke-dasharray: 4 3; fill: none; }
+  .flow .dot-o { fill: var(--orange); }
+  .flow .ot { font-size: 9px; font-weight: 700; fill: var(--orange); }
+  .flow .ot2 { font-size: 9px; fill: var(--orange); }
+  .flow .br { fill: none; stroke: var(--gold); stroke-width: 1.5; }
+  .flow .brl { font-size: 10.5px; font-weight: 700; fill: var(--gold); }
+  .flow .brl2 { font-size: 10px; fill: var(--muted); }
+  .flow .mk-ink { fill: var(--ink-soft); }
+  .flow .mk-green { fill: var(--green); }
+  .flow .mk-orange { fill: var(--orange); }
+  .flow .mk-red { fill: var(--red); }
+  .flow .col { transition: opacity .2s ease; }
+  .flow[data-sel] .col { opacity: .14; }
+  .flow[data-sel="card"] .c-card, .flow[data-sel="bm"] .c-bm, .flow[data-sel="cp"] .c-cp, .flow[data-sel="yo"] .c-yo { opacity: 1; }
+
+  /* 길마다 받는 화면 */
+  .screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 18px; }
+  .scr { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; min-width: 0; }
+  .scr h3 { margin: 0 0 8px; font-size: .98rem; }
+  .scr dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; font-size: .86rem; }
+  .scr dt { color: var(--gold); font-weight: 700; }
+  .scr dd { margin: 0; min-width: 0; }
+  .scr .plus { margin: 8px 0 0; font-size: .82rem; color: var(--muted); }
+
+  /* 변수 */
+  .stage { display: grid; gap: 10px; }
+  .stage + .stage { margin-top: 26px; }
+  .sg { margin: 0; font-size: .92rem; color: var(--gold); letter-spacing: .02em; }
+  .sg small { color: var(--muted); font-weight: 500; letter-spacing: 0; font-family: var(--body); }
+  .vgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .v { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+  .v .top { display: flex; gap: 8px; align-items: baseline; }
+  .v .n { font-family: var(--display); font-variant-numeric: tabular-nums; font-weight: 700; color: var(--gold); min-width: 1.4em; }
+  .v h4 { margin: 0; font-size: .97rem; font-weight: 600; }
+  .v p { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+  .v p.chk { color: var(--muted); font-size: .84rem; }
+  .v p.chk b { color: var(--ink); font-weight: 700; }
+  .apps { display: flex; flex-wrap: wrap; gap: 4px; }
+  .app { font-size: .74rem; padding: 1px 8px; border-radius: 999px; background: var(--gold-pale); color: var(--gold); font-weight: 700; }
+  .app.unk { background: transparent; border: 1px dashed var(--orange); color: var(--orange); }
+
+  /* 결론 */
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .two > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .two h3 { margin: 0 0 8px; font-size: 1rem; }
+  .two ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: .9rem; }
+  .two .ok h3 { color: var(--green); }
+  .two .todo h3 { color: var(--orange); }
+  .sheet { margin-top: 16px; border-top: 1px solid var(--line-strong); padding-top: 14px; }
+  .sheet h3 { margin: 0 0 10px; font-size: .95rem; }
+  .sheet h3 small { color: var(--muted); font-weight: 500; font-family: var(--body); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .stat { display: grid; gap: 2px; min-width: 0; }
+  .stat .k { font-size: .8rem; color: var(--muted); letter-spacing: .03em; }
+  .stat .val { font-family: var(--display); font-weight: 700; font-size: 1.08rem; font-variant-numeric: tabular-nums; }
+  .stat .sub { font-size: .82rem; color: var(--ink-soft); }
+  footer { font-size: .82rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; }
+  footer p { margin: 0; }
+  @media (prefers-reduced-motion: reduce) { .flow .col { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>배달 정산 맞추기 지도 <span class="tag">자료·변수</span></h1>
+  <div class="top-right"><span data-refs></span><span data-screens></span></div>
+</header>
+<main class="wrap">
+  <header class="hero">
+    <p class="eyebrow">배민 · 쿠팡이츠 · 요기요 · 매장 카드</p>
+    <p class="lead">판 날 자료와 입금 날 자료를 따로 받아서, 같은 날짜끼리 두 짝으로 맞춰요. 앱마다 금액 기준과 입금 날이 달라서 숫자가 어긋나는 곳을 짚었어요.</p>
+  </header>
+
+  <section aria-labelledby="h-in">
+    <h2 id="h-in">자료는 이렇게 받아요</h2>
+    <ol class="steps">
+      <li><span class="sn">1</span><b>사장님이 직접 눌러요</b><span class="d">앱 사장님 화면에서 판 날 화면과 입금 날 화면을 엑셀로 받거나 캡처해요.</span></li>
+      <li><span class="sn">2</span><b>카톡으로 받아요</b><span class="d">다음 달 7~10일쯤. 쿠팡 매출 내역서는 5일부터, 요기요 말일 판 돈은 영업일 5일 뒤에 들어와요.</span></li>
+      <li><span class="sn">3</span><b>길별 한 달 합계로 맞춰요</b><span class="d">맞추기 엑셀의 가·나 두 표에 넣으면 차이와 빠진 비율이 저절로 나와요.</span></li>
+      <li><span class="sn">4</span><b>결과 한 장 드리고 지워요</b><span class="d">숫자 세 개와 살펴볼 것. 받은 자료는 사장님 앞에서 지워요.</span></li>
+    </ol>
+    <div class="nope"><b>안 받는 것</b><span class="chip-x">비밀번호·공동인증서</span><span class="chip-x">주문전표·주문 상세 캡처 (손님 주소·안심번호)</span><span class="chip-x">부가세 엑셀 암호</span></div>
+  </section>
+
+  <section aria-labelledby="h-flow">
+    <h2 id="h-flow">두 짝으로 맞추는 길</h2>
+    <div class="tabs" role="group" aria-label="길 고르기">
+      <button type="button" class="tab" id="tab-all" data-sel="all" aria-pressed="true">전체</button>
+      <button type="button" class="tab" id="tab-card" data-sel="card" aria-pressed="false">매장 카드</button>
+      <button type="button" class="tab" id="tab-bm" data-sel="bm" aria-pressed="false">배민</button>
+      <button type="button" class="tab" id="tab-cp" data-sel="cp" aria-pressed="false">쿠팡이츠</button>
+      <button type="button" class="tab" id="tab-yo" data-sel="yo" aria-pressed="false">요기요</button>
+    </div>
+    <figure>
+      <div class="svgwrap">
+        <svg id="flow" class="flow" viewBox="0 0 360 402" role="img" aria-label="위에서 아래로: 포스 매출과 앱 판매 화면을 판 날끼리 맞추고(가), 앱이 며칠 뒤 수수료를 떼고 정산한 입금 화면과 통장을 입금 날끼리 맞춘다(나). 쿠팡이츠는 출금 가능 금액을 사장님이 출금해야 통장으로 오고, 문 앞 카드 결제는 앱이 아니라 카드사로 들어오며, 요기요 정산이 마이너스면 통장에서 이체로 낸다.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
+            <marker id="ahg" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-green"/></marker>
+            <marker id="aho" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-orange"/></marker>
+            <marker id="ahr" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="mk-red"/></marker>
+          </defs>
+
+          <!-- 함께 쓰는 칸: 포스, 통장, 두 짝 괄호 -->
+          <g class="shared">
+            <path d="M31 22H26V140H31" class="br"/>
+            <text class="brl" text-anchor="middle" transform="translate(15 81) rotate(-90)">가 · 판 날끼리</text>
+            <text class="brl2" text-anchor="middle" transform="translate(15 205) rotate(-90)">정산 · 며칠 뒤</text>
+            <path d="M31 270H26V396H31" class="br"/>
+            <text class="brl" text-anchor="middle" transform="translate(15 333) rotate(-90)">나 · 입금 날끼리</text>
+            <rect x="34" y="22" width="317" height="36" rx="6" class="box strong"/>
+            <text x="192.5" y="37" class="t" text-anchor="middle">① 포스 매출 · 판 날</text>
+            <text x="192.5" y="51" class="s" text-anchor="middle">앱별 배달 매출 · 매장 카드</text>
+            <rect x="34" y="360" width="317" height="36" rx="6" class="box strong"/>
+            <text x="192.5" y="375" class="t" text-anchor="middle">④ 통장 입금 · 입금 날</text>
+            <text x="192.5" y="389" class="s" text-anchor="middle">배달앱·카드사 입금 줄만</text>
+          </g>
+
+          <!-- 문 앞 카드 결제: 배민 만나서결제·요기요 현장결제 돈은 앱이 아니라 카드사로 -->
+          <g class="col c-card c-bm c-yo">
+            <line x1="314" y1="230" x2="78" y2="230" class="door" marker-end="url(#aho)"/>
+            <circle cx="314" cy="230" r="2.6" class="dot-o"/>
+            <circle cx="152" cy="230" r="2.6" class="dot-o"/>
+            <text x="80" y="245" class="ot">문 앞 카드 결제</text>
+            <text x="80" y="257" class="ot2">만나서·현장결제</text>
+          </g>
+
+          <!-- 매장 카드 -->
+          <g class="col c-card">
+            <text x="71" y="13" class="h" text-anchor="middle">매장 카드</text>
+            <line x1="71" y1="59" x2="71" y2="83" class="cmp"/>
+            <circle cx="71" cy="71" r="7" class="eq"/>
+            <text x="71" y="74.5" class="eqt" text-anchor="middle">=</text>
+            <rect x="34" y="84" width="74" height="56" rx="6" class="box"/>
+            <text x="71" y="101" class="t" text-anchor="middle">카드사 승인</text>
+            <text x="71" y="116" class="s" text-anchor="middle">여신금융협회</text>
+            <text x="71" y="129" class="s" text-anchor="middle">승인 내역</text>
+            <line x1="71" y1="141" x2="71" y2="267" class="flowline" marker-end="url(#ah)"/>
+            <rect x="37" y="156" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="71" y="167" class="pt" text-anchor="middle">카드사마다</text>
+            <rect x="37" y="174" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="71" y="185" class="ps" text-anchor="middle">카드 수수료</text>
+            <rect x="34" y="270" width="74" height="58" rx="6" class="box"/>
+            <text x="71" y="287" class="t" text-anchor="middle">카드사 입금</text>
+            <text x="71" y="302" class="s" text-anchor="middle">여신금융협회</text>
+            <text x="71" y="315" class="s" text-anchor="middle">입금 내역</text>
+            <line x1="71" y1="329" x2="71" y2="357" class="money" marker-end="url(#ahg)"/>
+          </g>
+
+          <!-- 배민 -->
+          <g class="col c-bm">
+            <text x="152" y="13" class="h" text-anchor="middle">배민</text>
+            <line x1="152" y1="59" x2="152" y2="83" class="cmp"/>
+            <circle cx="152" cy="71" r="7" class="eq"/>
+            <text x="152" y="74.5" class="eqt" text-anchor="middle">=</text>
+            <rect x="115" y="84" width="74" height="56" rx="6" class="box"/>
+            <text x="152" y="101" class="t" text-anchor="middle">주문내역</text>
+            <text x="152" y="116" class="s" text-anchor="middle">결제 금액</text>
+            <text x="152" y="129" class="s" text-anchor="middle">= 할인 뒤</text>
+            <line x1="152" y1="141" x2="152" y2="267" class="flowline" marker-end="url(#ah)"/>
+            <rect x="118" y="156" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="152" y="167" class="pt" text-anchor="middle">영업일 3일</text>
+            <rect x="118" y="174" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="152" y="185" class="ps" text-anchor="middle">수수료 빠짐</text>
+            <rect x="115" y="270" width="74" height="58" rx="6" class="box"/>
+            <text x="152" y="287" class="t" text-anchor="middle">정산내역</text>
+            <text x="152" y="302" class="s" text-anchor="middle">이월·보류</text>
+            <text x="152" y="315" class="s" text-anchor="middle">미납금 차감</text>
+            <line x1="152" y1="329" x2="152" y2="357" class="money" marker-end="url(#ahg)"/>
+          </g>
+
+          <!-- 쿠팡이츠: 출금 가능 금액을 사장님이 출금해야 통장으로 -->
+          <g class="col c-cp">
+            <text x="233" y="13" class="h" text-anchor="middle">쿠팡이츠</text>
+            <line x1="233" y1="59" x2="233" y2="83" class="cmp"/>
+            <circle cx="233" cy="71" r="7" class="eq"/>
+            <text x="233" y="74.5" class="eqt" text-anchor="middle">=</text>
+            <rect x="196" y="84" width="74" height="56" rx="6" class="box"/>
+            <text x="233" y="101" class="t" text-anchor="middle">매출 내역서</text>
+            <text x="233" y="116" class="s" text-anchor="middle">주문금액으로</text>
+            <text x="233" y="129" class="s" text-anchor="middle">다음 달 5일~</text>
+            <line x1="233" y1="141" x2="233" y2="190" class="flowline" marker-end="url(#ah)"/>
+            <rect x="199" y="156" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="233" y="167" class="pt" text-anchor="middle">영업일 4일</text>
+            <rect x="199" y="193" width="68" height="29" rx="5" class="node"/>
+            <text x="233" y="205" class="s" text-anchor="middle">출금 가능</text>
+            <text x="233" y="217" class="s" text-anchor="middle">금액</text>
+            <line x1="233" y1="224" x2="233" y2="265" class="halo"/>
+            <line x1="233" y1="223" x2="233" y2="267" class="flowline" marker-end="url(#ah)"/>
+            <rect x="199" y="238" width="68" height="15" rx="7.5" class="pill act"/>
+            <text x="233" y="249" class="pt act" text-anchor="middle">사장님 출금</text>
+            <rect x="196" y="270" width="74" height="58" rx="6" class="box"/>
+            <text x="233" y="287" class="t" text-anchor="middle">출금 내역</text>
+            <text x="233" y="302" class="s" text-anchor="middle">지난달 환급</text>
+            <text x="233" y="315" class="s" text-anchor="middle">섞여 있음</text>
+            <line x1="233" y1="329" x2="233" y2="357" class="money" marker-end="url(#ahg)"/>
+          </g>
+
+          <!-- 요기요: 마이너스면 통장에서 이체로 냄 -->
+          <g class="col c-yo">
+            <text x="314" y="13" class="h" text-anchor="middle">요기요</text>
+            <line x1="314" y1="59" x2="314" y2="83" class="cmp"/>
+            <circle cx="314" cy="71" r="7" class="eq"/>
+            <text x="314" y="74.5" class="eqt" text-anchor="middle">=</text>
+            <rect x="277" y="84" width="74" height="56" rx="6" class="box"/>
+            <text x="314" y="101" class="t" text-anchor="middle">주문내역</text>
+            <text x="314" y="116" class="s" text-anchor="middle">배달요금</text>
+            <text x="314" y="129" class="s" text-anchor="middle">뺀 주문금액</text>
+            <line x1="314" y1="141" x2="314" y2="267" class="flowline" marker-end="url(#ah)"/>
+            <rect x="280" y="156" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="314" y="167" class="pt" text-anchor="middle">영업일 5일</text>
+            <rect x="280" y="174" width="68" height="15" rx="7.5" class="pill"/>
+            <text x="314" y="185" class="ps" text-anchor="middle">이용료 빠짐</text>
+            <rect x="277" y="270" width="74" height="58" rx="6" class="box"/>
+            <text x="314" y="287" class="t" text-anchor="middle">정산내역</text>
+            <text x="314" y="302" class="s" text-anchor="middle">마이너스 날</text>
+            <text x="314" y="315" class="s" text-anchor="middle">취소일 기준</text>
+            <line x1="303" y1="329" x2="303" y2="357" class="money" marker-end="url(#ahg)"/>
+            <line x1="324" y1="358" x2="324" y2="331" class="back" marker-end="url(#ahr)"/>
+            <text x="329" y="348" class="rt">이체</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>위는 판 날, 아래는 입금 날이에요.</b> 포스와 통장을 바로 빼면 안 맞는 건, 가운데 구간에서 앱이 며칠 뒤에 수수료를 떼고 넣어 주기 때문이에요. 그래서 판 날끼리(가), 입금 날끼리(나) 따로 맞춰요. 점선 주황 화살표는 문 앞 카드 결제가 앱이 아니라 카드사로 들어오는 길이에요.</figcaption>
+    </figure>
+
+    <div class="screens">
+      <article class="scr" data-ch="card">
+        <h3>매장 카드</h3>
+        <dl><dt>② 판 날</dt><dd>카드사 승인 내역</dd><dt>③ 입금 날</dt><dd>카드사 입금 내역</dd></dl>
+        <p class="plus">여신금융협회 카드매출 통합조회. 배민 만나서결제·요기요 현장결제 카드도 여기 섞여요.</p>
+      </article>
+      <article class="scr" data-ch="bm">
+        <h3>배민</h3>
+        <dl><dt>② 판 날</dt><dd>셀프서비스 주문내역 (바로결제·만나서결제 나눠서)</dd><dt>③ 입금 날</dt><dd>정산내역 + 상세 (매출·비용별)</dd></dl>
+        <p class="plus">누구 돈으로 할인했는지는 배민 혜택 내역, 한 달 검산은 부가세 신고자료.</p>
+      </article>
+      <article class="scr" data-ch="cp">
+        <h3>쿠팡이츠</h3>
+        <dl><dt>② 판 날</dt><dd>매출 관리 → 매출 내역서 (다음 달 5일부터)</dd><dt>③ 입금 날</dt><dd>정산 관리의 출금 내역</dd></dl>
+        <p class="plus">그 달 진짜 수수료는 매출 내역서의 '산정후' 칸.</p>
+      </article>
+      <article class="scr" data-ch="yo">
+        <h3>요기요</h3>
+        <dl><dt>② 판 날</dt><dd>셀프서비스 → 주문관리 주문내역 (엑셀)</dd><dt>③ 입금 날</dt><dd>정산/세금 → 정산내역 (+ 상세 엑셀)</dd></dl>
+        <p class="plus">입금일마다 어느 날 판 돈인지는 정산캘린더.</p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-var">
+    <h2 id="h-var">숫자가 어긋나는 곳 <span class="cnt" id="vcount">18곳</span></h2>
+    <p class="muted">위에서 고른 길에 해당하는 것만 보여요. 단계는 그림의 위에서 아래 순서예요.</p>
+
+    <div class="stage">
+      <h3 class="sg">가 · 판 날끼리 <small>포스 ↔ 판 날 화면</small></h3>
+      <div class="vgrid">
+        <article class="v" data-apps="card bm cp yo">
+          <div class="top"><span class="n">1</span><h4>취소한 주문이 포스에 남아요</h4></div>
+          <p>앱에선 취소됐는데 포스엔 매출로 남으면 포스가 더 많아 보여요. 가에서 차이가 나면 이것부터 봐요.</p>
+          <p class="chk"><b>확인</b> 그날 취소 주문을 포스에서 취소 처리</p>
+          <div class="apps"><span class="app">모든 길</span></div>
+        </article>
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">2</span><h4>화면마다 금액 기준이 달라요</h4></div>
+          <p>배민 주문내역의 결제 금액은 할인 뒤예요. 쿠팡은 매출 내역서의 주문금액으로 대요(결제금액은 쿠팡 쿠폰까지 빠짐). 요기요 주문내역은 배달요금을 뺀 금액이에요.</p>
+          <p class="chk"><b>확인</b> 포스가 할인 전·후, 배달요금 포함·제외 중 어느 쪽으로 찍는지 첫 달에 맞춰 보기</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="card bm yo">
+          <div class="top"><span class="n">3</span><h4>문 앞 카드 결제는 카드사로 와요</h4></div>
+          <p>배민 만나서결제·요기요 현장결제 카드는 가게 단말기(대행 라이더 단말기) 매출이라 카드사 승인에 섞여요. 포스엔 앱 매출로 찍혀서 카드 줄에 그만큼 차이 나는 게 정상이에요.</p>
+          <p class="chk"><b>확인</b> 대행사마다 다를 수 있어요. 한 건 골라 카드사 승인에서 찾아보기</p>
+          <div class="apps"><span class="app">매장 카드</span><span class="app">배민</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="card bm cp yo">
+          <div class="top"><span class="n">4</span><h4>하루를 어디서 끊는지</h4></div>
+          <p>자정 기준인지, 주문·결제·배달완료 중 무엇이 기준인지 앱마다 아직 확인하지 못했어요. 말일 밤 주문이 다음 달로 넘어갈 수 있어요.</p>
+          <p class="chk"><b>확인</b> 말일 밤 주문 하나를 포스와 앱 화면에서 같이 찾아보기</p>
+          <div class="apps"><span class="app">모든 길</span><span class="app unk">아직 모름</span></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="stage">
+      <h3 class="sg">정산 · 며칠 뒤 <small>판 날 → 입금 날</small></h3>
+      <div class="vgrid">
+        <article class="v" data-apps="card bm cp yo">
+          <div class="top"><span class="n">5</span><h4>입금까지 걸리는 날이 달라요</h4></div>
+          <p>배민은 영업일 3일, 쿠팡이츠는 4일, 요기요는 5일 뒤에 들어와요. 주말·공휴일은 빼고 세요. 그래서 월말에 판 돈은 다음 달 초에 들어와요. 카드는 카드사마다 달라요.</p>
+          <p class="chk"><b>확인</b> 판 돈과 통장을 바로 빼지 말고 날짜끼리 두 짝으로</p>
+          <div class="apps"><span class="app">모든 길</span></div>
+        </article>
+        <article class="v" data-apps="cp">
+          <div class="top"><span class="n">6</span><h4>쿠팡이츠는 사장님이 출금해야 해요</h4></div>
+          <p>정산된 돈이 '출금 가능 금액'으로 쌓이고, 출금을 눌러야 통장으로 와요. 안 꺼낸 돈은 쿠팡에 남아 있어요.</p>
+          <p class="chk"><b>확인</b> 나의 ③은 정산 관리의 출금 내역으로</p>
+          <div class="apps"><span class="app">쿠팡이츠</span></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="stage">
+      <h3 class="sg">나 · 입금 날끼리 <small>입금 날 화면 ↔ 통장</small></h3>
+      <div class="vgrid">
+        <article class="v" data-apps="bm">
+          <div class="top"><span class="n">7</span><h4>이월·보류·미납금 차감</h4></div>
+          <p>적은 돈은 다음 날로 넘어가고(이월), 계좌 오류면 정산보류예요. 지난달 광고비 같은 미납금은 다음 정산에서 빠져요.</p>
+          <p class="chk"><b>확인</b> 배민 정산내역의 상태와 '정산 제외 및 조정'</p>
+          <div class="apps"><span class="app">배민</span></div>
+        </article>
+        <article class="v" data-apps="bm">
+          <div class="top"><span class="n">8</span><h4>만나서결제는 정산에서 빠져요</h4></div>
+          <p>손님이 문 앞에서 낸 돈은 배민이 보내지 않고, 그 주문의 수수료만 다른 입금에서 떼 가요. 주문 상세에 입금예정 −3,740원 같은 마이너스가 보여요.</p>
+          <p class="chk"><b>확인</b> 주문내역을 바로결제·만나서결제로 나눠 보기</p>
+          <div class="apps"><span class="app">배민</span></div>
+        </article>
+        <article class="v" data-apps="cp">
+          <div class="top"><span class="n">9</span><h4>지난달 환급이 섞여요</h4></div>
+          <p>쿠팡이츠 상생요금제는 일단 7.8%로 떼고, 달이 끝나면 실제 구간과의 차액을 다음 달에 돌려줘요. 출금 내역에 지난달 환급이 섞이고, 세금계산서도 한 달 어긋나 보여요.</p>
+          <p class="chk"><b>확인</b> 그 달 진짜 수수료는 매출 내역서의 '산정후'</p>
+          <div class="apps"><span class="app">쿠팡이츠</span></div>
+        </article>
+        <article class="v" data-apps="yo">
+          <div class="top"><span class="n">10</span><h4>정산이 마이너스인 날</h4></div>
+          <p>요기요 현장결제가 많은 날은 이용료가 그날 온라인 정산금보다 커서 마이너스가 돼요. 계좌이체로 내거나 다음 입금에서 빠져요.</p>
+          <p class="chk"><b>확인</b> 통장에서 요기요로 보낸 이체, 또는 다음 날 입금</p>
+          <div class="apps"><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="yo">
+          <div class="top"><span class="n">11</span><h4>부분취소는 취소한 날 기준</h4></div>
+          <p>요기요는 취소한 날로부터 영업일 5일 뒤 입금에서 빠져요. 원래 판 날이 아니라서 엉뚱한 날 입금이 줄어 보여요.</p>
+          <p class="chk"><b>확인</b> 정산내역 상세의 환불 줄</p>
+          <div class="apps"><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="card bm cp yo">
+          <div class="top"><span class="n">12</span><h4>입금 한 줄에 여러 가게, 입금자명</h4></div>
+          <p>요기요 가게그룹은 여러 가게 정산이 한 입금으로 와요. 통장에 입금자명이 어떻게 찍히는지는 앱·카드사마다 아직 확인하지 못했어요.</p>
+          <p class="chk"><b>확인</b> 첫 달 통장에서 길마다 입금자명 적어 두기</p>
+          <div class="apps"><span class="app">모든 길</span><span class="app unk">입금자명은 아직 모름</span></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="stage">
+      <h3 class="sg">빠진 돈 나눠 보기 <small>정해진 돈 · 사장님이 고르는 돈 · 조정</small></h3>
+      <div class="vgrid">
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">13</span><h4>중개 요율</h4></div>
+          <p>배민·쿠팡이츠는 상생요금제 2.0~7.8%(매출 구간)예요. 쿠팡은 7.8%로 먼저 떼고 '산정후'로 다시 계산해요. 요기요 라이트는 9.7%이고, 그 달 주문이 많으면 4.7%까지 내려가요.</p>
+          <p class="chk"><b>확인</b> 정산 화면에 찍힌 실제 요율 (가게마다 달라요)</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="card bm cp yo">
+          <div class="top"><span class="n">14</span><h4>결제 수수료</h4></div>
+          <p>배민은 연매출에 따라 1.4~3%(선불 결제는 3%), 쿠팡이츠는 3%(영세·중소는 차액 환급)예요. 요기요도 연매출 우대가 있지만 요율이 공개되지 않았어요. 매장 카드는 카드사 수수료가 따로예요.</p>
+          <p class="chk"><b>확인</b> 배민 '우대수수료' 표시, 요기요 '기본설정-계약정보'</p>
+          <div class="apps"><span class="app">모든 길</span><span class="app unk">요기요 요율 모름</span></div>
+        </article>
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">15</span><h4>할인한 돈에도 수수료가 붙나</h4></div>
+          <p>배민·요기요는 가게가 부담한 할인을 빼고 매겨요. 쿠팡이츠 중개는 할인 전 금액에 붙어요. 할인 1만 원당 약 860원이고, 공정위가 고치라고 명령한 상태예요.</p>
+          <p class="chk"><b>확인</b> 쿠팡 매출 내역서에서 중개이용료(산정전·기본요금) ÷ 주문금액</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">16</span><h4>멤버십 무료배달</h4></div>
+          <p>배민클럽 배달팁 할인을 걸면 가게가 일부 내요. 배민은 이 금액엔 수수료를 안 매기기로 발표했지만 시행일은 아직이에요. 요기패스X 혜택 주문은 이용료가 1.2%p 더 붙어요. 쿠팡 와우 무료배달은 쿠팡이 내요.</p>
+          <p class="chk"><b>확인</b> 배민 혜택 내역, 요기요 주문별 이용료</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">17</span><h4>배달비</h4></div>
+          <p>배민배달·쿠팡이츠는 거리와 구간마다 달라요. 요기요 요기배달은 건당 2,900원이에요. 가게배달은 앱에서 안 빠지고 대행 충전금에서 따로 나가요.</p>
+          <p class="chk"><b>확인</b> 앱끼리 비교할 땐 대행비까지 넣어서</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+        <article class="v" data-apps="bm cp yo">
+          <div class="top"><span class="n">18</span><h4>부가세</h4></div>
+          <p>앱이 받는 수수료·배달비·광고비에 10%가 붙어요. 할인에는 안 붙어요.</p>
+          <p class="chk"><b>확인</b> 정산 화면의 부가세 = 위 금액들의 10%</p>
+          <div class="apps"><span class="app">배민</span><span class="app">쿠팡이츠</span><span class="app">요기요</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-end">
+    <h2 id="h-end">그래서, 맞추기가 되나</h2>
+    <div class="two">
+      <div class="ok">
+        <h3>사장님 화면만으로 돼요</h3>
+        <ul>
+          <li><b>판 게 다 잡혔는지 (가)</b> — 포스와 앱 판매 화면·카드사 승인</li>
+          <li><b>적힌 대로 들어왔는지 (나)</b> — 앱 입금 화면과 통장. 대개 맞고, 안 맞으면 상태부터 봐요</li>
+          <li><b>빠진 돈 나누기</b> — 정해진 돈(중개·결제·배달비·부가세), 사장님이 고르는 돈(할인·광고), 조정</li>
+          <li><b>앱끼리 비교</b> — 1만 원 팔면 통장에 얼마 오는지</li>
+        </ul>
+      </div>
+      <div class="todo">
+        <h3>첫 실전에서 확인할 것</h3>
+        <ul>
+          <li>포스가 어느 금액으로 찍는지 (할인 전·후, 배달요금)</li>
+          <li>앱마다 하루를 어디서 끊는지</li>
+          <li>문 앞 카드 결제가 가게 이름으로 잡히는지 (대행사마다)</li>
+          <li>요기요 결제 수수료 요율, 주문 수 구간, 정산 엑셀 칸</li>
+          <li>통장 입금자명 표기</li>
+          <li>배민 배달팁 할인 수수료 제외 시행일</li>
+        </ul>
+      </div>
+    </div>
+    <div class="sheet">
+      <h3>결과 한 장에 들어가는 숫자 <small>견본 · 가짜 숫자</small></h3>
+      <div class="stats">
+        <div class="stat"><span class="k">판 건 다 잡혔나</span><span class="val">배민만 15,000원 차이</span><span class="sub">말일 밤 취소 주문이 포스에 남아 있었어요</span></div>
+        <div class="stat"><span class="k">적힌 대로 들어왔나</span><span class="val">네 길 모두 맞음</span><span class="sub">요기요 10/27은 부분취소로 18,000원 적게 들어왔어요</span></div>
+        <div class="stat"><span class="k">1만 원 팔면 통장에</span><span class="val">6,803 · 6,717 · 6,598원</span><span class="sub">배민 · 쿠팡이츠 · 요기요, 재료비·대행비 빼기 전</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>근거: <a href="https://ceo.baemin.com/guide/12702" target="_blank" rel="noopener">배민외식업광장 정산의 이해</a> · <a href="https://partners.coupangeats.com/start-guide/step-4/3378/" target="_blank" rel="noopener">쿠팡이츠 정산 금액 출금</a> · <a href="https://partners.coupangeats.com/start-guide/step-4/8672/" target="_blank" rel="noopener">쿠팡이츠 세금계산서·매출내역서</a> · <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94_%EC%A0%95%EC%82%B0%EC%A3%BC%EA%B8%B0_%EB%B3%80%EA%B2%BD_%EC%95%88%EB%82%B4" target="_blank" rel="noopener">요기요 정산 주기 안내</a> · 공정위 보도자료(2026-11-09) · 배민 발표 보도(2026-11-12)</p>
+    <p>2026-11-12 기준이에요. 요율은 바뀔 수 있고, 실제 맞추기는 사장님 화면에 찍힌 숫자로 해요. 계산은 <a href="calc.html">배달 1건 계산기</a>에서 해 볼 수 있어요.</p>
+  </footer>
+</main>
+
+<script src="refs.js"></script>
+<script src="screens.js"></script>
+<script>
+  (function () {
+    var svg = document.getElementById('flow');
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+    var vars = Array.prototype.slice.call(document.querySelectorAll('.v'));
+    var stages = Array.prototype.slice.call(document.querySelectorAll('.stage'));
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.scr'));
+    var count = document.getElementById('vcount');
+    var names = { all: '', card: '매장 카드 ', bm: '배민 ', cp: '쿠팡이츠 ', yo: '요기요 ' };
+    function pick(sel) {
+      tabs.forEach(function (t) { t.setAttribute('aria-pressed', String(t.getAttribute('data-sel') === sel)); });
+      if (sel === 'all') svg.removeAttribute('data-sel'); else svg.setAttribute('data-sel', sel);
+      var n = 0;
+      vars.forEach(function (v) {
+        var on = sel === 'all' || (' ' + v.getAttribute('data-apps') + ' ').indexOf(' ' + sel + ' ') >= 0;
+        v.hidden = !on; if (on) n++;
+      });
+      stages.forEach(function (s) { s.hidden = !s.querySelector('.v:not([hidden])'); });
+      cards.forEach(function (c) { c.hidden = !(sel === 'all' || c.getAttribute('data-ch') === sel); });
+      count.textContent = names[sel] + n + '곳';
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { pick(t.getAttribute('data-sel')); }); });
+    pick('all');
+  })();
+</script>
+</body>
+</html>
