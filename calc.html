@@ -196,10 +196,10 @@
         <div class="grid2">
           <label class="f">배달앱 메뉴 1개당 더 받는 돈 (원)<small>매장보다 올려 받는 금액 · 같으면 0 · 본사 앱·포장은 매장가로 봐요</small><input type="number" id="up" min="0" step="100" inputmode="numeric"></label>
           <label class="f">포장재 1건당 (원)<small>용기·봉투·컵 홀더 등 · 매장 손님은 빼요</small><input type="number" id="pack" min="0" step="50" inputmode="numeric"></label>
-          <label class="f">중개 수수료 (배민배달·쿠팡이츠)<small>상생요금제 2.0~7.8% (부가세 별도) · 위 매출 구간을 고르면 바뀜</small>
-            <select id="broker"><option value="7.8">7.8% (상위 35%)</option><option value="6.8">6.8% (35~80%)</option><option value="2">2.0% (하위 20%)</option></select></label>
-          <label class="f">가게 부담 배달비 (앱배달, 원)<small>상생요금제 1,900~3,400원 · 거리마다 · 구간을 고르면 가운데 값</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
-          <label class="f">쿠팡이츠 결제 수수료 (%)<small>약관 3% (부가세 별도) · 영세·중소는 우대 요율로 차액을 돌려받아요 (요율 미확인) · 배민은 위 <b>연매출</b> 칸으로 정해져요 (2025-02-14부터 1.4~3%, 선불 결제는 3%)</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
+          <label class="f">중개 수수료 (배민배달·쿠팡이츠·요기요)<small>배민·쿠팡 상생요금제 2.0~7.8% (부가세 별도) · 위 매출 구간을 고르면 바뀜 · 요기요는 라이트 9.7%, 그 달 주문이 많으면 4.7%까지 (요기패스X 혜택 주문은 +1.2%p)</small>
+            <select id="broker"><option value="7.8">7.8% (상위 35%)</option><option value="6.8">6.8% (35~80%)</option><option value="2">2.0% (하위 20%)</option><option value="9.7">9.7% (요기요 라이트)</option><option value="4.7">4.7% (요기요 · 주문 많을 때 최저)</option></select></label>
+          <label class="f">가게 부담 배달비 (앱배달, 원)<small>상생요금제 1,900~3,400원 · 거리마다 · 구간을 고르면 가운데 값 · 요기요 요기배달은 건당 2,900원</small><input type="number" id="deliv" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">쿠팡이츠 결제 수수료 (%)<small>약관 3% (부가세 별도) · 영세·중소는 우대 요율로 차액을 돌려받아요 (요율 미확인) · 배민은 위 <b>연매출</b> 칸으로 정해져요 (2025-02-14부터 1.4~3%, 선불 결제는 3%) · 요기요도 연매출 우대가 있지만 요율이 공개 안 돼서 연매출 칸 값으로 계산해요</small><input type="number" id="pay" min="0" max="10" step="0.1" inputmode="decimal"></label>
           <label class="f">가게배달 중개 수수료 (%)<small>배민 가게배달(오픈리스트) 6.8% · 공정위 자료 · 다시 정하라는 명령 받음</small><input type="number" id="mp" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 적립 할인, 1개당 가게 부담 (원)<small>10개에 2천 원 할인이면 200 · 본사가 다 내면 0</small><input type="number" id="stamp" min="0" step="10" inputmode="numeric"></label>
@@ -280,7 +280,8 @@
       <li><b>판 돈과 입금을 바로 비교하지 마세요.</b> 그날 들어온 돈은 며칠 전 판매를 묶은 거예요 (배민은 매일 정산, 영업일 3일 뒤 입금 · 주말·공휴일엔 입금 없음).</li>
       <li>배민 정산 공식은 <b>매출 + 배민지원금 − 비용 및 차감 ± 조정 − 부가세 = 입금</b>이에요 (<a href="https://ceo.baemin.com/guide/12702" target="_blank" rel="noopener">정산의 이해</a>). <b>만나서결제</b>는 조정의 '정산 제외'로 빠지고 카드사·현금으로 따로 와요. 빠진 돈으로 세지 마세요.</li>
       <li><b>쿠팡이츠는 수수료를 두 번 계산해요.</b> 정산은 일단 중개 7.8%(상생요금제 1구간)로 하고, 달이 끝나면 실제 구간으로 다시 계산해 차액을 <b>다음 달에 돌려줘요</b>. 그래서 그 달 진짜 수수료는 매출 내역서의 <b>'산정후'</b> 칸으로 보고(주문금액 − 정산금액 산정후 = 그 달 빠진 돈), 출금 내역엔 지난달 환급이 섞여 있어요. 세금계산서도 '그 달 수수료 − 전월 환급'이라 한 달 어긋나 보여요 (<a href="https://partners.coupangeats.com/start-guide/step-4/8672/" target="_blank" rel="noopener">쿠팡이츠 안내</a>).</li>
-      <li>보는 곳 — 카드: 가 = 카드사 승인 내역, 나 = 카드사 입금 내역 (<a href="https://www.cardsales.or.kr" target="_blank" rel="noopener">여신금융협회 카드매출 통합조회</a>) · 배달앱: 가 = 사장님 화면 주문내역, 나 = 정산내역 (<a href="https://ceo.baemin.com/guide/6284" target="_blank" rel="noopener">배민 정산내역 안내</a>) · 쿠팡이츠: 가 = <a href="https://partners.coupangeats.com/start-guide/step-4/3385/" target="_blank" rel="noopener">매출 내역서</a>의 <b>주문금액</b> (결제금액은 쿠팡이 낸 쿠폰까지 빠진 손님 돈이라 포스와 안 맞아요), 나 = 정산 관리 <b>출금 내역</b> (정산은 D+4 영업일, <a href="https://partners.coupangeats.com/start-guide/step-4/3378/" target="_blank" rel="noopener">사장님이 출금해야 통장에 와요</a>) · 본사 앱·기프티콘: 본사 정산서 (재료비와 상계되면 통장엔 안 찍혀요) · 현금: 통장에 넣은 날 메모</li>
+      <li><b>요기요는 주문일로부터 영업일 5일 뒤에 들어와요</b> (매일 정산 · 금·토·일 판 돈은 다음 주 금요일에 한꺼번에). 배달원에게 카드·현금으로 받은 <b>현장결제</b>는 돈이 가게로 바로 와서 정산에선 이용료만 빠지고, 그런 주문이 많은 날은 정산이 <b>마이너스</b>가 될 수 있어요 (계좌이체로 내거나 다음 입금에서 빠져요). <b>부분취소</b>는 원래 판 날이 아니라 취소한 날 기준으로 빠져요 (<a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94_%EC%A0%95%EC%82%B0%EC%A3%BC%EA%B8%B0_%EB%B3%80%EA%B2%BD_%EC%95%88%EB%82%B4" target="_blank" rel="noopener">요기요 정산 주기 안내</a>).</li>
+      <li>보는 곳 — 카드: 가 = 카드사 승인 내역, 나 = 카드사 입금 내역 (<a href="https://www.cardsales.or.kr" target="_blank" rel="noopener">여신금융협회 카드매출 통합조회</a>) · 배달앱: 가 = 사장님 화면 주문내역, 나 = 정산내역 (<a href="https://ceo.baemin.com/guide/6284" target="_blank" rel="noopener">배민 정산내역 안내</a>) · 쿠팡이츠: 가 = <a href="https://partners.coupangeats.com/start-guide/step-4/3385/" target="_blank" rel="noopener">매출 내역서</a>의 <b>주문금액</b> (결제금액은 쿠팡이 낸 쿠폰까지 빠진 손님 돈이라 포스와 안 맞아요), 나 = 정산 관리 <b>출금 내역</b> (정산은 D+4 영업일, <a href="https://partners.coupangeats.com/start-guide/step-4/3378/" target="_blank" rel="noopener">사장님이 출금해야 통장에 와요</a>) · 요기요: 가 = 주문관리 주문내역의 <b>주문금액</b> (배달요금 뺀 금액), 나 = 정산/세금 → <b>정산내역</b> (입금일마다 한 줄 · <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0-%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0%EB%B0%A9%EB%B2%95" target="_blank" rel="noopener">요기요 정산 안내</a>) · 본사 앱·기프티콘: 본사 정산서 (재료비와 상계되면 통장엔 안 찍혀요) · 현금: 통장에 넣은 날 메모</li>
       <li>원가율 = 식자재 ÷ 매출 (일별 시트 맨 아래에 저절로). 사 둔 재료가 남기도 해서 2~3달 평균이 더 정확해요.</li>
     </ul>
   </section>
@@ -335,6 +336,9 @@
   // 결제 수수료: 배민(가게 할인 뺀 금액 기준 앱들)은 연매출 칸, 쿠팡이츠는 직접 넣은 값(약관 3%)
   function payRate(fbv) { return fbv === 'bm' ? SALES[$('sales').value] / 100 : n('pay') / 100; }
   function applyTier() { var t = TIER[$('tier').value]; if (t) { $('broker').value = t.b; $('deliv').value = t.d; } }
+  // 중개 칸에서 요기요 요율(9.7·4.7%)을 고르면 앱배달 줄을 요기요로 읽음 (요기요 라이트: 그 달 주문 수가 많을수록 낮아짐)
+  function isYgy() { var v = $('broker').value; return v === '9.7' || v === '4.7'; }
+  var YGY_NOTE = '요기요 라이트 9.7%, 그 달 주문이 많으면 4.7%까지 (요기패스X 혜택 주문은 +1.2%p)';
   function tierRange() { var t = TIER[$('tier').value]; return t ? t.r : '1,900~3,400원'; }
 
   // ── 길별 비교: 1건 남는 돈, 손해 안 보는 최소 주문 (할인·광고 빼고)
@@ -348,10 +352,10 @@
     function tipFee(rate, why) { return tp ? ['배달팁 결제 수수료', tp * rate * 1.1, '<code>' + won(tp) + ' × ' + pct(rate * 100) + '% × 1.1</code> · ' + why] : null; }
     function agRows(rate, why) { return [['배달대행비', ag, '대행 라이더 · 충전금에서 나감'], ['손님 배달팁', -tp, TIPNOTE], tipFee(rate, why), fxRow]; }
     var L = [
-      { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: '배민배달 · 쿠팡이츠 · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(appPay * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + appPay) * 1.1,
+      { id: 'app', grp: 'd', short: '앱배달', nm: '앱배달', sub: (isYgy() ? '요기요 요기배달' : '배민배달 · 쿠팡이츠') + ' · 중개 ' + pct(b * 100) + '% + 결제 ' + pct(appPay * 100) + '% · 배달비 ' + won(dv) + '원', price: it + up, f: (b + appPay) * 1.1,
         fTxt: '(' + pct(b * 100) + '% + ' + pct(appPay * 100) + '%) × 1.1',
-        costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · 이 구간 ' + tierRange() + ' (거리마다)'], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
-        per: 0, brk: b, pr: appPay, dvB: dv, mB: M, payName: $('feebase').value === 'bm' ? '연매출 칸' : '쿠팡이츠 약관', note: '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 결제 수수료는 배민이면 연매출 칸(' + pct(bmPay * 100) + '%), 쿠팡이츠면 ' + pct(n('pay')) + '% — 지금은 더 자세히의 "쓰는 앱" 칸대로 ' + ($('feebase').value === 'bm' ? '배민' : '쿠팡이츠') + ' 기준이에요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
+        costs: [['배달비 (가게 부담)', dv * 1.1, '<code>' + won(dv) + ' × 1.1</code> · 부가세 포함 · ' + (isYgy() ? '요기배달은 건당 2,900원 (부가세 별도로 계산 · 확인 필요)' : '이 구간 ' + tierRange() + ' (거리마다)')], M ? ['멤버십 가게 부담 배달료', M * 1.1, '<code>' + won(M) + ' × 1.1</code>'] : null],
+        per: 0, brk: b, pr: appPay, dvB: dv, mB: M, payName: $('feebase').value === 'bm' ? '연매출 칸' : '쿠팡이츠 약관', note: isYgy() ? '요기요로 보는 중이에요 (중개 칸에서 고름). 요기배달은 가게가 건당 2,900원을 내요 — 배달비 칸에 2,900을 넣으세요. 요기패스X 혜택 주문은 중개가 1.2%p 더 붙어요. 가게가 부담한 할인은 빼고 수수료를 매겨요. 결제 수수료는 요기요도 연매출 우대가 있지만 요율이 공개 안 돼서 ' + ($('feebase').value === 'bm' ? '연매출 칸 값(' + pct(bmPay * 100) + '%)으로 계산했어요.' : '지금은 쓰는 앱 칸이 쿠팡이츠라 ' + pct(n('pay')) + '%로 계산 중이에요 — 더 자세히의 "쓰는 앱"을 배민·요기요로 바꾸세요.') : '배민배달과 쿠팡이츠는 상생요금제 요율표가 같아서 한 줄로 봤어요. 결제 수수료는 배민이면 연매출 칸(' + pct(bmPay * 100) + '%), 쿠팡이츠면 ' + pct(n('pay')) + '% — 지금은 더 자세히의 "쓰는 앱" 칸대로 ' + ($('feebase').value === 'bm' ? '배민' : '쿠팡이츠') + ' 기준이에요. 가게 돈으로 할인하면 쿠팡이츠는 할인한 돈에도 중개 수수료가 붙어요 (더 자세히).' },
       { id: 'mp', grp: 'd', short: '가게배달', nm: '배민 가게배달 + 대행', sub: '배민 가게배달 등 · 중개 ' + pct(mp * 100) + '% + 결제 ' + pct(bmPay * 100) + '% · 대행 라이더', price: it + up, f: (mp + bmPay) * 1.1,
         fTxt: '(' + pct(mp * 100) + '% + ' + pct(bmPay * 100) + '%) × 1.1', costs: agRows(bmPay, '배달팁에도 붙는다고 봄 (확인 필요)'), per: 0,
         brk: mp, pr: bmPay, tpB: tp, agB: ag, fxB: fx, payName: '연매출 칸',
@@ -401,10 +405,10 @@
     var vat = T - broker - pay - tipPay - dv - M, settle = P - T + tip;
     var h = grow('(A) 주문중개', P - broker);
     h += row('', 'ㄴ 주문금액', P, '<code>' + c.k + unit + ' × ' + won(c.price) + '원</code>' + (c.price !== c.it ? ' · 배달앱 메뉴 1개당 ' + won(c.price - c.it) + '원 더 받음' : ''), 'sub');
-    h += row('−', 'ㄴ 중개이용료', broker, '<code>' + won(P) + ' × ' + pct(c.brk * 100) + '%</code> · ' + (isApp ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료'), 'sub');
+    h += row('−', 'ㄴ 중개이용료', broker, '<code>' + won(P) + ' × ' + pct(c.brk * 100) + '%</code> · ' + (isApp ? (isYgy() ? YGY_NOTE : '상생요금제 2.0~7.8% (매출 구간마다)') : '가게배달(오픈리스트) 6.8% · 공정위 자료'), 'sub');
     h += grow('(B) 배달', tip - dv - M);
     if (isApp) {
-      h += row('−', 'ㄴ 배달비', dv, '가게 부담 · 이 구간 ' + tierRange() + ' (거리마다)', 'sub');
+      h += row('−', 'ㄴ 배달비', dv, '가게 부담 · ' + (isYgy() ? '요기배달은 건당 2,900원 (한집·실속 같음 · 부가세 별도로 계산, 확인 필요)' : '이 구간 ' + tierRange() + ' (거리마다)'), 'sub');
       if (M) h += row('−', 'ㄴ 고객배달팁 할인비용', M, '멤버십 가게 부담 · 가게가 고르는 돈 · 배민 약관이 바뀌면 이 금액엔 중개·결제 수수료가 안 붙어요 (시행일 미정)', 'sub choice');
     } else {
       h += row('+', 'ㄴ 가게배달팁', tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내)', 'sub');
@@ -530,7 +534,7 @@
     if (c.D) h += row('−', 'ㄴ 고객할인비용 (가게 부담)', c.D, (c.D1 ? '단독 할인 ' + won(c.D1) : '') + (c.D1 && c.D2 ? ' + ' : '') + (c.D2 ? '본사 행사 가게 몫 ' + won(c.D2) : '') + ' · 가게가 고르는 돈', 'sub choice');
     if (c.H || c.A) h += row('', 'ㄴ 본사·앱이 낸 할인 (가게 돈에선 안 빠짐)', c.H + c.A, (c.H ? '본사 ' + won(c.H) : '') + (c.H && c.A ? ' + ' : '') + (c.A ? '앱 ' + won(c.A) : '') + ' · 손님은 그만큼 덜 냈지만 가게 몫은 그대로 · 본사 부담분은 본사 정산에서 따로 오가기도 해요', 'sub');
     function baseNote(x) { return x === c.P ? (c.D ? '<b>할인 전 금액</b>에 붙음' : '주문금액에 붙음') : '가게 할인 뺀 금액에 붙음'; }
-    h += row('−', 'ㄴ 중개이용료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">' + (mode === 'app' ? '상생요금제 2.0~7.8% (매출 구간마다)' : '가게배달(오픈리스트) 6.8% · 공정위 자료') + '</span>', 'sub');
+    h += row('−', 'ㄴ 중개이용료', c.broker, '<code>' + won(c.brokerBase) + ' × ' + pct(c.b * 100) + '%</code> · ' + baseNote(c.brokerBase) + ' <span class="rng">' + (mode === 'app' ? (isYgy() ? YGY_NOTE : '상생요금제 2.0~7.8% (매출 구간마다)') : '가게배달(오픈리스트) 6.8% · 공정위 자료') + '</span>', 'sub');
     if (c.extraFee) h += row('', 'ㄴ 이 중 가게가 할인한 돈에 붙은 수수료', c.feeOnDisc, '<code>(' + won(c.extraFee) + ' + 부가세 10%)</code> · 손님에게 받지 않은 돈에 붙은 수수료예요. 공정위가 쿠팡이츠에 고치라고 한 부분', 'sub choice');
     h += grow('(B) 배달', gB);
     if (c.appDeliv) h += row('−', 'ㄴ 배달비', c.appDeliv, '가게 부담 · 앱이 정산에서 뗌 <span class="rng">이 구간 ' + tierRange() + ' (거리마다)</span>', 'sub');
@@ -587,19 +591,21 @@
     function num(v) { return { v: v, t: 'n', z: W }; }
     // ② 일별 매출·지출 (판매일 기준, 선택) — 맨 아래 한 달 합계·원가율
     var day = [['일별 매출·지출 (판매일 기준 · 선택 · 판 돈을 적어요)'], ['판 돈 = 포스 마감·앱 사장님 화면의 주문금액. 포스·앱에서 한 달 매출을 뽑을 수 있으면 안 써도 돼요.'],
-      ['판매일', '매장 카드', '현금', '배민', '쿠팡이츠', '본사 앱', '기타 (요기요·전화 등)', '매출 합계', '식자재', '인건비', '고정비 (월세 등)', '지출 합계', '메모']];
+      ['판매일', '매장 카드', '현금', '배민', '쿠팡이츠', '요기요', '본사 앱', '기타 (땡겨요·전화 등)', '매출 합계', '식자재', '인건비', '고정비 (월세 등)', '지출 합계', '메모']];
     var first = day.length + 1;
-    for (var i = 0; i < 31; i++) { var r = day.length + 1; day.push([null, null, null, null, null, null, null, money('SUM(B' + r + ':G' + r + ')'), null, null, null, money('SUM(I' + r + ':K' + r + ')'), null]); }
+    // 열: B 매장 카드 · C 현금 · D 배민 · E 쿠팡이츠 · F 요기요 · G 본사 앱 · H 기타 · I 매출 합계 · J 식자재 · K 인건비 · L 고정비 · M 지출 합계 · N 메모
+    for (var i = 0; i < 31; i++) { var r = day.length + 1; day.push([null, null, null, null, null, null, null, null, money('SUM(B' + r + ':H' + r + ')'), null, null, null, money('SUM(J' + r + ':L' + r + ')'), null]); }
     var last = day.length, tot = last + 2;
     day.push([]);
-    day.push(['한 달 합계'].concat('BCDEFGHIJKL'.split('').map(function (c) { return money('SUM(' + c + first + ':' + c + last + ')'); })));
-    day.push(['원가율 (식자재 ÷ 매출)', { f: 'IF(H' + tot + '>0,I' + tot + '/H' + tot + ',"")', z: PCT }, '→ 배달 계산기 원가율 칸에 · 2~3달 평균이 더 정확']);
+    day.push(['한 달 합계'].concat('BCDEFGHIJKLM'.split('').map(function (c) { return money('SUM(' + c + first + ':' + c + last + ')'); })));
+    day.push(['원가율 (식자재 ÷ 매출)', { f: 'IF(I' + tot + '>0,J' + tot + '/I' + tot + ',"")', z: PCT }, '→ 배달 계산기 원가율 칸에 · 2~3달 평균이 더 정확']);
     // ③ 한 달 맞추기 — 같은 날짜끼리 두 짝: 가(판 날) ① 포스 ↔ ② 앱 주문내역 · 나(입금 날) ③ 정산내역 ↔ ④ 통장
     var CH = [['매장 카드', 'B', '② 카드사 승인 내역 · ③ 카드사 입금 내역 (여신금융협회 카드매출 통합조회)'],
       ['배민', 'D', '② 셀프서비스 주문내역 · ③ 정산내역 (매일 정산, 영업일 3일 뒤 입금)'],
       ['쿠팡이츠', 'E', '② 매출 내역서의 주문금액 합계 (결제금액 아님 · 다음 달 5일부터) · ③ 정산 관리의 출금 내역 (사장님이 출금해야 통장에 와요 · 정산은 D+4 영업일)'],
-      ['본사 앱', 'F', '본사 정산서 · 재료비와 상계되면 통장엔 안 찍혀요 → ④ 대신 본사 청구서로 확인'],
-      ['기타', 'G', '요기요·땡겨요 등']];
+      ['요기요', 'F', '② 주문관리 주문내역의 주문금액 합계 (배달요금 뺀 금액 · 현장결제 포함) · ③ 정산/세금 → 정산내역의 입금 금액 (주문일 + 영업일 5일 · 마이너스도 그대로)'],
+      ['본사 앱', 'G', '본사 정산서 · 재료비와 상계되면 통장엔 안 찍혀요 → ④ 대신 본사 청구서로 확인'],
+      ['기타', 'H', '땡겨요·전화 등']];
     var mon = [['한 달 맞추기 (다음 달 7~10일쯤 한 번 · 같은 날짜끼리 두 짝)'],
       ['맞춘 달', null, '← 예: 2026-11 · 가는 판매일, 나는 입금일을 이 달 1일~말일로 봐요'], [],
       ['가. 판 날끼리 — 판 게 다 잡혔나 (판매일 1일~말일)'],
@@ -634,13 +640,16 @@
       ['•', '앱 주문내역의 \'결제 금액\'은 손님이 낸 돈, 곧 할인 뒤 금액이에요. 포스가 할인 전 금액으로 찍는 가게면 그만큼(할인액) 차이 나는 게 정상이니, 같은 기준끼리 비교해요'],
       ['•', '쿠팡이츠 매출 내역서엔 매출이 셋이에요: 총금액(할인 안 뺀 금액) · 주문금액(사장님 매출) · 결제금액(손님이 낸 돈, 쿠팡이 낸 쿠폰까지 빠짐). ②는 주문금액으로 적어요. 포스가 할인 뒤 금액으로 찍히면 주문금액 − 쿠폰 상점부담 − 즉시할인과 비교해요'],
       ['•', '가 차이가 나면 취소·환불된 주문이 포스에 남아 있는지 먼저 보세요'],
-      ['•', '가 카드 줄: 배민 만나서결제(문 앞 카드 결제)는 가게 단말기 매출이라 카드사 승인 내역에 섞여요. 포스에서 그 주문을 배민으로 찍었다면 카드 줄에 그만큼 차이 나는 게 정상이에요'],
+      ['•', '가 카드 줄: 배민 만나서결제·요기요 현장결제(문 앞 카드 결제)는 가게 단말기 매출이라 카드사 승인 내역에 섞여요. 포스에서 그 주문을 배민·요기요로 찍었다면 카드 줄에 그만큼 차이 나는 게 정상이에요'],
       ['•', '나: ③은 앱 정산내역에서 입금일이 그 달 1일~말일인 입금액 합계, 정산 매출은 같은 내역의 매출 합계예요 (적으면 빠진 비율이 나와요. 평소와 비슷하면 정상)'],
       ['•', '정산내역에 만나서결제가 \'정산 제외\'로 빠져 있으면, 정산 매출에서 그만큼 빼고 적어요 (그 돈은 카드사·현금으로 따로 와요). 부분환불은 그대로 둬요 (가게가 돌려준 돈이에요)'],
       ['•', '쿠팡이츠는 정산된 돈이 \'출금 가능 금액\'으로 쌓이고, 사장님이 출금해야 통장에 들어와요. 나의 ③은 정산 관리의 출금 내역 합계로 적어요 (출금 안 한 돈은 쿠팡에 남아 있어요)'],
       ['•', '쿠팡이츠 상생요금제: 정산은 일단 중개 7.8%(1구간)로 하고, 달이 끝나면 실제 구간으로 다시 계산해 차액을 다음 달에 돌려줘요. 그래서 나의 ③(출금)엔 지난달 환급이 섞여 있어요. 그 달 진짜 빠진 돈은 매출 내역서에서 주문금액 − 정산금액 \'산정후\'로 봐요 (세금계산서도 한 달 어긋나 보여요)'],
+      ['•', '요기요는 매일 정산이지만 주문일로부터 영업일 5일 뒤에 들어와요 (금·토·일 판 돈은 다음 주 금요일에 한꺼번에). 그래서 나의 ③엔 지난달 말 판 돈이 섞이고, 이달 마지막 주 판 돈은 다음 달 초에 들어와요'],
+      ['•', '요기요 현장결제(배달원에게 카드·현금)는 돈이 가게로 바로 와서, 정산에선 주문 중개 이용료만 빠져요. 현장결제가 많은 날은 정산이 마이너스(−)가 될 수 있어요 (계좌이체로 내거나 다음 입금에서 빠져요). 나의 ③엔 마이너스도 그대로 더해요'],
+      ['•', '요기요 부분취소·환불은 원래 판 날이 아니라 취소한 날 기준으로, 영업일 5일 뒤 입금에서 빠져요'],
       ['•', '나 차이(④−③)는 0이어야 정상이에요. 아니면 정산내역의 상태를 보세요 — 이월(적은 돈은 다음 날로), 정산보류(계좌 오류 등), 미납금 차감(광고비 등)'],
-      ['•', '왜 두 짝인가: 정산은 며칠 전 판매를 묶어서 넣어 줘요 (배민은 영업일 3일 뒤). 그래서 판 돈과 입금을 바로 비교하면 안 맞아요'],
+      ['•', '왜 두 짝인가: 정산은 며칠 전 판매를 묶어서 넣어 줘요 (배민은 영업일 3일, 쿠팡이츠는 4일 + 출금, 요기요는 5일 뒤). 그래서 판 돈과 입금을 바로 비교하면 안 맞아요'],
       ['•', '현금은 여기서 뺐어요. 통장에 넣은 날만 메모해 두세요'],
       ['•', '배민 정산 공식: 매출 + 배민지원금 − 비용 및 차감 ± 조정 − 부가세 = 입금금액 (배민외식업광장 \'정산의 이해\')']);
     // ① 쓰는 법
@@ -655,7 +664,7 @@
       [null, '포스·앱에서 한 달 매출을 뽑을 수 있으면 건너뛰어도 돼요'], [],
       ['② 정산이 들어올 때', '아무것도 안 해요. 들어오는 대로 두세요'], [],
       ['③ 다음 달 7~10일쯤 한 번', "'한 달 맞추기'에 길별로 (30분 안팎)"],
-      [null, '가: 판 돈은 저절로 · 앱 주문내역에서 지난달 1일~말일 주문 합계 (주문내역의 결제 금액은 할인 뒤 금액이에요 · 쿠팡이츠는 매출 내역서의 주문금액으로)'],
+      [null, '가: 판 돈은 저절로 · 앱 주문내역에서 지난달 1일~말일 주문 합계 (주문내역의 결제 금액은 할인 뒤 금액이에요 · 쿠팡이츠는 매출 내역서의 주문금액으로 · 요기요는 주문내역의 주문금액(배달요금 뺀 금액)으로)'],
       [null, '나: 앱 정산내역에서 입금일이 지난달 1일~말일인 입금액 합계(매출도) · 통장에서 같은 기간 그 앱 입금 합계'],
       [null, '차이·빠진 비율·확인(맞음/확인 필요)은 저절로 나와요'], [],
       ['예시 (가짜 숫자)'],
@@ -672,13 +681,13 @@
     });
     how.push([null, '나는 앱이 적은 대로 넣어 주니 대개 맞아요. 빠진 비율(배민 32.5%)은 수수료·배달비·할인 — 평소와 비슷하면 정상'], [],
       ['보는 곳', '카드: 가 = 카드사 승인 내역, 나 = 카드사 입금 내역 (여신금융협회 카드매출 통합조회 cardsales.or.kr)'],
-      [null, '배달앱: 가 = 사장님 화면 주문내역, 나 = 정산내역 (배민은 매일 정산, 영업일 3일 뒤 입금 · 주말·공휴일엔 입금 없음) · 쿠팡이츠는 가 = 매출 내역서 주문금액, 나 = 출금 내역 (사장님이 출금해야 통장에 · 상생요금제 차액은 다음 달 환급)'],
+      [null, '배달앱: 가 = 사장님 화면 주문내역, 나 = 정산내역 (배민은 매일 정산, 영업일 3일 뒤 입금 · 주말·공휴일엔 입금 없음) · 쿠팡이츠는 가 = 매출 내역서 주문금액, 나 = 출금 내역 (사장님이 출금해야 통장에 · 상생요금제 차액은 다음 달 환급) · 요기요는 가 = 주문관리 주문내역, 나 = 정산/세금 → 정산내역 (주문일 + 영업일 5일 · 현장결제 많은 날은 마이너스)'],
       [null, '본사 앱·기프티콘: 본사 정산서 (재료비와 상계되면 통장엔 안 찍혀요) · 현금: 통장에 넣은 날 메모'], [],
       ['배달 계산기', { v: 'kery27.github.io/money-matching-excel/calc.html', t: 's', l: { Target: 'https://kery27.github.io/money-matching-excel/calc.html' } }],
       ['맞춰 보기 어려우면', '인스타 DM @johnsongarage_ · johnsongarage.official@gmail.com (무료로 나눠 드려요)']);
     var wb = XLSX.utils.book_new();
     var ws0 = XLSX.utils.aoa_to_sheet(how); ws0['!cols'] = [22, 16, 14, 11, 10, 14, 10, 12].map(function (w) { return { wch: w }; });
-    var ws1 = XLSX.utils.aoa_to_sheet(day); ws1['!cols'] = [20, 10, 9, 10, 10, 10, 12, 11, 9, 9, 13, 11, 14].map(function (w) { return { wch: w }; });
+    var ws1 = XLSX.utils.aoa_to_sheet(day); ws1['!cols'] = [20, 10, 9, 10, 10, 10, 10, 13, 11, 9, 9, 13, 11, 14].map(function (w) { return { wch: w }; });
     var ws2 = XLSX.utils.aoa_to_sheet(mon); ws2['!cols'] = [10, 13, 14, 12, 10, 14, 12, 11, 40].map(function (w) { return { wch: w }; });
     XLSX.utils.book_append_sheet(wb, ws0, '쓰는 법');
     XLSX.utils.book_append_sheet(wb, ws2, '한 달 맞추기');
