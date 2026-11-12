@@ -49,6 +49,7 @@
   table.rate th, table.rate td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
   table.rate th { background: var(--head); font-size: 12px; }
   table.rate td.n { text-align: right; white-space: nowrap; font-weight: 700; }
+  table.rate td.k { white-space: nowrap; }
   .chk { display: grid; gap: 6px; font-size: 13px; }
   .chk .r { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; border-bottom: 1px dashed var(--line); padding: 6px 0; }
   .chk .r small { display: block; color: var(--sub); font-size: 11.5px; }
@@ -98,6 +99,30 @@
   </section>
 
   <section class="card">
+    <h2>요기요 요율 (요기요 라이트) <span class="st ok">공식 안내</span></h2>
+    <p class="muted">요기요는 상생요금제가 아니라 '요기요 라이트' 요금제예요. 매출 구간이 아니라 <b>그 달 주문 수</b>가 많을수록 중개 이용료가 내려가요. 가게배달은 직접·대행 배달, 요기배달은 요기요 라이더(한집·실속)예요.</p>
+    <div style="overflow-x:auto;margin-top:8px">
+    <table class="rate">
+      <thead><tr><th>주문</th><th>중개 이용료</th><th>가게 부담 배달비</th></tr></thead>
+      <tbody>
+        <tr><td class="k">가게배달</td><td class="n">9.7% → 최저 4.7%</td><td class="n">— (대행비 따로)</td></tr>
+        <tr><td class="k">요기배달</td><td class="n">9.7% → 최저 4.7%</td><td class="n">건당 2,900원</td></tr>
+        <tr><td class="k">포장</td><td class="n">7.7% → 최저 2.7%</td><td class="n">—</td></tr>
+        <tr><td class="k">요기패스X</td><td colspan="2"><b>위 요율에 +1.2%p</b> (무료배달 배달요금은 요기요가 부담)</td></tr>
+        <tr><td class="k">결제</td><td colspan="2"><b>외부 결제 이용료: 연매출 구간별 우대</b> (요율 미공개 · 사장님사이트 '기본설정-계약정보')</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="c">
+      <li>2024-08-01부터 · 중개 이용료는 <b>외부결제 이용료·부가세 별도</b> · 그전 기본 요율은 12.5% · 주문 수 구간(안내의 200건·251건은 예시)은 가게마다 사장님사이트에서만 보여요 · 일부 제휴 프랜차이즈는 달라요 <a href="https://partner.yogiyo.co.kr/partner" target="_blank" rel="noopener">요기요 입점 안내</a> <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94%EB%9D%BC%EC%9D%B4%ED%8A%B8_%EC%84%B1%EA%B3%BC_%ED%98%9C%ED%83%9D" target="_blank" rel="noopener">성과기반 이용료 혜택</a></li>
+      <li><b>기준 금액</b>: "주문 중개 이용료 및 외부 결제 이용료는 프랜차이즈 본사 및 사장님 부담 할인 금액을 제외하고 부과" (요기요 고객 포인트 적립은 예외) · "배달요금에는 주문 중개 이용료를 부과하지 않습니다" <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0-%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0%EB%B0%A9%EB%B2%95" target="_blank" rel="noopener">요기요 정산 및 결제</a></li>
+      <li><b>요기요 정산 주기</b>: 2024-08-01 주문분부터 매일 정산, <b>주문일로부터 영업일 5일 뒤 입금</b> (주말·공휴일은 비영업일, 일부 프랜차이즈는 예외) <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94_%EC%A0%95%EC%82%B0%EC%A3%BC%EA%B8%B0_%EB%B3%80%EA%B2%BD_%EC%95%88%EB%82%B4" target="_blank" rel="noopener">요기요 정산 주기 변경 안내</a></li>
+      <li><b>요기요 현장결제</b>(배달원에게 카드·현금): 돈은 가게로 바로 가고, 요기요는 주문 중개 이용료만 다른 정산에서 빼요. 모자라면 정산내역에 마이너스로 표시돼 계좌이체로 내고, 못 걷은 잔액은 다음 정산에 더하거나 빼요 <a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0-%EC%9A%94%EA%B8%B0%EC%9A%94%EC%A0%95%EC%82%B0%EB%B0%A9%EB%B2%95" target="_blank" rel="noopener">요기요 정산 및 결제</a></li>
+      <li><b>요기요 부분취소·환불</b>: 원래 판 날이 아니라 <b>취소한 날로부터 영업일 5일</b> 되는 날 정산에 반영돼요 <a href="https://policy.yogiyo.co.kr/owner/terms/" target="_blank" rel="noopener">요기요 서비스 이용약관 제11조</a></li>
+    </ul>
+    <p class="muted" style="margin-top:4px">요기요 사장님 사이트는 페이지를 직접 열 수 없어서, 검색에 실린 공식 문구와 공식 입점 안내 PDF로 확인했어요 (2026-11-12).</p>
+  </section>
+
+  <section class="card">
     <h2>가게가 부담한 할인이 있을 때, 수수료는 어느 금액에? <span class="st ok">공정위 원문</span></h2>
     <div style="overflow-x:auto;margin-top:6px">
     <table class="rate">
@@ -110,6 +135,7 @@
     </table></div>
     <p class="muted" style="margin-top:4px">* 쿠팡이츠는 <b>2026-04-01</b>부터 가게가 부담한 할인의 <b>결제 수수료만</b> 할인 후 금액으로 고쳤어요. 단, 쿠팡과 본사가 따로 계약한 할인(가맹 행사)은 가맹점이 부담한 몫이 있어도 여전히 할인 전 금액이에요. 중개 수수료는 그대로 할인 전.</p>
     <p class="muted" style="margin-top:2px">배민의 '할인 후'는 그동안 가게가 부담한 <b>음식값 할인</b> 얘기예요. <b>2026-11</b> 발표로 가게가 부담한 <b>배달팁 할인</b>도 중개·결제 수수료 계산에서 빼기로 했어요 (약관 변경 예정 · 시행일 미발표 · 아래 날짜별 보기 맨 끝).</p>
+    <p class="muted" style="margin-top:2px">요기요 공식 안내도 "프랜차이즈 본사 및 사장님 부담 할인 금액을 제외하고 부과"라고 적어요 (요기요 고객 포인트 적립은 예외 · 위 '요기요 요율').</p>
     <ul class="c">
       <li><b>쿠팡이츠는 약관을 어긴 게 아니에요. 약관 자체가</b> "주문금액은 할인 전 판매가 기준"이었어요. 이 문장이 약관 맨 아래 <b>유의사항</b>에 있어서 가게가 알기 어려웠다는 것도 공정위가 문제 삼았어요.</li>
       <li>공정위 조사: 쿠팡이츠 입점 가게 <b>과반이 수수료 기준 금액을 정확히 모르거나 "할인 후"로 잘못 알고 있었어요</b> (2025-09 인식조사).</li>
@@ -130,11 +156,34 @@
     <h2>날짜별로 보기 — 무엇이, 어느 금액 기준으로</h2>
     <div class="tl">
       <article class="ev">
+        <div class="when"><b>2024-05-31 공지 · 2024-06-30 종료</b><span class="who">요기요</span><span class="st ok">공식 공지</span></div>
+        <h3>1만 원 이하 주문 중개 이용료 면제 종료</h3>
+        <dl><dt>내용</dt><dd>2018-11부터 하던 '1만 원 이하 주문 중개이용료 면제'를 끝냄</dd>
+          <dt>뜻</dt><dd>작은 주문에도 중개 이용료가 붙어요. 배민은 2025-06 상생안에 1만 원 이하 면제를 넣어서 방향이 반대예요 (아래).</dd></dl>
+        <div class="src"><a href="https://partner.yogiyo.co.kr/content/view/1%EB%A7%8C%EC%9B%90%EC%9D%B4%ED%95%98-%EC%9D%B4%EC%9A%A9%EB%A3%8C-%EB%A9%B4%EC%A0%9C" target="_blank" rel="noopener">요기요 공지</a><a href="https://www.newspim.com/news/view/20181101000113" target="_blank" rel="noopener">뉴스핌 2018-11-01 (시작)</a></div>
+      </article>
+      <article class="ev">
         <div class="when"><b>2024년 8월</b><span class="who">배민</span><span class="st ok">공정위 원문</span></div>
         <h3>배민1플러스 중개 수수료 6.8% → 9.8%</h3>
         <dl><dt>의미</dt><dd>공정위는 최혜대우 요구 직후의 이 인상이, 쿠팡의 최혜대우 요구와 맞물려 배달앱 전체 가격을 올렸다고 봤어요.</dd>
           <dt>참고</dt><dd>거래금액당 배민에 돌아가는 몫 (2024): <b>가게배달 7.8% vs 배민배달 28%</b></dd></dl>
         <div class="src"><span class="src">공정위 보도자료 2026-11-09 (11-10 조간) 참고2 Q&amp;A</span></div>
+      </article>
+      <article class="ev">
+        <div class="when"><b>2024-08-01 시행</b><span class="who">요기요</span><span class="st ok">공식 안내</span></div>
+        <h3>요기요 라이트: 기본 중개 12.5% → 9.7% · 정산은 주 단위 → 일 단위</h3>
+        <dl><dt>요율</dt><dd>가게배달 9.7% · 요기배달 9.7% + 건당 2,900원 · 포장 7.7% (외부결제 이용료·부가세 별도). 요기패스X 혜택 주문은 1.2%p 더</dd>
+          <dt>기준 금액</dt><dd class="base">본사·사장님 부담 할인을 뺀 금액 · 배달요금엔 중개 이용료 없음</dd>
+          <dt>정산</dt><dd>같은 날 주문분부터 매일 정산, 주문일로부터 영업일 5일 뒤 입금 (전엔 주 단위: 마지막 정산 기준일 + 5영업일)</dd></dl>
+        <div class="src"><a href="https://ceo.yogiyo.co.kr/announcement/detail/107" target="_blank" rel="noopener">요기요 라이트 안내</a><a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94_%EC%A0%95%EC%82%B0%EC%A3%BC%EA%B8%B0_%EB%B3%80%EA%B2%BD_%EC%95%88%EB%82%B4" target="_blank" rel="noopener">정산 주기 변경 안내</a><a href="https://www.hani.co.kr/arti/economy/consumer/1151832.html" target="_blank" rel="noopener">한겨레 2024-08-01</a></div>
+      </article>
+      <article class="ev">
+        <div class="when"><b>2024-11 안내 · 11-11 보도</b><span class="who">요기요</span><span class="st no">구간표 미공개</span></div>
+        <h3>주문이 많을수록 중개 인하 (배달 최저 4.7% · 포장 최저 2.7%) · 하위 40% 가게는 중개 20%를 포인트로</h3>
+        <dl><dt>기준</dt><dd>그 달 주문 수 구간 (매월 1일 새로 집계). 가게마다 실제 구간은 사장님사이트에서만 보여요 (안내의 200건·251건은 예시)</dd>
+          <dt>포인트 환급</dt><dd>매출 성과 하위 40% 가게에 1년간 중개 이용료의 20%를 '사장님 포인트'로 (보도 · 시작·끝 날짜 미확인)</dd>
+          <dt>주의</dt><dd>보도 중엔 "영세업체가 최저 4.7%"처럼 쓴 것도 있어요. 공식 안내는 "주문이 늘어날수록 이용료가 저렴해져요"예요.</dd></dl>
+        <div class="src"><a href="https://partner.yogiyo.co.kr/content/view/%EC%9A%94%EA%B8%B0%EC%9A%94%EB%9D%BC%EC%9D%B4%ED%8A%B8_%EC%84%B1%EA%B3%BC_%ED%98%9C%ED%83%9D" target="_blank" rel="noopener">요기요 성과기반 이용료 혜택</a><a href="https://static.yogiyo.co.kr/public/merchant/docs/merchant_info_20250201.pdf" target="_blank" rel="noopener">요기요 입점 안내 PDF (2025-02)</a><a href="https://www.news1.kr/industry/sb-founded/5595819" target="_blank" rel="noopener">뉴스1 2024-11-11</a></div>
       </article>
       <article class="ev">
         <div class="when"><b>2025-01-22 발표 · 2025-02-26 시행</b><span class="who">배민</span><span class="st no">원문 미확인</span></div>
