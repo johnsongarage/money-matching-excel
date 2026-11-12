@@ -204,7 +204,7 @@
           <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 적립 할인, 1개당 가게 부담 (원)<small>10개에 2천 원 할인이면 200 · 본사가 다 내면 0</small><input type="number" id="stamp" min="0" step="10" inputmode="numeric"></label>
           <label class="f">직접 배달 1건 비용 (원)<small>시간 인건비 + 기름값 어림 · 직접 배달 방식에만</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
-          <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 앱배달 · 없으면 0</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
+          <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 앱배달 · 없으면 0 · 배민은 이 금액에 중개·결제 수수료를 안 매기기로 했어요 (2026-11 발표 · 시행일이 나오면 계산에 반영, <a href="fees.html">요율 근거표</a>)</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
           <label class="f">가게 단독 할인 (원)<small>사장님이 직접 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
           <label class="f">본사 행사 중 가게가 내는 몫 (원)<small>브랜드 행사 할인을 가맹점이 나눠 낼 때 · 가게 돈에서 빠짐</small><input type="number" id="hqshare" min="0" step="100" inputmode="numeric"></label>
           <label class="f">본사 행사 중 본사가 내는 몫 (원)<small>본사가 채워 줌 · 가게 돈에선 안 빠짐</small><input type="number" id="hqdisc" min="0" step="100" inputmode="numeric"></label>
@@ -405,7 +405,7 @@
     h += grow('(B) 배달', tip - dv - M);
     if (isApp) {
       h += row('−', 'ㄴ 배달비', dv, '가게 부담 · 이 구간 ' + tierRange() + ' (거리마다)', 'sub');
-      if (M) h += row('−', 'ㄴ 고객배달팁 할인비용', M, '멤버십 가게 부담 · 가게가 고르는 돈', 'sub choice');
+      if (M) h += row('−', 'ㄴ 고객배달팁 할인비용', M, '멤버십 가게 부담 · 가게가 고르는 돈 · 배민 약관이 바뀌면 이 금액엔 중개·결제 수수료가 안 붙어요 (시행일 미정)', 'sub choice');
     } else {
       h += row('+', 'ㄴ 가게배달팁', tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내)', 'sub');
     }
@@ -534,7 +534,7 @@
     if (c.extraFee) h += row('', 'ㄴ 이 중 가게가 할인한 돈에 붙은 수수료', c.feeOnDisc, '<code>(' + won(c.extraFee) + ' + 부가세 10%)</code> · 손님에게 받지 않은 돈에 붙은 수수료예요. 공정위가 쿠팡이츠에 고치라고 한 부분', 'sub choice');
     h += grow('(B) 배달', gB);
     if (c.appDeliv) h += row('−', 'ㄴ 배달비', c.appDeliv, '가게 부담 · 앱이 정산에서 뗌 <span class="rng">이 구간 ' + tierRange() + ' (거리마다)</span>', 'sub');
-    if (c.M) h += row('−', 'ㄴ 고객배달팁 할인비용', c.M, '멤버십 가게 부담 · 가게가 고르는 돈', 'sub choice');
+    if (c.M) h += row('−', 'ㄴ 고객배달팁 할인비용', c.M, '멤버십 가게 부담 · 가게가 고르는 돈 · 배민 약관이 바뀌면 이 금액엔 중개·결제 수수료가 안 붙어요 (시행일 미정)', 'sub choice');
     if (c.tip) h += row('+', 'ㄴ 가게배달팁', c.tip, '손님이 낸 배달비 · 가게 매출로 정산돼요 (배민 안내 "가게배달팁 매출")', 'sub');
     h += grow('(C) 그 외', gC);
     h += row('−', 'ㄴ 결제정산수수료', c.pay, '<code>' + won(c.payBase) + ' × ' + pct(c.p * 100) + '%</code> · ' + (c.payBase === c.P - c.D1 && c.D1 && c.D2 ? '단독 할인만 뺀 금액에 붙음 (본사 행사 몫은 안 빼 줌)' : baseNote(c.payBase)), 'sub');
