@@ -222,7 +222,8 @@
           <label class="f">가게배달 중개 수수료 (%)<small>배민 가게배달(오픈리스트) 6.8% · 공정위 자료 · 다시 정하라는 명령 받음</small><input type="number" id="mp" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 적립, 몇 개 모으면 무료 1개<small>도장·스탬프 · 무료 1개를 줄 때까지</small><input type="number" id="stampN" min="1" step="1" inputmode="numeric"></label>
-          <label class="f">적립 무료 1개 값은 누가 내요<small>모르면 범위로 보여 드려요 · 원가 = 메뉴 값 × 원가율 · 모은 걸 다 쓴다고 봄</small><select id="stampWho"><option value="unknown">모름 (범위로)</option><option value="none">가게는 안 내요</option><option value="half">원가의 절반</option><option value="cost">원가 전부</option><option value="price">판매가 전부</option></select></label>
+          <label class="f">적립 무료 1개 값은 누가 내요<small>모르면 범위로 보여 드려요 · 원가 = 무료 메뉴 값 × 원가율 · 같은 반반도 판매가·원가 기준에 따라 몇 배 차이 · 모은 걸 다 쓴다고 봄</small><select id="stampWho"><option value="unknown">모름 (범위로)</option><option value="none">가게는 안 내요</option><option value="half">원가의 절반</option><option value="cost">원가 전부</option><option value="halfprice">판매가의 절반</option><option value="price">판매가 전부</option></select></label>
+          <label class="f">적립으로 무료로 주는 메뉴 값 (원)<small>보통 평균보다 싼 음료 · 비우면 메뉴 1개 값 · 정확한 숫자는 가맹계약서·판촉 약정서, 본사 정산서의 적립·쿠폰 차감 줄, 공정위 가맹사업거래 정보공개서(광고·판촉비 분담)에서 확인할 수 있어요.</small><input type="number" id="freeItem" min="0" step="100" inputmode="numeric"></label>
           <label class="f">직접 배달 1건 비용 (원)<small>시간 인건비 + 기름값 어림 · 직접 배달 방식에만</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
           <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 앱배달 · 없으면 0 · 배민은 이 금액에 중개·결제 수수료를 안 매기기로 했어요 (2026-11 발표 · 시행일이 나오면 계산에 반영, <a href="fees.html">요율 근거표</a>)</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
           <label class="f">가게 단독 할인 (원)<small>사장님이 직접 건 쿠폰·할인 · 가게 돈에서 빠짐</small><input type="number" id="disc" min="0" step="100" inputmode="numeric"></label>
@@ -334,7 +335,7 @@
   // 배민 결제정산수수료 연매출 구간 (2025-02-14~, 카드 결제 기준 · 선불 결제는 3%) — 쿠팡이츠는 약관 3%
   var SALES = { x: 3, s1: 1.4, s2: 2, s3: 2.15, s4: 2.4, s5: 3 };
   var TIER = { t1: { b: '7.8', d: 2900, r: '2,400~3,400원' }, t2: { b: '6.8', d: 2600, r: '2,100~3,100원' }, t3: { b: '6.8', d: 2400, r: '1,900~2,900원' }, t4: { b: '2', d: 2400, r: '1,900~2,900원' } };
-  var DEF = { item: 10000, items: 2, rate: 33, agency: 4000, surge: 0, tip: 3000, tipA2: '', tipV2: '', tipA3: '', tipV3: '', tier: 't1', up: 0, pack: 500, broker: '7.8', deliv: 2900, pay: 3, mp: 6.8, hqfee: 3, stampN: 10, stampWho: 'none',
+  var DEF = { item: 10000, items: 2, rate: 33, agency: 4000, surge: 0, tip: 3000, tipA2: '', tipV2: '', tipA3: '', tipV3: '', tier: 't1', up: 0, pack: 500, broker: '7.8', deliv: 2900, pay: 3, mp: 6.8, hqfee: 3, stampN: 10, stampWho: 'none', freeItem: '',
     self: 2500, member: 0, disc: 0, hqshare: 0, hqdisc: 0, appdisc: 0, feebase: 'bm', sales: 'x', count: 300, fixed: 0, card: 1.1, takeout: 6.8 };
   var mode = 'app', tax = 'general', unit = '개', open = {};
   var $ = function (id) { return document.getElementById(id); };
@@ -352,8 +353,8 @@
   function tiersOn() { return [[raw('tipA2'), raw('tipV2')], [raw('tipA3'), raw('tipV3')]].some(function (x) { return x[0] != null && x[1] != null; }); }
   // 본사 앱 적립: 무료 1개 값을 가게가 얼마나 내나 → 1개당 (모름은 가장 많이 빠지는 쪽으로 계산하고 범위를 따로 보여 줌)
   function stampPer() {
-    var who = $('stampWho').value, it = n('item'), r = n('rate') / 100, N = Math.max(1, n('stampN'));
-    return who === 'none' ? 0 : who === 'half' ? it * r / 2 / N : who === 'cost' ? it * r / N : it / N;
+    var who = $('stampWho').value, F = n('freeItem') || n('item'), r = n('rate') / 100, N = Math.max(1, n('stampN'));
+    return who === 'none' ? 0 : who === 'half' ? F * r / 2 / N : who === 'cost' ? F * r / N : who === 'halfprice' ? F / 2 / N : F / N;
   }
   function stampRange() { return $('stampWho').value === 'unknown'; }
   function agencyAll() { return n('agency') + n('surge'); }
