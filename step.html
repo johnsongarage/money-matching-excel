@@ -258,6 +258,13 @@
     <p class="hint" style="margin-top:22px">연매출도 고르시면 <b>배민 결제 수수료</b>가 맞춰져요 (카드 결제 기준 · 쿠팡이츠는 3%).</p>
     <div class="chips" data-key="sales" role="group" aria-label="연매출 고르기"></div>
     <p class="fine" id="sales-say"></p>
+    <div id="stamp-q">
+      <p class="hint" style="margin-top:22px">본사 앱 <b>적립(도장)</b>을 다 모으면 무료 1<span class="u">잔</span>. 그 값은 누가 내요?</p>
+      <div class="chips" data-key="stampWho" role="group" aria-label="적립 무료 음료 값을 누가 내는지"></div>
+      <p class="hint" style="margin:0 0 10px">몇 <span class="u">잔</span> 모으면 무료 1<span class="u">잔</span>이에요?</p>
+      <div class="chips" data-key="stampN" role="group" aria-label="몇 개 모으면 무료"></div>
+      <p class="fine" id="stamp-say"></p>
+    </div>
     <ul class="assume" id="assume"></ul>
     <button type="button" class="linkish" id="again">처음부터 다시 넣기</button>
   </div>
@@ -297,7 +304,16 @@
   var SALES = { x: { v: 0.03, nm: '모름 · 3%' }, s1: { v: 0.014, nm: '3억 이하 · 1.4%' }, s2: { v: 0.02, nm: '3억~5억 · 2.0%' }, s3: { v: 0.0215, nm: '5억~10억 · 2.15%' }, s4: { v: 0.024, nm: '10억~30억 · 2.4%' }, s5: { v: 0.03, nm: '30억 넘음 · 3%' } };
   function pctTxt(x) { return (Math.round(x * 10000) / 100) + '%'; }
   var AGENCY_CHIPS = [3000, 3500, 4000, 4500, 5000], TIP_CHIPS = [0, 1000, 2000, 3000, 4000], SURGE_CHIPS = [0, 300, 500, 1000, 1500];
-  var st = { kind: 'cafe', shop: 'yes', hq: 'yes', item: 3000, items: 4, rate: 35, agency: 4000, surge: 0, tip: 3000, tipMode: 'one', tiers: [[0, 3000], [20000, 2000], [30000, 1000]], tier: 't1', sales: 'x' };
+  var st = { kind: 'cafe', shop: 'yes', hq: 'yes', item: 3000, items: 4, rate: 35, agency: 4000, surge: 0, tip: 3000, tipMode: 'one', tiers: [[0, 3000], [20000, 2000], [30000, 1000]], tier: 't1', sales: 'x', stampN: 10, stampWho: 'unknown' };
+  // 본사 앱 적립: 다 모으면 무료 1개. 그 값을 가게가 얼마나 내나 (모름 = 범위, 계산은 가장 많이 빠지는 쪽)
+  var WHO = { unknown: '모름', none: '가게는 안 내요', half: '원가의 절반', cost: '원가 전부', price: '판매가 전부' };
+  function stampPer(who) {
+    var it = st.item, r = st.rate / 100, N = Math.max(1, st.stampN);
+    if (who === 'none') return 0;
+    if (who === 'half') return it * r / 2 / N;
+    if (who === 'cost') return it * r / N;
+    return it / N;   // price · unknown
+  }
   // 주문금액 A일 때 손님 배달팁 (금액마다 다르게 정한 가게는 A 이상인 칸 중 가장 높은 칸)
   function tipAt(A) {
     if (st.tipMode !== 'tier') return st.tip;
@@ -313,7 +329,7 @@
 
   function model() {
     var PAY = SALES[st.sales].v;   // 앱배달·배민 가게배달 결제 수수료 (앱배달은 배민 기준)
-    var P0 = PRESET[st.kind], it = st.item, k = Math.max(1, st.items), r = st.rate / 100, pk = P0.pack, sp = P0.stamp, T = TIER[st.tier];
+    var P0 = PRESET[st.kind], it = st.item, k = Math.max(1, st.items), r = st.rate / 100, pk = P0.pack, sp = stampPer(st.stampWho), T = TIER[st.tier];
     var ag = st.agency + st.surge, tp = tipAt(Math.round(k * it));
     var L = [
       { id: 'hq', nm: '본사 앱 배달', sub: '본사 앱 주문 · 대행 라이더 · 수수료 3% 가정', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
@@ -330,6 +346,7 @@
       c.mat = Math.round(k * it * r);
       c.stamp = Math.round(k * c.per);
       c.left = c.P - c.fee - c.fixed - c.mat - c.stamp;
+      c.range = st.stampWho === 'unknown' && c.stamp > 0; c.leftMax = c.left + c.stamp;   // 모름: 판매가 전부 ~ 안 냄
       // 몇 개부터 남나: 배달팁이 주문금액마다 달라질 수 있어서, 금액을 100원씩 내려가며 찾음
       c.fixedAt = function (A) {
         if (c.cmp) return 0;
@@ -388,6 +405,14 @@
     $('h-tip').textContent = '대행으로 보낼 때 손님이 내는 배달비예요 (' + via + '). 가게로 들어와서 대행비를 덜어 줘요. 배민배달·쿠팡 주문은 손님 배달비가 앱으로 가서 여기 숫자는 안 써요.';
     chips('tier', ['t1', 't2', 't3', 't4'], function (v) { return TIER[v].nm + ' · ' + TIER[v].r; });
     chips('sales', ['x', 's1', 's2', 's3', 's4', 's5'], function (v) { return SALES[v].nm; });
+    chips('stampWho', ['unknown', 'none', 'half', 'cost', 'price'], function (v) { return WHO[v]; });
+    chips('stampN', [8, 10, 12, 15], function (v) { return v + u; });
+    $('stamp-q').hidden = !(st.hq === 'yes' && st.shop === 'yes');
+    var free = st.item, freeCost = Math.round(st.item * st.rate / 100);
+    $('stamp-say').textContent = (st.stampWho === 'unknown'
+      ? '모르셔서 범위로 보여 드려요: 가게가 안 내면 0원 ~ 판매가를 다 내면 1' + u + '당 ' + won(free / Math.max(1, st.stampN)) + '원. 몇 ' + u + '부터·그래서는 가장 많이 빠지는 경우로 계산해요.'
+      : '1' + u + '당 약 ' + won(stampPer(st.stampWho)) + '원 (무료 1' + u + ' ' + (st.stampWho === 'price' ? '판매가 ' + won(free) : '원가 ' + won(freeCost)) + '원' + (st.stampWho === 'half' ? ' × 절반' : '') + ' ÷ ' + st.stampN + u + ').') +
+      ' 원가 = 메뉴 값 × 재료비 %. 모은 도장을 다 쓴다고 봤어요 (실제로는 덜 빠져요).';
 
     var L = model(), d = L.filter(function (c) { return !c.cmp; }), app = L.filter(function (c) { return c.id === 'app'; })[0];
     var best = d.slice().sort(function (a, b) { return b.left - a.left; })[0];
@@ -396,9 +421,9 @@
     $('used').innerHTML = (linked ? '받은 링크의 숫자로 계산했어요' : '넣은 숫자') + ': ' + usedText() + ' <button type="button" class="linkish inl" data-go="s1">' + (linked ? '내 가게 숫자로 바꾸기' : '바꾸기') + '</button>';
     $('list').innerHTML = L.map(function (c) {
       var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
-        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(tipAt(c.P) * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
+        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(tipAt(c.P) * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + (c.range ? '0~' : '') + won(c.stamp) : '');
       return '<div class="item' + (c === best ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (c === best ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
-        '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '<small>원</small></span></div>' +
+        '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + (c.range ? '~' + won(c.leftMax) : '') + '<small>원</small></span></div>' +
         '<div class="track" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></div><div class="how">' + how + '</div></div>';
     }).join('');
 
@@ -428,14 +453,14 @@
       var upI = Math.ceil((ref.left - app.left) / (st.items * (1 - app.f)) / 10) * 10;
       tips.push('<b>배달앱 메뉴를 1' + u + '에 ' + won(upI) + '원 올려 받으면</b> 배민 가게배달만큼 남아요.<small>이미 배달 가격을 따로 받는 가게가 많아요. 올릴지·얼마나는 사장님 판단이에요.</small>');
     }
-    if (hq && hq.left > app.left) tips.push('<b>본사 앱 배달은 1건에 약 ' + won(hq.left - app.left) + '원 더 남아요.</b><small>본사 앱 수수료·적립 부담은 가정이라, 실제 숫자를 알면 다시 계산해요.</small>');
+    if (hq && hq.leftMax > app.left) tips.push('<b>본사 앱 배달은 1건에 ' + (hq.range ? (hq.left > app.left ? '약 ' + won(hq.left - app.left) + '~' : '최대 ') + won(hq.leftMax - app.left) : '약 ' + won(hq.left - app.left)) + '원 더 남아요.</b><small>' + (hq.range ? '적립 부담을 몰라서 범위예요. ' : '') + '본사 앱 수수료는 가정이라, 실제 숫자를 알면 다시 계산해요.</small>');
     tips.push('<b>앱마다 메뉴 가격·최소주문금액을 따로</b> 정해도 돼요.<small>공정위가 "다른 앱보다 불리하게 하지 말라"(최혜대우) 요구에 시정명령을 내렸어요 (2026-11-09 발표).</small>');
     $('do').innerHTML = tips.map(function (t) { return '<li>' + t + '</li>'; }).join('');
 
     $('tier-say').textContent = '지금: ' + TIER[st.tier].nm + ' — 중개 ' + TIER[st.tier].r + ' + 결제 ' + pctTxt(PAY) + ', 가게 부담 배달비 ' + won(TIER[st.tier].d) + '원(구간 가운데 값)';
     $('sales-say').textContent = '지금: ' + SALES[st.sales].nm + ' — 배민배달·배민 가게배달 결제 수수료 (2025-02-14부터 연매출 구간별, 선불 결제는 3%)';
     $('assume').innerHTML = [st.shop === 'yes' ? '가게배달 중개 6.8% (배민 오픈리스트, 공정위 자료) · 결제 수수료 ' + pctTxt(PAY) + ' (연매출 칸 · 앱배달도 배민 기준, 쿠팡이츠는 3%) · 수수료엔 부가세 10%' : '결제 수수료 ' + pctTxt(PAY) + ' (연매출 칸 · 배민 기준, 쿠팡이츠는 3%) · 수수료엔 부가세 10%',
-      (st.hq !== 'yes' || st.shop !== 'yes') ? null : '본사 앱 수수료 3%' + (P0.stamp ? ', 적립 할인 1' + u + '당 ' + won(P0.stamp) + '원(가게 부담)' : '') + '은 <b>가정</b>이에요 — 브랜드마다 달라요',
+      (st.hq !== 'yes' || st.shop !== 'yes') ? null : '본사 앱 수수료 3%는 <b>가정</b>이에요 (적립 부담은 위에서 고름) — 브랜드마다 달라요',
       (st.shop === 'yes' ? '배달팁에도 결제 수수료가 붙는다고 봤어요 (확인 필요) · ' : '') + '포장재 1건 ' + won(P0.pack) + '원',
       '남는 돈은 인건비·임대료·로열티·부가세 신고 전 · 할인·광고는 빼고 계산'].filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
 
@@ -451,6 +476,7 @@
     if (scroll !== false) setTimeout(function () { $(id).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }, 30);
   }
   function setKind(kind) {
+    st.stampWho = kind === 'cafe' ? 'unknown' : 'none'; st.stampN = 10;
     var P0 = PRESET[kind]; st.kind = kind; st.shop = 'yes'; st.hq = kind === 'cafe' ? 'yes' : 'no'; st.item = P0.item; st.items = P0.items; st.rate = P0.rate;
   }
 
@@ -468,7 +494,7 @@
       var key = ch.parentNode.dataset.key, v = ch.dataset.v;
       if (v === 'own') { var box = document.querySelector('.own[data-own="' + key + '"]'); box.hidden = false; var inp = box.querySelector('input'); inp.value = st[key]; inp.focus(); inp.select(); ch.parentNode.querySelectorAll('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === ch)); }); return; }
       if (key === 'tipMode' && v === 'tier' && st.tipMode !== 'tier') st.tiers = [[0, st.tip], [20000, Math.max(0, st.tip - 1000)], [30000, Math.max(0, st.tip - 2000)]];
-      linked = false; st[key] = (key === 'tier' || key === 'hq' || key === 'shop' || key === 'sales' || key === 'tipMode') ? v : Number(v); render(); return;
+      linked = false; st[key] = (key === 'tier' || key === 'hq' || key === 'shop' || key === 'sales' || key === 'tipMode' || key === 'stampWho') ? v : Number(v); render(); return;
     }
   });
   document.addEventListener('input', function (e) {
@@ -491,7 +517,7 @@
 
   // ── 보내기 ──────────────────────────────────────────────
   // 고른 숫자는 주소의 # 뒤에만 담아요. # 뒤는 서버로 가지 않고, 어디에도 저장하지 않아요.
-  var LINK = { k: 'kind', i: 'item', n: 'items', r: 'rate', a: 'agency', g: 'surge', t: 'tip', sh: 'shop', hq: 'hq', tr: 'tier', s: 'sales' };
+  var LINK = { k: 'kind', i: 'item', n: 'items', r: 'rate', a: 'agency', g: 'surge', t: 'tip', sh: 'shop', hq: 'hq', tr: 'tier', s: 'sales', sw: 'stampWho', sn: 'stampN' };
   function tiersOk() { return st.tiers.filter(function (x) { return x && x[0] != null && x[1] != null; }); }
   function linkVal(key) { return key === 'tip' && st.tipMode === 'tier' ? tiersOk().map(function (x) { return x[0] + '-' + x[1]; }).join('_') : st[key]; }
   function baseUrl() { return location.href.split('#')[0].split('?')[0]; }
@@ -514,6 +540,8 @@
     if (p.hq === 'yes' || p.hq === 'no') st.hq = p.hq;
     if (Object.prototype.hasOwnProperty.call(TIER, p.tr)) st.tier = p.tr;
     if (Object.prototype.hasOwnProperty.call(SALES, p.s)) st.sales = p.s;
+    if (Object.prototype.hasOwnProperty.call(WHO, p.sw)) st.stampWho = p.sw;
+    st.stampN = Math.round(num(p.sn, 1, 50, st.stampN));
     return true;
   }
   // 어떤 숫자로 계산했는지 한 줄 (결과 위 · 보내는 글)
@@ -525,6 +553,7 @@
       if (st.tipMode === 'tier') a.push('손님 배달팁 ' + tiersOk().slice().sort(function (x, y) { return x[0] - y[0]; }).map(function (x) { return (x[0] ? won(x[0]) + '원 이상 ' : '기본 ') + won(x[1]) + '원'; }).join(' / '));
       else a.push('손님 배달팁 ' + (st.tip ? won(st.tip) + '원' : '안 받음'));
     }
+    if (st.hq === 'yes' && st.shop === 'yes') a.push('본사 앱 적립 ' + st.stampN + u + '에 무료 1' + u + ' · 그 값: ' + WHO[st.stampWho]);
     a.push('앱배달 수수료 중개 ' + TIER[st.tier].r + ' + 결제 ' + pctTxt(SALES[st.sales].v) + ' (' + TIER[st.tier].nm + ' 구간' + (st.sales !== 'x' ? ' · 연매출 ' + SALES[st.sales].nm.split(' · ')[0] : '') + ')');
     return a.join(' · ');
   }
@@ -532,7 +561,7 @@
   function mineText() {
     var u = PRESET[st.kind].unit;
     var rows = model().filter(function (c) { return !c.cmp; }).sort(function (a, b) { return b.left - a.left; })
-      .map(function (c) { return (c.id === 'app' ? '앱배달(배민배달·쿠팡이츠)' : c.nm) + ' ' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '원'; });
+      .map(function (c) { return (c.id === 'app' ? '앱배달(배민배달·쿠팡이츠)' : c.nm) + ' ' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + (c.range ? '~' + won(c.leftMax) : '') + '원'; });
     var tips = Array.prototype.map.call(document.querySelectorAll('#do li'), function (li) {
       var c = li.cloneNode(true);
       Array.prototype.forEach.call(c.querySelectorAll('small'), function (x) { x.parentNode.removeChild(x); });
