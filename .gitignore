@@ -1,3 +1,4 @@
 # 작업용 스크린샷
 *.png
 !docs/sim/*.png
+!og-news.png
