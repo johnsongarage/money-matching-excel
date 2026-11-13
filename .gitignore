@@ -2,3 +2,4 @@
 *.png
 !docs/sim/*.png
 !og-news.png
+!og-step.png

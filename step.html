@@ -6,6 +6,15 @@
 <meta name="color-scheme" content="light">
 <title>배달, 어디로 팔면 더 남을까</title>
 <meta name="description" content="숫자 다섯 개만 고르면 배민·쿠팡·가게배달·본사 앱 중 어디가 더 남는지, 몇 잔부터 남는지 보여 드려요 (예시 요율)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="존슨거라지">
+<meta property="og:title" content="배달 1건 팔면, 얼마 남을까?">
+<meta property="og:description" content="숫자 5개만 고르면 가게배달·배민배달·쿠팡이츠 1건에 남는 돈과 손해 안 보는 최소주문금액이 나와요. 무료 · 가입 없음 · 저장 안 함 · 예시 요율">
+<meta property="og:url" content="https://johnsongarage.co.kr/money-matching-excel/step.html">
+<meta property="og:image" content="https://johnsongarage.co.kr/money-matching-excel/og-step.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
@@ -87,6 +96,22 @@
   .contact a { display: block; text-align: center; text-decoration: none; }
   .foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 26px; font-size: 14px; }
   .foot-links a { color: var(--sub); text-underline-offset: 3px; }
+  /* 넣은 숫자 한 줄 · 보내기 */
+  .used { font-size: 13px; color: var(--sub); line-height: 1.7; margin: 0 0 12px; word-break: keep-all; }
+  .linkish.inl { margin-top: 0; font-size: inherit; color: var(--gold); white-space: nowrap; }
+  .tiers { display: grid; gap: 8px; margin: 0 0 22px; }
+  .tier { display: grid; grid-template-columns: 88px auto 22px 76px auto; align-items: center; gap: 6px; font-size: 15px; white-space: nowrap; }
+  .tier.head { font-size: 12px; color: var(--sub); letter-spacing: .04em; }
+  .tier input { width: 100%; min-width: 0; border: 0; border-bottom: 1px solid var(--ink); background: transparent; padding: 4px 2px; font-size: 18px; text-align: right; border-radius: 0; }
+  .tier input:focus { outline: none; border-bottom-color: var(--gold); }
+  .tier input[readonly] { border-bottom-color: transparent; color: var(--sub); }
+  .tier .arrow { color: var(--sub); }
+  .sense { font-size: 13px; color: var(--ink); line-height: 1.7; margin: 14px 0 0; padding: 10px 12px; border: 1px solid var(--line); background: var(--sheet); word-break: keep-all; }
+  .send { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .send .sub-h { margin: 0 0 12px; }
+  .send .row-btn .go { flex: 1 1 0; min-width: 0; padding: 13px 8px; font-size: 15px; letter-spacing: 0; }
+  .send .fine { margin-top: 12px; word-break: keep-all; }
+  .send-box { display: block; width: 100%; margin-top: 12px; border: 1px solid var(--line-strong); background: var(--sheet); padding: 10px 12px; font-size: 13px; line-height: 1.6; border-radius: 2px; resize: vertical; }
   @media (max-width: 420px) {
     h1 { font-size: 34px; } h2 { font-size: 28px; } .num { font-size: 52px; } .big-say { font-size: 26px; }
     .scene { padding: 56px 22px 48px; }
@@ -153,6 +178,9 @@
     <div class="num" aria-live="polite"><span id="v-agency"></span><small>원</small></div>
     <div class="chips" data-key="agency" role="group" aria-label="배달대행비 고르기"></div>
     <div class="own" data-own="agency" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="배달대행비 직접 넣기"><span>원</span></div>
+    <p class="hint" style="margin:6px 0 12px">멀리 갈 때 붙는 <b>거리 할증</b>, 1건 평균 <b id="v-surge"></b>원쯤이에요?</p>
+    <div class="chips" data-key="surge" role="group" aria-label="거리 할증 평균 고르기"></div>
+    <div class="own" data-own="surge" hidden><input type="number" inputmode="numeric" min="0" step="100" aria-label="거리 할증 평균 직접 넣기"><span>원</span></div>
     <button type="button" class="go" data-next="s5">다음</button>
     <button type="button" class="linkish" id="noshop" style="display:block">대행은 안 불러요 (배민배달·쿠팡만) →</button>
   </div>
@@ -163,8 +191,16 @@
     <p class="count">5 / 5</p>
     <h2 id="s5-h">대행으로 보낼 때<br>손님 배달팁은요?</h2>
     <p class="hint" id="h-tip"></p>
-    <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
-    <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
+    <div class="chips" data-key="tipMode" role="group" aria-label="배달팁 정하는 방식"></div>
+    <div id="tip-one">
+      <div class="num" aria-live="polite"><span id="v-tip"></span><small>원</small></div>
+      <div class="chips" data-key="tip" role="group" aria-label="배달팁 고르기"></div>
+    </div>
+    <div id="tip-tier" hidden>
+      <p class="hint" style="margin:0 0 10px">사장님 앱에 정해 둔 대로 고쳐 주세요 (처음 숫자는 예시).</p>
+      <div class="tiers" id="tiers"></div>
+    </div>
+    <p class="fine" id="tip-club" style="margin:0 0 22px">배민클럽 무료배달(가게배달)에 들어가셨다면, 클럽 손님 주문은 배달팁을 가게가 깎아 줘요. 그런 주문이 많으면 배달팁을 그만큼 낮춰 넣으세요.</p>
     <button type="button" class="go" data-next="r1">결과 보기</button>
   </div>
 </section>
@@ -177,8 +213,11 @@
     <div class="chips" data-key="shop" role="group" aria-label="가게배달 함 안 함" style="margin-bottom:14px"></div>
     <div id="hq-q"><p class="hint" style="margin:0 0 10px">본사(프랜차이즈) 앱 배달이 있나요?</p>
     <div class="chips" data-key="hq" role="group" aria-label="본사 앱 있음 없음" style="margin-bottom:18px"></div></div>
+    <p class="used" id="used"></p>
     <div class="list" id="list"></div>
+    <p class="sense" id="sense" hidden></p>
     <p class="fine">재료비·포장재까지 뺀 돈 · 인건비·임대료·부가세 신고 전 · 할인·광고 빼고 · 예시 요율</p>
+    <p class="fine" style="margin-top:4px">존슨거라지 배달 계산 · johnsongarage.co.kr</p>
   </div>
 </section>
 
@@ -196,6 +235,16 @@
     <p class="label">결과 3</p>
     <h2 id="r3-h">그래서,<br><b>이렇게 해 볼 수 있어요</b></h2>
     <ol class="do" id="do"></ol>
+    <div class="send">
+      <p class="sub-h">같이 볼 분께 보내기</p>
+      <div class="row-btn">
+        <button type="button" class="go ghost" id="send-mine">내 결과 보내기</button>
+        <button type="button" class="go ghost" id="send-tool">계산기만 보내기</button>
+      </div>
+      <p class="fine"><b>내 결과</b>에는 위에서 고른 숫자(메뉴 값·재료비·대행비·배달팁)가 담겨요. 가족·동업자처럼 보여도 되는 분께만 보내세요. <b>계산기만</b>에는 아무 숫자도 안 담겨요.</p>
+      <p class="fine" id="send-say" role="status" aria-live="polite" style="margin-top:6px"></p>
+      <textarea class="send-box" id="send-box" rows="7" readonly hidden aria-label="보낼 글"></textarea>
+    </div>
   </div>
 </section>
 
@@ -247,8 +296,16 @@
   // 배민 결제정산수수료 연매출 구간 (2025-02-14~, 카드 결제 기준 · 선불 결제는 3%) — calc.html의 연매출 칸과 같은 값
   var SALES = { x: { v: 0.03, nm: '모름 · 3%' }, s1: { v: 0.014, nm: '3억 이하 · 1.4%' }, s2: { v: 0.02, nm: '3억~5억 · 2.0%' }, s3: { v: 0.0215, nm: '5억~10억 · 2.15%' }, s4: { v: 0.024, nm: '10억~30억 · 2.4%' }, s5: { v: 0.03, nm: '30억 넘음 · 3%' } };
   function pctTxt(x) { return (Math.round(x * 10000) / 100) + '%'; }
-  var AGENCY_CHIPS = [3000, 3500, 4000, 4500, 5000], TIP_CHIPS = [0, 1000, 2000, 3000, 4000];
-  var st = { kind: 'cafe', shop: 'yes', hq: 'yes', item: 3000, items: 4, rate: 35, agency: 4000, tip: 3000, tier: 't1', sales: 'x' };
+  var AGENCY_CHIPS = [3000, 3500, 4000, 4500, 5000], TIP_CHIPS = [0, 1000, 2000, 3000, 4000], SURGE_CHIPS = [0, 300, 500, 1000, 1500];
+  var st = { kind: 'cafe', shop: 'yes', hq: 'yes', item: 3000, items: 4, rate: 35, agency: 4000, surge: 0, tip: 3000, tipMode: 'one', tiers: [[0, 3000], [20000, 2000], [30000, 1000]], tier: 't1', sales: 'x' };
+  // 주문금액 A일 때 손님 배달팁 (금액마다 다르게 정한 가게는 A 이상인 칸 중 가장 높은 칸)
+  function tipAt(A) {
+    if (st.tipMode !== 'tier') return st.tip;
+    var t = 0;
+    st.tiers.filter(function (x) { return x && x[0] != null && x[1] != null && isFinite(x[0]) && isFinite(x[1]); }).sort(function (a, b) { return a[0] - b[0]; }).forEach(function (x) { if (A >= x[0]) t = x[1]; });
+    return t;
+  }
+  var linked = false;   // 숫자가 담긴 링크로 들어왔는지
   var ORDER = ['s1', 's2', 's3', 's4', 's5', 'r1', 'r2', 'r3', 'r4', 'r5'];
   var $ = function (id) { return document.getElementById(id); };
   function won(x) { return Math.round(x).toLocaleString('ko-KR'); }
@@ -257,7 +314,7 @@
   function model() {
     var PAY = SALES[st.sales].v;   // 앱배달·배민 가게배달 결제 수수료 (앱배달은 배민 기준)
     var P0 = PRESET[st.kind], it = st.item, k = Math.max(1, st.items), r = st.rate / 100, pk = P0.pack, sp = P0.stamp, T = TIER[st.tier];
-    var ag = st.agency, tp = st.tip;
+    var ag = st.agency + st.surge, tp = tipAt(Math.round(k * it));
     var L = [
       { id: 'hq', nm: '본사 앱 배달', sub: '본사 앱 주문 · 대행 라이더 · 수수료 3% 가정', f: HQ * 1.1, costs: [ag, -tp, tp * HQ * 1.1, pk], per: sp, del: ag - tp },
       { id: 'mp', nm: '배민 가게배달', sub: '배민 앱 주문 · 대행 라이더 · 중개 6.8%', f: (MP + PAY) * 1.1, costs: [ag, -tp, tp * PAY * 1.1, pk], per: 0, del: ag - tp },
@@ -273,10 +330,21 @@
       c.mat = Math.round(k * it * r);
       c.stamp = Math.round(k * c.per);
       c.left = c.P - c.fee - c.fixed - c.mat - c.stamp;
-      c.m = it * (1 - c.f) - it * r - c.per;
-      if (c.m <= 0) c.beN = null;
-      else if (c.fixed <= 0) { c.beN = 1; c.beP = 0; }
-      else { c.beX = c.fixed / c.m; c.beN = Math.max(1, Math.ceil(c.beX - 1e-9)); c.beP = Math.ceil(c.beX * it / 100) * 100; }
+      // 몇 개부터 남나: 배달팁이 주문금액마다 달라질 수 있어서, 금액을 100원씩 내려가며 찾음
+      c.fixedAt = function (A) {
+        if (c.cmp) return 0;
+        if (c.id === 'app') return T.d * 1.1 + pk;
+        var t = tipAt(A); return ag - t + t * (c.id === 'hq' ? HQ : PAY) * 1.1 + pk;
+      };
+      c.leftAt = function (A) { return A - A * c.f - c.fixedAt(A) - A * r - c.per * A / it; };
+      var ok = function (A) { return c.leftAt(A) >= -1e-6; }, top = 100 * it;
+      if (!(it > 0) || !ok(top)) c.beN = null;
+      else {
+        var A = Math.floor(top / 100) * 100;
+        if (A >= 100 && ok(A)) { while (A - 100 >= 100 && ok(A - 100)) A -= 100; } else A = top;
+        var n = 100; while (n - 1 >= 1 && ok((n - 1) * it)) n--;
+        c.beN = n; c.beP = A;
+      }
       c.pk = c.cmp ? 0 : pk;
     });
     return L;
@@ -298,11 +366,19 @@
     $('u-yo').textContent = u === '잔' ? '이에요' : '예요';
     Array.prototype.forEach.call(document.querySelectorAll('.u1'), function (el) { el.textContent = P0.one; });
     $('v-item').textContent = won(st.item); $('v-items').textContent = st.items; $('v-rate').textContent = st.rate;
-    $('v-agency').textContent = won(st.agency); $('v-tip').textContent = won(st.tip); $('h-rate').textContent = P0.rateHint;
+    $('v-agency').textContent = won(st.agency); $('v-surge').textContent = won(st.surge); $('v-tip').textContent = won(st.tip); $('h-rate').textContent = P0.rateHint;
     chips('item', P0.itemChips, won, true);
     chips('rate', P0.rateChips, function (v) { return v + '%'; });
     chips('agency', AGENCY_CHIPS, won, true);
     chips('tip', TIP_CHIPS, function (v) { return v ? won(v) : '안 받아요'; });
+    chips('surge', SURGE_CHIPS, function (v) { return v ? won(v) : '없어요'; }, true);
+    chips('tipMode', ['one', 'tier'], function (v) { return v === 'one' ? '한 가지예요' : '주문금액마다 달라요'; });
+    $('tip-one').hidden = st.tipMode === 'tier'; $('tip-tier').hidden = st.tipMode !== 'tier';
+    if (!$('tiers').contains(document.activeElement)) $('tiers').innerHTML = '<div class="tier head"><span>주문금액</span><span></span><span></span><span>배달팁</span><span></span></div>' + [0, 1, 2].map(function (i) {
+      var x = st.tiers[i] || [null, null];
+      return '<div class="tier">' + (i === 0 ? '<input readonly tabindex="-1" value="0" aria-label="가장 작은 주문">' : '<input type="number" inputmode="numeric" min="0" step="1000" data-t="' + i + '" data-f="0" value="' + (x[0] == null ? '' : x[0]) + '" aria-label="주문금액 기준 ' + (i + 1) + '">') +
+        '<span>원 이상</span><span class="arrow">→</span><input type="number" inputmode="numeric" min="0" step="500" data-t="' + i + '" data-f="1" value="' + (x[1] == null ? '' : x[1]) + '" aria-label="배달팁 ' + (i + 1) + '"><span>원</span></div>';
+    }).join('');
     chips('shop', ['yes', 'no'], function (v) { return v === 'yes' ? '해요' : '안 해요'; });
     $('hq-q').hidden = st.shop !== 'yes';
     if (!$('r1').hidden) $('s5').hidden = st.shop !== 'yes';
@@ -317,14 +393,23 @@
     var best = d.slice().sort(function (a, b) { return b.left - a.left; })[0];
     var mx = Math.max.apply(null, L.map(function (c) { return Math.max(c.left, 0); }).concat([1]));
     $('r-k').textContent = st.items + u + ' · ' + won(st.items * st.item) + '원';
+    $('used').innerHTML = (linked ? '받은 링크의 숫자로 계산했어요' : '넣은 숫자') + ': ' + usedText() + ' <button type="button" class="linkish inl" data-go="s1">' + (linked ? '내 가게 숫자로 바꾸기' : '바꾸기') + '</button>';
     $('list').innerHTML = L.map(function (c) {
       var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
-        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(st.tip * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
+        : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(tipAt(c.P) * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + won(c.stamp) : '');
       return '<div class="item' + (c === best ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (c === best ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
         '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '<small>원</small></span></div>' +
         '<div class="track" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></div><div class="how">' + how + '</div></div>';
     }).join('');
 
+    var mpc = d.filter(function (c) { return c.id === 'mp'; })[0];
+    if (mpc && app) {
+      var dd = 1 - PAY * 1.1, tpNow = tipAt(mpc.P), need = tpNow - (mpc.left - app.left) / dd, needR = Math.ceil(need / 100) * 100;
+      $('sense').hidden = false;
+      $('sense').innerHTML = '가게가 내는 배달비 <b>' + won(st.agency + st.surge - tpNow) + '원</b> (대행비 ' + won(st.agency + st.surge) + ' − 손님 배달팁 ' + won(tpNow) + ')<br>' +
+        '손님 배달팁이 1,000원 달라지면 가게배달 1건이 <b>약 ' + won(1000 * dd) + '원</b> 달라져요. ' +
+        (need <= 0 ? '이 주문이면 배달팁을 안 받아도 가게배달이 앱배달보다 더 남아요.' : '배달팁이 <b>약 ' + won(needR) + '원</b>보다 적으면 앱배달이 더 남아요.');
+    } else $('sense').hidden = true;
     // 몇 잔부터
     var others = d.filter(function (c) { return c.id !== 'app'; });
     if (app.beN == null) $('say-be').innerHTML = '앱배달은 이 조건이면<br><b>몇 ' + u + (u === '잔' ? '을' : '를') + ' 팔아도 손해</b>예요.';
@@ -370,31 +455,111 @@
   }
 
   document.addEventListener('click', function (e) {
+    var go = e.target.closest('[data-go]');
+    if (go) { $(go.dataset.go).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); return; }
     var s = e.target.closest('[data-start]');
     if (s) { setKind(s.dataset.start); reveal('s1'); return; }
     var nx = e.target.closest('[data-next]');
     if (nx) { reveal(nx.dataset.next); return; }
     var sb = e.target.closest('[data-step]');
-    if (sb) { st.items = Math.min(20, Math.max(1, st.items + Number(sb.dataset.step))); render(); return; }
+    if (sb) { linked = false; st.items = Math.min(20, Math.max(1, st.items + Number(sb.dataset.step))); render(); return; }
     var ch = e.target.closest('.chip');
     if (ch) {
       var key = ch.parentNode.dataset.key, v = ch.dataset.v;
       if (v === 'own') { var box = document.querySelector('.own[data-own="' + key + '"]'); box.hidden = false; var inp = box.querySelector('input'); inp.value = st[key]; inp.focus(); inp.select(); ch.parentNode.querySelectorAll('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === ch)); }); return; }
-      st[key] = (key === 'tier' || key === 'hq' || key === 'shop' || key === 'sales') ? v : Number(v); render(); return;
+      if (key === 'tipMode' && v === 'tier' && st.tipMode !== 'tier') st.tiers = [[0, st.tip], [20000, Math.max(0, st.tip - 1000)], [30000, Math.max(0, st.tip - 2000)]];
+      linked = false; st[key] = (key === 'tier' || key === 'hq' || key === 'shop' || key === 'sales' || key === 'tipMode') ? v : Number(v); render(); return;
     }
   });
   document.addEventListener('input', function (e) {
+    var ti = e.target.closest && e.target.closest('#tiers input[data-t]');
+    if (ti) {
+      var i = Number(ti.dataset.t), f = Number(ti.dataset.f), raw = ti.value.trim(), v2 = Number(raw);
+      st.tiers[i] = st.tiers[i] || [i === 0 ? 0 : null, null];
+      st.tiers[i][f] = raw === '' || !isFinite(v2) || v2 < 0 ? null : v2;
+      linked = false; render(); return;
+    }
     var box = e.target.closest('.own'); if (!box) return;
     var v = Number(e.target.value); if (!isFinite(v) || v < 0) return;
-    st[box.dataset.own] = v;
+    linked = false; st[box.dataset.own] = v;
     $('v-' + box.dataset.own).textContent = won(v);
     var keep = document.activeElement; render(); box.hidden = false; if (keep === e.target) e.target.focus();
   });
   $('noshop').addEventListener('click', function () { st.shop = 'no'; reveal('r1'); });
   $('skip').addEventListener('click', function () { setKind('cafe'); reveal('r1'); });
   $('again').addEventListener('click', function () { $('s1').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+
+  // ── 보내기 ──────────────────────────────────────────────
+  // 고른 숫자는 주소의 # 뒤에만 담아요. # 뒤는 서버로 가지 않고, 어디에도 저장하지 않아요.
+  var LINK = { k: 'kind', i: 'item', n: 'items', r: 'rate', a: 'agency', g: 'surge', t: 'tip', sh: 'shop', hq: 'hq', tr: 'tier', s: 'sales' };
+  function tiersOk() { return st.tiers.filter(function (x) { return x && x[0] != null && x[1] != null; }); }
+  function linkVal(key) { return key === 'tip' && st.tipMode === 'tier' ? tiersOk().map(function (x) { return x[0] + '-' + x[1]; }).join('_') : st[key]; }
+  function baseUrl() { return location.href.split('#')[0].split('?')[0]; }
+  function linkOf() { return baseUrl() + '#' + Object.keys(LINK).map(function (k) { return k + '=' + encodeURIComponent(linkVal(LINK[k])); }).join('&'); }
+  function fromLink() {
+    var h = location.hash.replace(/^#/, '');
+    if (!/(^|&)i=\d/.test(h)) return false;
+    var p = {};
+    h.split('&').forEach(function (kv) { var m = kv.split('='); try { p[m[0]] = decodeURIComponent(m[1] || ''); } catch (err) {} });
+    function num(v, lo, hi, d) { v = Number(v); return (v === v && isFinite(v)) ? Math.min(hi, Math.max(lo, v)) : d; }
+    setKind(p.k === 'food' ? 'food' : 'cafe');
+    st.item = Math.round(num(p.i, 0, 1000000, st.item)); st.items = Math.round(num(p.n, 1, 20, st.items)); st.rate = num(p.r, 0, 100, st.rate);
+    st.agency = Math.round(num(p.a, 0, 100000, st.agency)); st.surge = Math.round(num(p.g, 0, 100000, 0));
+    if (/^\d+-\d+(_\d+-\d+){0,2}$/.test(p.t || '')) {
+      st.tipMode = 'tier';
+      st.tiers = p.t.split('_').map(function (x) { var q = x.split('-'); return [Math.round(num(q[0], 0, 10000000, 0)), Math.round(num(q[1], 0, 100000, 0))]; }).sort(function (a, b) { return a[0] - b[0]; });
+      st.tiers[0][0] = 0; st.tip = st.tiers[0][1];
+    } else { st.tipMode = 'one'; st.tip = Math.round(num(p.t, 0, 100000, st.tip)); }
+    if (p.sh === 'yes' || p.sh === 'no') st.shop = p.sh;
+    if (p.hq === 'yes' || p.hq === 'no') st.hq = p.hq;
+    if (Object.prototype.hasOwnProperty.call(TIER, p.tr)) st.tier = p.tr;
+    if (Object.prototype.hasOwnProperty.call(SALES, p.s)) st.sales = p.s;
+    return true;
+  }
+  // 어떤 숫자로 계산했는지 한 줄 (결과 위 · 보내는 글)
+  function usedText() {
+    var u = PRESET[st.kind].unit;
+    var a = ['메뉴 ' + won(st.item) + '원 × ' + st.items + u, '재료비 ' + st.rate + '%'];
+    if (st.shop === 'yes') {
+      a.push('대행비 ' + won(st.agency) + '원' + (st.surge ? ' + 거리 할증 평균 ' + won(st.surge) + '원' : ''));
+      if (st.tipMode === 'tier') a.push('손님 배달팁 ' + tiersOk().slice().sort(function (x, y) { return x[0] - y[0]; }).map(function (x) { return (x[0] ? won(x[0]) + '원 이상 ' : '기본 ') + won(x[1]) + '원'; }).join(' / '));
+      else a.push('손님 배달팁 ' + (st.tip ? won(st.tip) + '원' : '안 받음'));
+    }
+    a.push('앱배달 수수료 중개 ' + TIER[st.tier].r + ' + 결제 ' + pctTxt(SALES[st.sales].v) + ' (' + TIER[st.tier].nm + ' 구간' + (st.sales !== 'x' ? ' · 연매출 ' + SALES[st.sales].nm.split(' · ')[0] : '') + ')');
+    return a.join(' · ');
+  }
+  // 내 결과: 1건 비교만이 아니라 '그래서'(바꿀 수 있는 설정)와 넣은 숫자를 같이. 매장 비교는 뺌
+  function mineText() {
+    var u = PRESET[st.kind].unit;
+    var rows = model().filter(function (c) { return !c.cmp; }).sort(function (a, b) { return b.left - a.left; })
+      .map(function (c) { return (c.id === 'app' ? '앱배달(배민배달·쿠팡이츠)' : c.nm) + ' ' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + '원'; });
+    var tips = Array.prototype.map.call(document.querySelectorAll('#do li'), function (li) {
+      var c = li.cloneNode(true);
+      Array.prototype.forEach.call(c.querySelectorAll('small'), function (x) { x.parentNode.removeChild(x); });
+      return c.textContent.replace(/\s+/g, ' ').trim();
+    }).filter(function (t) { return t.indexOf('앱마다') !== 0; });
+    return ['우리 가게 배달 1건(' + st.items + u + ' · ' + won(st.items * st.item) + '원) 계산이에요.',
+      '남는 돈(재료비·포장재·수수료·배달비 뺀 돈): ' + rows.join(' · '),
+      tips.map(function (t) { return '· ' + t; }).join('\n'),
+      '넣은 숫자: ' + usedText(),
+      '예시 요율이라 실제 정산서와 다를 수 있어요. 숫자는 바꿔 볼 수 있어요.'].filter(Boolean).join('\n');
+  }
+  function send(text, url) {
+    var say = $('send-say'), box = $('send-box'), all = text + '\n' + url;
+    function done(msg) { say.textContent = msg; setTimeout(function () { if (say.textContent === msg) say.textContent = ''; }, 6000); }
+    function byHand() { box.hidden = false; box.value = all; box.focus(); box.select(); say.textContent = '아래 글을 복사해서 보내세요.'; }
+    box.hidden = true;
+    if (navigator.share) { navigator.share({ text: all }).catch(function () {}); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(all).then(function () { done('복사했어요. 카톡에 붙여 넣으세요.'); }, byHand);
+    else byHand();
+  }
+  $('send-mine').addEventListener('click', function () { send(mineText(), linkOf()); });
+  $('send-tool').addEventListener('click', function () { send('배달 1건 팔면 얼마 남는지 계산해 보는 곳이에요. 가입 없이 숫자 5개만 고르면 돼요.', baseUrl()); });
+
   try { if (/food|식당/i.test(decodeURIComponent(location.search + location.hash))) setKind('food'); } catch (err) {}
-  render();
+  try { linked = fromLink(); } catch (err) { linked = false; }
+  if (linked) { reveal('r1', false); setTimeout(function () { $('r1').scrollIntoView({ behavior: 'instant', block: 'start' }); }, 60); }
+  else render();
 })();
 </script>
 </body>
