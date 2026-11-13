@@ -2,6 +2,7 @@
 
 포스 매출 ↔ 통장 맞추기 데모 (처음엔 배달 정산 맞추기 최소 데모) (hq 이름: `delivery-profit`).
 
+- 주소: https://johnsongarage.co.kr/money-matching-excel/ (11/13 저장소를 `kery27` → `johnsongarage`로 옮김 · 예전 `kery27.github.io/money-matching-excel` 주소는 404). 페이지 안 절대 주소는 새 주소로.
 - 빌드 없음, Vanilla JS. 첫 화면 `index.html` = **포스 매출 ↔ 통장 맞추기** (11/3 방향 전환, 11/5 출발점을 본사 엑셀 → 포스 매출로. 본사 엑셀은 청구·상계 자료. 예시 데이터는 파일 안).
 - 배달 정산 화면: `delivery.html`(카드형)·`dashboard.html`(대시보드형), 예시 데이터·계산은 `data.js`(window.DEMO).
 - 모든 화면 위쪽 "화면" 콤보 박스 = `screens.js`.
