@@ -1,4 +1,4 @@
-// news.html(배달앱 소식 — 그래서 우리 가게는?) 확인: 검산 · 휴대폰 화면 · 주소에 숫자 담기 · 이미지 저장
+// news.html(배달앱 소식 — 그래서 우리 가게는?) 확인: 검산 · 휴대폰 화면 · 주소와 숫자(저절로 안 따라감) · 이미지 저장
 // 실행: node tests/news.test.js   (Playwright + Chromium 필요)
 // 요율이나 문구를 고치면 다시 돌린다. 기대값은 손계산(아래 주석)과 공개 예시에서 온 것.
 const { chromium } = require('playwright');
@@ -65,9 +65,17 @@ function ok(cond, name, extra) { if (cond) console.log('  ok  ' + name); else { 
   await p.fill('.chips[data-key="bn"] + .own input', '0');
   ok((await txt('bm-big')).includes('달라지는 게 없어요'), '배달팁 할인 주문 0건 → 달라지는 게 없어요', await txt('bm-big'));
 
-  console.log('주소에 숫자 담기');
-  const search = await p.evaluate(() => location.search);
-  ok(/bn=0/.test(search) && /bt=1500/.test(search) && /cd=10000/.test(search) && /br=c/.test(search) && /sl=s1/.test(search), '바꾼 숫자가 주소에 담김', search);
+  console.log('주소와 숫자');
+  // 숫자를 바꿔도 주소에는 저절로 붙지 않는다 (가게 사정이 모르는 사이 따라가지 않게)
+  ok(!(await p.evaluate(() => location.search)), '숫자를 바꿔도 주소에 저절로 붙지 않음', await p.evaluate(() => location.search));
+  await p.evaluate(() => { window.__copied = []; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: t => { window.__copied.push(t); return Promise.resolve(); } } }); });
+  await p.click('#copy');
+  await p.click('details.more:has(#copy-mine) > summary');
+  await p.click('#copy-mine');
+  const copied = await p.evaluate(() => window.__copied);
+  ok(copied.length === 2 && !copied[0].includes('?') && /news\.html$/.test(copied[0]), '[이 화면 주소 복사]는 숫자 없는 주소', copied[0]);
+  ok(/bn=0/.test(copied[1]) && /bt=1500/.test(copied[1]) && /cd=10000/.test(copied[1]) && /br=c/.test(copied[1]) && /sl=s1/.test(copied[1]), '[내 숫자가 담긴 주소 복사]에만 숫자가 담김', copied[1]);
+  ok((await txt('msg')).includes('내 숫자가 담긴 주소'), '복사했다고 알려 줌', await txt('msg'));
   const p2 = await ctx.newPage();
   p2.on('pageerror', e => errors.push(String(e)));
   await p2.goto(page + '?bn=600&bt=2000&cn=100&cd=3000&hq=1&op=25000&br=b&sl=s2');
@@ -83,6 +91,7 @@ function ok(cond, name, extra) { if (cond) console.log('  ok  ' + name); else { 
   await p3.close();
 
   console.log('이미지 저장');
+  await p2.click('details.more:has(#save) > summary');
   const [dl] = await Promise.all([p2.waitForEvent('download'), p2.click('#save')]);
   const file = path.join(require('os').tmpdir(), 'news-test-' + Date.now() + '.png');
   await dl.saveAs(file);
@@ -97,6 +106,7 @@ function ok(cond, name, extra) { if (cond) console.log('  ok  ' + name); else { 
   for (const w of [320, 360, 412]) {
     await p.setViewportSize({ width: w, height: 740 });
     await p.goto(page);
+    await p.evaluate(() => document.querySelectorAll('details.more').forEach(d => { d.open = true; }));   // 접힌 것도 펼쳐서 봄
     const r = await p.evaluate(() => ({
       over: document.documentElement.scrollWidth - innerWidth,
       small: [...document.querySelectorAll('.chip, .btn, details.more > summary')].filter(e => e.getBoundingClientRect().height < 43.5).map(e => e.textContent.trim().slice(0, 12)),
