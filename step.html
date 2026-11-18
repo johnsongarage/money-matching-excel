@@ -464,7 +464,8 @@
     $('list').innerHTML = L.map(function (c) {
       var how = c.cmp ? '카드 수수료 ' + won(c.fee) + ' · 재료 ' + won(c.mat)
         : '수수료 ' + won(c.fee + (c.id === 'app' ? 0 : Math.round(tipAt(c.P) * (c.id === 'mp' ? clubK() : 1) * (c.id === 'hq' ? HQ : PAY) * 1.1))) + ' · 배달 ' + won(c.id === 'app' ? Math.round(c.del) : c.del) + ' · 재료 ' + won(c.mat) + ' · 포장 ' + won(c.pk) + (c.stamp ? ' · 적립 ' + (c.range ? '0~' : '') + won(c.stamp) : '');
-      return '<div class="item' + (c === best ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (c === best ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
+      var top = c === best && d.length > 1;   // 배달 길이 하나뿐이면(대행 안 부름) '가장 많이' 안 붙임
+      return '<div class="item' + (top ? ' best' : '') + (c.cmp ? ' cmp' : '') + (c.left < 0 ? ' loss' : '') + '"><div class="top"><span class="nm">' + c.nm + (top ? '<span class="tag">가장 많이</span>' : '') + '<small>' + c.sub + '</small></span>' +
         '<span class="v">' + (c.left < 0 ? '−' + won(-c.left) : won(c.left)) + (c.range ? '~' + won(c.leftMax) : '') + '<small>원</small></span></div>' +
         '<div class="track" aria-hidden="true"><span style="width:' + (Math.max(c.left, 0) / mx * 100).toFixed(1) + '%"></span></div><div class="how">' + how + '</div></div>';
     }).join('');
