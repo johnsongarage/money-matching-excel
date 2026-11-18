@@ -223,7 +223,7 @@
           <label class="f">가게배달 중개 수수료 (%)<small>배민 가게배달(오픈리스트) 6.8% · 공정위 자료 · 다시 정하라는 명령 받음</small><input type="number" id="mp" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 수수료 (%)<small>브랜드마다 다름 · 모르면 3%로 봐요 (부가세 별도)</small><input type="number" id="hqfee" min="0" max="15" step="0.1" inputmode="decimal"></label>
           <label class="f">본사 앱 적립, 몇 개 모으면 무료 1개<small>도장·스탬프 · 무료 1개를 줄 때까지</small><input type="number" id="stampN" min="1" step="1" inputmode="numeric"></label>
-          <label class="f">적립 무료 1개 값은 누가 내요<small>모르면 범위로 보여 드려요 · 원가 = 무료 메뉴 값 × 원가율 · 같은 반반도 판매가·원가 기준에 따라 몇 배 차이 · 모은 걸 다 쓴다고 봄</small><select id="stampWho"><option value="unknown">모름 (범위로)</option><option value="none">가게는 안 내요</option><option value="half">원가의 절반</option><option value="cost">원가 전부</option><option value="halfprice">판매가의 절반</option><option value="price">판매가 전부</option></select></label>
+          <label class="f">적립 무료 1개 값은 누가 내요<small>모르면 평균으로: 무료 1개 값 ÷ 모으는 수 · 무료 대신 할인이면 그 할인 금액을 무료 메뉴 값 칸에 · 원가 = 무료 메뉴 값 × 원가율 · 같은 반반도 판매가·원가 기준에 따라 몇 배 차이 · 모은 걸 다 쓴다고 봄</small><select id="stampWho"><option value="unknown">모름 (평균으로)</option><option value="none">가게는 안 내요</option><option value="half">원가의 절반</option><option value="cost">원가 전부</option><option value="halfprice">판매가의 절반</option><option value="price">판매가 전부</option></select></label>
           <label class="f">적립으로 무료로 주는 메뉴 값 (원)<small>보통 평균보다 싼 음료 · 비우면 메뉴 1개 값 · 정확한 숫자는 가맹계약서·판촉 약정서, 본사 정산서의 적립·쿠폰 차감 줄, 공정위 가맹사업거래 정보공개서(광고·판촉비 분담)에서 확인할 수 있어요.</small><input type="number" id="freeItem" min="0" step="100" inputmode="numeric"></label>
           <label class="f">직접 배달 1건 비용 (원)<small>시간 인건비 + 기름값 어림 · 직접 배달 방식에만</small><input type="number" id="self" min="0" step="100" inputmode="numeric"></label>
           <label class="f">멤버십 때문에 가게가 내는 배달료 (원)<small>손님 무료배달 혜택 가게라 붙는 몫 · 앱배달 · 없으면 0 · 배민은 이 금액에 중개·결제 수수료를 안 매기기로 했어요 (2026-11 발표 · 시행일이 나오면 계산에 반영, <a href="fees.html">요율 근거표</a>)</small><input type="number" id="member" min="0" step="100" inputmode="numeric"></label>
@@ -357,7 +357,7 @@
     var who = $('stampWho').value, F = n('freeItem') || n('item'), r = n('rate') / 100, N = Math.max(1, n('stampN'));
     return who === 'none' ? 0 : who === 'half' ? F * r / 2 / N : who === 'cost' ? F * r / N : who === 'halfprice' ? F / 2 / N : F / N;
   }
-  function stampRange() { return $('stampWho').value === 'unknown'; }
+  function stampRange() { return false; }   // 11/18: 모름도 범위 대신 평균 한 숫자(무료 1개 값 ÷ 모으는 수)
   function clubK() { return 1 - Math.min(100, n('club')) / 100; }   // 배민클럽 주문은 배달팁 0원 (배민 가게배달 · 직접 배달)
   function agencyAll() { return n('agency') + n('surge'); }
   function pct(x) { return (Math.round(x * 100) / 100).toFixed(2).replace(/\.?0+$/, ''); }
@@ -402,7 +402,7 @@
         note: '가게배달 중개 ' + pct(mp * 100) + '%는 배민 오픈리스트 기준(공정위 자료)이에요. 공정위가 배민에 이 요율을 다시 정하라고 명령해서 바뀔 수 있어요.' },
       { id: 'hq', grp: 'd', short: '본사 앱', nm: '본사 앱 배달', sub: '프랜차이즈 자체 앱 · 수수료 ' + pct(hf * 100) + '% (가정) · 대행 라이더', price: it, f: hf * 1.1,
         fTxt: pct(hf * 100) + '% × 1.1', costs: agRows(hf, '본사 앱 수수료도 배달팁에 붙는다고 봄 (가정)', tipFor(it)), per: st, tipR: hf, tipNow: tipFor(it),
-        note: '본사 앱 수수료(' + pct(hf * 100) + '%)는 가정이에요. 적립 할인은 1개당 ' + won(st) + '원으로 봤어요' + (stampRange() ? ' (누가 내는지 몰라서 가장 많이 빠지는 경우 · 범위로 표시)' : '') + '. 브랜드마다 달라서 본사 계약서나 본사 앱 정산 화면에서 확인할 숫자예요. 메뉴는 매장 가격으로 봤어요.' },
+        note: '본사 앱 수수료(' + pct(hf * 100) + '%)는 가정이에요. 적립 할인은 1개당 ' + won(st) + '원으로 봤어요' + ($('stampWho').value === 'unknown' ? ' (누가 내는지 몰라서 무료 1개 값을 모으는 수로 나눈 평균)' : '') + '. 브랜드마다 달라서 본사 계약서나 본사 앱 정산 화면에서 확인할 숫자예요. 메뉴는 매장 가격으로 봤어요.' },
       { id: 'shop', grp: 'c', nm: '매장에서 (카드)', sub: '손님이 와서 먹거나 받아 감', price: it, f: cd, fTxt: pct(cd * 100) + '%', costs: [], per: 0, noPack: true,
         note: '카드 수수료 ' + pct(cd * 100) + '%는 예시예요 (매출 규모마다 달라요).' },
       { id: 'hqtk', grp: 'c', nm: '포장 · 본사 앱', sub: '본사 앱으로 주문하고 가져감', price: it, f: hf * 1.1, fTxt: pct(hf * 100) + '% × 1.1', costs: [], per: st,
